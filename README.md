@@ -1,36 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Foundation Onboarding
 
-## Getting Started
+The WBT "Foundation onboarding 2026" questionnaire — a single-page, schema-driven
+multi-step form with autosave to Supabase and a resume-by-email magic link.
 
-First, run the development server:
+## How it's built
+
+- **Schema-driven** — every question and its conditional routing lives in
+  [`lib/schema/questions.ts`](lib/schema/questions.ts). One generic renderer
+  ([`components/onboarding/QuestionRenderer.tsx`](components/onboarding/QuestionRenderer.tsx))
+  handles all question types; follow-up questions show/hide via `visibleIf` rules
+  evaluated in [`lib/schema/visibility.ts`](lib/schema/visibility.ts).
+- **Single page, no route changes** — all state is client-side
+  ([`components/onboarding/OnboardingApp.tsx`](components/onboarding/OnboardingApp.tsx),
+  a `useReducer`). The sidebar sections just navigate within the page.
+- **Persistence** — answers autosave (debounced) to a Supabase `onboarding_submissions`
+  row via [`app/api/submission/route.ts`](app/api/submission/route.ts). Files go to
+  Supabase Storage via [`app/api/upload/route.ts`](app/api/upload/route.ts).
+- **Resume** — after the email step, a magic link (`/?token=...`) is emailed via Resend
+  ([`app/api/resume-link/route.ts`](app/api/resume-link/route.ts)). Visiting the link
+  rehydrates the saved progress.
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.local.example .env.local   # then fill in the values
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+In Supabase: run [`supabase/migrations/0001_onboarding_submissions.sql`](supabase/migrations/0001_onboarding_submissions.sql)
+in the SQL editor. It creates the table, indexes, RLS posture (RLS on, no anon policies —
+all access is server-side via the service-role key) and the `onboarding-uploads` storage bucket.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Required env vars (see `.env.local.example`):
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Var | Notes |
+|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | browser key (can't touch the table — no anon RLS policies) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **server only**, never `NEXT_PUBLIC_`; route handlers use it |
+| `NEXT_PUBLIC_APP_URL` | base URL for the emailed resume link |
+| `RESEND_API_KEY` | Resend API key |
+| `RESEND_FROM` | verified sender; `onboarding@resend.dev` works for dev |
 
-## Learn More
+## Run
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev      # http://localhost:3000
+npm run build
+npm run lint
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Without Supabase configured the form still renders and you can walk every section;
+autosave/upload/email calls return 503 and the UI shows a "couldn't save" status.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Image galleries
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+A few steps (logo styles, Real/Animated/Mixed template galleries, 12 colour palettes,
+4 button styles) use placeholder tiles until real assets land. Drop real
+`{ id, label, imageUrl }[]` arrays into [`lib/schema/galleries.ts`](lib/schema/galleries.ts);
+no other changes needed. If you switch to `next/image` for remote assets, add their host
+to `images.remotePatterns` in `next.config.ts`.
