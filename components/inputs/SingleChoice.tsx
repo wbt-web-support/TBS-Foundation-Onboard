@@ -15,8 +15,10 @@ export function SingleChoice({
   /** Force a column count; default auto (1 col for long labels, up to 3 for short). */
   columns?: number;
 }) {
+  const hasRichOptions = options.some((o) => o.description || o.example || o.warning);
   const longest = options.reduce((m, o) => Math.max(m, o.label.length), 0);
-  const cols = columns ?? (longest > 28 ? 1 : longest > 14 ? 2 : 3);
+  const cols =
+    columns ?? (hasRichOptions ? 1 : longest > 28 ? 1 : longest > 14 ? 2 : 3);
   return (
     <div
       className="grid gap-2.5"
@@ -28,6 +30,9 @@ export function SingleChoice({
           label={o.label}
           imageUrl={o.imageUrl}
           linkUrl={o.linkUrl}
+          description={o.description}
+          example={o.example}
+          warning={o.warning}
           control="radio"
           selected={value === o.value}
           onClick={() => onChange(value === o.value ? "" : o.value)}

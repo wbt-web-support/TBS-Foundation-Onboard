@@ -42,7 +42,7 @@ export function Sidebar() {
   const overall = overallProgress(answers);
 
   return (
-    <aside className="sticky top-0 hidden h-screen w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
+    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
       <div className="border-b border-slate-100 px-5 py-5">
         <h1 className="text-base font-semibold text-ink">Setup Progress</h1>
         <p className="mt-0.5 text-xs text-muted">Complete all sections to continue</p>

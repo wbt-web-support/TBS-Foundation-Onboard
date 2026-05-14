@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingContext";
 import { Icon } from "@/components/ui/Icon";
 
@@ -11,6 +11,11 @@ function fileName(urlOrPath: string): string {
   } catch {
     return "Uploaded file";
   }
+}
+
+function isLikelyImageUrl(urlOrPath: string): boolean {
+  const path = urlOrPath.split("?")[0].toLowerCase();
+  return /\.(png|jpe?g|gif|webp|svg|avif|bmp|ico)(\b|$)/.test(path);
 }
 
 export function FileUpload({
@@ -26,6 +31,11 @@ export function FileUpload({
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imagePreviewFailed, setImagePreviewFailed] = useState(false);
+
+  useEffect(() => {
+    setImagePreviewFailed(false);
+  }, [value]);
 
   const handlePick = async (file: File) => {
     setError(null);
@@ -54,13 +64,23 @@ export function FileUpload({
       />
       {value ? (
         <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm">
-          <span className="flex min-w-0 items-center gap-2 text-slate-700">
+          <span className="flex min-w-0 flex-1 items-center gap-2 text-slate-700">
             <Icon name="check" className="size-4 shrink-0 text-emerald-600" />
+            {isLikelyImageUrl(value) && !imagePreviewFailed ? (
+              <img
+                src={value}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="size-10 shrink-0 rounded-md border border-slate-200 bg-white object-cover"
+                onError={() => setImagePreviewFailed(true)}
+              />
+            ) : null}
             <a
               href={value}
               target="_blank"
               rel="noopener noreferrer"
-              className="truncate hover:underline"
+              className="min-w-0 truncate hover:underline"
             >
               {fileName(value)}
             </a>

@@ -1,4 +1,4 @@
-import { GALLERIES } from "@/lib/schema/galleries";
+import { isFieldGroupKickoffDeferred, isProvideLaterSentinel } from "@/lib/answers";import { GALLERIES } from "@/lib/schema/galleries";
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
 import type { Question } from "@/lib/schema/types";
 import type {
@@ -629,7 +629,9 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
     );
   }
 
-  const de = str(answers.display_email);
+  const deRaw = answers.display_email;
+  const de =
+    typeof deRaw === "string" && !isProvideLaterSentinel(deRaw) ? deRaw.trim() : "";
   if (de) {
     out.Email_Show_On_Website = entry(
       " What email address do you want to display on your website? This address will receive your lead notifications. ",
@@ -803,7 +805,7 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
   }
 
   const dpc = fg(answers, "domain_provider_credentials");
-  if (dpc) {
+  if (dpc && !isFieldGroupKickoffDeferred(dpc)) {
     out.Domain_Provider_Credentials = entry(
       findQuestion("domain_provider_credentials")?.title ?? "Domain provider credentials",
       {

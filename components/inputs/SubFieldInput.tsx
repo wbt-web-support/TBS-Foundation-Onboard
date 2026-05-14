@@ -8,14 +8,7 @@ import { TextareaInput } from "./TextareaInput";
 import { SelectInput } from "./SelectInput";
 import { SingleChoice } from "./SingleChoice";
 import { YearSelect } from "./YearSelect";
-import { FIELD_CLASS, LABEL_CLASS } from "./fieldStyles";
-
-const PREFIX_WRAP =
-  "flex w-full overflow-hidden rounded-lg border border-slate-300 bg-white transition outline-none focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/25";
-const PREFIX_CELL =
-  "flex shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 py-2 text-sm font-medium text-slate-500";
-const PREFIX_INPUT =
-  "min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-ink outline-none ring-0 placeholder:text-slate-400";
+import { FIELD_CLASS, INPUT_PREFIX_FIELD, INPUT_PREFIX_LEAD, INPUT_PREFIX_WRAP, LABEL_CLASS } from "./fieldStyles";
 
 export function SubFieldInput({
   sub,
@@ -56,13 +49,13 @@ export function SubFieldInput({
                 : "text";
       if (sub.inputPrefix) {
         control = (
-          <div className={PREFIX_WRAP}>
-            <span className={PREFIX_CELL}>{sub.inputPrefix}</span>
+          <div className={INPUT_PREFIX_WRAP}>
+            <span className={`${INPUT_PREFIX_LEAD} font-medium`}>{sub.inputPrefix}</span>
             <input
               type={htmlType}
               inputMode={sub.type === "number" ? "numeric" : sub.type === "tel" ? "tel" : undefined}
               autoComplete={sub.type === "email" ? "email" : sub.type === "tel" ? "tel" : "off"}
-              className={PREFIX_INPUT}
+              className={INPUT_PREFIX_FIELD}
               value={str}
               placeholder={ph}
               onChange={(e) => setStr(e.target.value)}
@@ -72,14 +65,27 @@ export function SubFieldInput({
         );
       } else {
         control = (
-          <TextInput kind={sub.type} value={str} onChange={setStr} onBlur={onBlur} placeholder={ph} />
+          <TextInput
+            kind={sub.type}
+            value={str}
+            onChange={setStr}
+            onBlur={onBlur}
+            placeholder={ph}
+            leadingIcon={sub.type === "email" ? "mail" : undefined}
+          />
         );
       }
       break;
     }
     case "textarea":
       control = (
-        <TextareaInput value={str} onChange={setStr} onBlur={onBlur} placeholder={placeholder ?? sub.placeholder} rows={3} />
+        <TextareaInput
+          value={str}
+          onChange={setStr}
+          onBlur={onBlur}
+          placeholder={placeholder ?? sub.placeholder}
+          rows={sub.rows ?? 3}
+        />
       );
       break;
     case "select":
@@ -114,9 +120,21 @@ export function SubFieldInput({
 
   return (
     <div>
-      <label className={LABEL_CLASS}>
-        {title}
-        {sub.required ? <span className="text-brand-600"> *</span> : null}
+      <label className={`${LABEL_CLASS} flex items-center gap-2`}>
+        {sub.labelIconUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={sub.labelIconUrl}
+            alt=""
+            className="size-5 shrink-0 object-contain"
+            width={20}
+            height={20}
+          />
+        ) : null}
+        <span>
+          {title}
+          {sub.required ? <span className="text-brand-600"> *</span> : null}
+        </span>
       </label>
       {sub.helper ? <p className="mb-1.5 -mt-0.5 text-xs text-muted">{sub.helper}</p> : null}
       {control}

@@ -1,5 +1,5 @@
 import type { Answers, FieldGroupAnswer, RepeatableAnswer } from "../types";
-import { isNonEmpty } from "../answers";
+import { isFieldGroupKickoffDeferred, isNonEmpty } from "../answers";
 import { ONBOARDING_SCHEMA } from "./questions";
 import type { Question, Section } from "./types";
 import { getVisibleStandaloneQuestions, isSubQuestionVisible, isVisible } from "./visibility";
@@ -23,6 +23,7 @@ function fieldGroupComplete(question: Question, value: unknown, answers: Answers
   const scope = (value && typeof value === "object" && !Array.isArray(value)
     ? value
     : {}) as FieldGroupAnswer;
+  if (isFieldGroupKickoffDeferred(scope)) return true;
   return (question.group ?? [])
     .filter((s) => isSubQuestionVisible(s, answers, scope))
     .filter((s) => s.required)
@@ -68,6 +69,16 @@ export function isQuestionComplete(question: Question, answers: Answers): boolea
 export function questionDisplayComplete(question: Question, answers: Answers): boolean {
   if (isRequired(question)) return isQuestionComplete(question, answers);
   return isNonEmpty(answers[question.id]);
+}
+
+/** Visible standalone questions completed vs total (matches per-card "Completed" in the UI). */
+export function sectionVisibleQuestionCompletion(section: Section, answers: Answers): {
+  completed: number;
+  total: number;
+} {
+  const visible = getVisibleStandaloneQuestions(section, answers);
+  const completed = visible.filter((q) => questionDisplayComplete(q, answers)).length;
+  return { completed, total: visible.length };
 }
 
 export interface SectionProgress {

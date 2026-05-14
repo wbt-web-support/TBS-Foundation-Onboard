@@ -1,36 +1,41 @@
 import Image from "next/image";
-import { Icon } from "@/components/ui/Icon";
+import { WbtMark } from "@/components/layout/WbtMark";
 
 export function TransitionIntroScreen({
   title,
   description,
   checklist,
+  closingText,
   imageSrc,
   imageAlt = "Section introduction illustration",
 }: {
   title: string;
   description: string;
   checklist: string[];
+  closingText?: string;
   imageSrc?: string;
   imageAlt?: string;
 }) {
   return (
-    <div className="rounded-card border border-white/10 bg-intro-card p-6 shadow-2xl sm:p-7 lg:p-8">
+    <div className="rounded-card border border-slate-200 bg-white p-6 shadow-lg sm:p-7 lg:p-8">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="min-w-0 flex-1">
-          <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-white">{title}</h2>
-          <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-slate-200">{description}</p>
-          <div className="mt-4 flex flex-wrap gap-2">
+          <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink">{title}</h2>
+          <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-muted">{description}</p>
+          <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {checklist.map((item) => (
               <span
                 key={item}
-                className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-sm font-medium text-white"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-transparent px-3 py-1.5 text-sm font-medium text-ink"
               >
-                <Icon name="check" className="size-3.5 text-emerald-400" />
+                <WbtMark className="h-4 w-[2.75rem] shrink-0" />
                 {item}
               </span>
             ))}
           </div>
+          {closingText ? (
+            <p className="mt-5 text-[15px] leading-relaxed text-muted">{closingText}</p>
+          ) : null}
         </div>
         {imageSrc ? (
           <div className="relative mx-auto flex w-full max-w-[140px] shrink-0 justify-center sm:max-w-[170px] lg:mx-0 lg:max-w-[190px]">

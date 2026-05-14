@@ -8,6 +8,9 @@ export function OptionCard({
   label,
   imageUrl,
   linkUrl,
+  description,
+  example,
+  warning,
   selected,
   onClick,
   control,
@@ -15,40 +18,50 @@ export function OptionCard({
   label: string;
   imageUrl?: string;
   linkUrl?: string;
+  description?: string;
+  example?: string;
+  warning?: string;
   selected: boolean;
   onClick: () => void;
   control: "radio" | "checkbox";
 }) {
   const tileMulti = control === "checkbox" && Boolean(imageUrl);
+  const hasRichDetail = Boolean(description || example || warning);
 
   if (tileMulti) {
     return (
       <button
         type="button"
         onClick={onClick}
+        aria-label={label}
         data-selected={selected ? "true" : "false"}
         aria-pressed={selected}
-        className={`group relative flex w-full flex-col overflow-hidden rounded-lg border text-left text-sm transition ${
+        className={`group relative flex min-h-[8.5rem] w-full flex-col overflow-hidden rounded-lg border text-left text-sm transition sm:min-h-[9.25rem] ${
           selected
             ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
             : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50"
         }`}
       >
-        <span className="sr-only">{label}</span>
-        <div className="relative flex h-[4.5rem] w-full shrink-0 items-center justify-center bg-slate-50 ring-1 ring-slate-100 sm:h-[5.25rem]">
+        <span
+          className={`absolute left-2.5 top-2.5 z-10 grid size-5 shrink-0 place-items-center rounded border ${
+            selected ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-transparent"
+          }`}
+          aria-hidden
+        >
+          <Icon name="check" className="size-3.5" />
+        </span>
+        <div className="flex flex-1 items-center justify-center px-3 pb-1 pt-8">
           <Image
             src={imageUrl!}
             alt=""
             width={120}
-            height={48}
-            className="max-h-10 w-auto max-w-[72%] object-contain sm:max-h-12"
+            height={56}
+            className="max-h-12 w-auto max-w-[78%] object-contain sm:max-h-14"
             unoptimized
           />
-          <div
-            className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[var(--color-intro-card)]/95 px-2 py-1.5 text-center text-[11px] font-semibold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100 sm:text-xs"
-          >
-            <span className="line-clamp-2">{label}</span>
-          </div>
+        </div>
+        <div className="border-t border-slate-100 bg-white px-2 py-2 text-center text-[11px] font-medium leading-snug text-slate-700 sm:text-xs">
+          {label}
         </div>
       </button>
     );
@@ -60,7 +73,7 @@ export function OptionCard({
       onClick={onClick}
       aria-pressed={control === "checkbox" ? selected : undefined}
       className={`flex w-full rounded-lg border px-3.5 py-3 text-left text-sm transition ${
-        imageUrl ? "flex-col gap-2" : "items-center gap-3"
+        imageUrl ? "flex-col gap-2" : hasRichDetail ? "flex-col items-stretch gap-0 py-3.5 sm:px-4 sm:py-4" : "items-center gap-3"
       } ${
         selected
           ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
@@ -79,11 +92,13 @@ export function OptionCard({
           />
         </div>
       ) : null}
-      <div className={`flex min-w-0 flex-1 items-start gap-3`}>
+      <div className={`flex min-w-0 flex-1 items-start gap-3 ${hasRichDetail ? "sm:gap-3.5" : ""}`}>
         <span
           className={`grid size-5 shrink-0 place-items-center border ${
             control === "radio" ? "rounded-full" : "rounded"
-          } ${selected ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-transparent"}`}
+          } ${selected ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-transparent"} ${
+            hasRichDetail ? "mt-0.5" : ""
+          }`}
         >
           {control === "radio" ? (
             <span className={`size-2 rounded-full ${selected ? "bg-white" : "bg-transparent"}`} />
@@ -91,8 +106,17 @@ export function OptionCard({
             <Icon name="check" className="size-3.5" />
           )}
         </span>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="text-slate-700">{label}</span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+          <span className={hasRichDetail ? "font-semibold text-slate-900" : "text-slate-700"}>{label}</span>
+          {description ? (
+            <p className="text-sm leading-relaxed text-slate-600">{description}</p>
+          ) : null}
+          {warning ? <p className="text-xs font-medium leading-snug text-rose-600">{warning}</p> : null}
+          {example ? (
+            <div className="rounded-md border border-slate-200/90 bg-slate-50 px-2.5 py-2 text-sm italic leading-relaxed text-slate-700">
+              {example}
+            </div>
+          ) : null}
           {linkUrl ? (
             <a
               href={linkUrl}

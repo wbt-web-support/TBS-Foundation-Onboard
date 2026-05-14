@@ -23,6 +23,13 @@ export type AnswerValue =
 
 export type Answers = Record<string, AnswerValue>;
 
+/** Last autosave snapshot of visible question completion for the active section (stored in answers JSONB). */
+export interface SectionQuestionProgressSnapshot {
+  sectionId: string;
+  completed: number;
+  total: number;
+}
+
 export interface SubmissionRow {
   id: string;
   resume_token: string;
@@ -48,6 +55,7 @@ export interface AutosavePayload {
   taxId: string | null;
   satisfactionRating: number | null;
   completed?: boolean;
+  sectionQuestionProgress?: SectionQuestionProgressSnapshot;
 }
 
 /** Response from POST /api/submission. */

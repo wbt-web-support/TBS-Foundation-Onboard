@@ -39,6 +39,12 @@ export interface Option {
   imageUrl?: string;
   /** Optional link (e.g. Google Fonts) shown under the label; does not change the option value. */
   linkUrl?: string;
+  /** Extra copy under the title (tone of voice, etc.). */
+  description?: string;
+  /** Italic-style example snippet inside the card. */
+  example?: string;
+  /** Optional caution line (e.g. red) under the description. */
+  warning?: string;
 }
 
 export interface GalleryOption {
@@ -48,6 +54,8 @@ export interface GalleryOption {
   imageUrl?: string;
   /** When set, the tile shows horizontal colour swatches instead of `imageUrl`. */
   swatchColors?: string[];
+  /** When set, the tile shows two sample CTA buttons with this corner treatment. */
+  buttonShape?: "sharp" | "pill" | "skew" | "soft";
 }
 
 /**
@@ -76,10 +84,15 @@ export interface Condition {
   not?: boolean;
 }
 
-/** Visibility = ALL of `all` AND ANY of `any`. Either may be omitted (treated satisfied). */
+/**
+ * Visibility = ALL of `all` AND ANY of `any` AND (if `anyOf` is set) at least one sub-rule fully matches.
+ * Use `anyOf` for OR-of-AND groups (e.g. show after path A OR path B with extra conditions).
+ */
 export interface VisibilityRule {
   all?: Condition[];
   any?: Condition[];
+  /** Each entry is evaluated with `isVisible`; if any matches, this part passes. */
+  anyOf?: VisibilityRule[];
 }
 
 /** Match a sibling answer value for `labelBySibling` rules. Use `oneOf` or `equals`, not both. */
@@ -112,12 +125,22 @@ export interface SubQuestion {
   };
   /** Shown inside the control before the input (e.g. "#"). */
   inputPrefix?: string;
+  /** `textarea`: visible height in rows (default in UI: 3). */
+  rows?: number;
+  /** Optional brand icon to the left of the sub-field label (URL under `public/`, e.g. `/image/image/facebook.svg`). */
+  labelIconUrl?: string;
 }
 
 /** Inline segments for a question title (plain text + external links). */
 export type QuestionRichSegment =
   | { type: "text"; text: string }
-  | { type: "link"; text: string; href: string };
+  | {
+      type: "link";
+      text: string;
+      href: string;
+      /** If true and `href` is a Loom share URL, opens the video in a dialog instead of a new tab. */
+      openInModal?: boolean;
+    };
 
 export interface Question {
   /** Stable, unique across the whole schema. */
@@ -125,6 +148,10 @@ export interface Question {
   type: QuestionType;
   title: string;
   helper?: string;
+  /**
+   * When set, renders below the title with the same link styling as `titleRich` (plain `helper` is ignored if both are set).
+   */
+  helperRich?: QuestionRichSegment[];
   /**
    * When set, the card heading renders these segments instead of plain `title`.
    * Keep `title` as a readable plain-text fallback (exports, legacy payloads).
@@ -134,17 +161,28 @@ export interface Question {
   icon?: string;
   required?: boolean;
   placeholder?: string;
+  /** Optional image under the card header (`public/` URL, e.g. `/brand-img/logo-style-01.svg`). */
+  cardImageUrl?: string;
+  cardImageAlt?: string;
 
   // type-specific:
   options?: Option[]; // select / single-choice / multi-choice
+  /** `single-choice`: fixed column count for the option grid (default is auto from label length). */
+  singleChoiceColumns?: 1 | 2 | 3;
+  /** `multi-choice`: fixed column count for the checkbox grid (default is auto from labels / images). */
+  multiChoiceColumns?: 1 | 2 | 3;
   galleryOptions?: GalleryOption[]; // image-gallery-pick
   galleryKey?: string; // alternative: resolve from lib/schema/galleries
   galleryMulti?: boolean; // image-gallery-pick: allow selecting multiple tiles
+  /** `row`: one horizontal strip (e.g. four button styles). Default grid. */
+  galleryLayout?: "grid" | "row";
   yearRange?: { from: number; to: number }; // year-select
   group?: SubQuestion[]; // field-group / repeatable-group
   groupItemLabel?: string; // e.g. "Partner", "Offer" (repeatable-group)
   minItems?: number; // repeatable-group
   maxItems?: number; // repeatable-group
+  /** `repeatable-group`: label on the dashed add-row button (default: "Add " + lowercased groupItemLabel). */
+  repeatableAddButtonLabel?: string;
   rows?: number; // textarea
   /** File upload behavior overrides for `type: "file"` questions. */
   fileUpload?: {
@@ -163,6 +201,19 @@ export interface Question {
     tutorialVideoUrl: string;
     tutorialLinkLabel?: string;
     productSheetButtonLabel?: string;
+  };
+
+  /**
+   * Teal “I will provide later” control: skips this answer and goes to the next step.
+   * Optional repeatables / field-groups: cleared to [] / {}.
+   * Required scalar (e.g. email): stores an internal sentinel so validation passes; treat as “no value” in exports/UI.
+   * Field-group + `deferFieldGroupToKickoff`: stores a marker so required sub-fields can be skipped until kick-off.
+   */
+  provideLater?: {
+    label?: string;
+    deferFieldGroupToKickoff?: boolean;
+    /** `dark`: bordered slate button with white text (no clock). Default: teal CTA with clock. */
+    variant?: "teal" | "dark";
   };
 
   /** `single-choice`: when value equals `otherTextWhen` (default `other`), text is stored under this answer id (no separate card). */
@@ -190,6 +241,8 @@ export interface Section {
     title: string;
     description: string;
     checklist: string[];
+    /** Shown below the checklist (e.g. closing encouragement). */
+    closingText?: string;
     imageSrc?: string;
     imageAlt?: string;
     nextLabel?: string;

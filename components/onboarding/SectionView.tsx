@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
 import { getVisibleStandaloneQuestions } from "@/lib/schema/visibility";
-import { isQuestionRequired, questionDisplayComplete } from "@/lib/schema/progress";
+import {
+  isQuestionRequired,
+  questionDisplayComplete,
+  sectionVisibleQuestionCompletion,
+} from "@/lib/schema/progress";
 import { useOnboarding } from "./OnboardingContext";
 import { QuestionCard } from "./QuestionCard";
 import { QuestionRenderer } from "./QuestionRenderer";
@@ -18,10 +22,19 @@ export function SectionView() {
   const section = ONBOARDING_SCHEMA.sections[currentSectionIndex];
   const [dismissedTransitionIds, setDismissedTransitionIds] = useState<Set<string>>(new Set());
 
+  const visible = useMemo(
+    () => getVisibleStandaloneQuestions(section, answers),
+    [section, answers],
+  );
+  const completion = useMemo(
+    () => sectionVisibleQuestionCompletion(section, answers),
+    [section, answers],
+  );
+
   if (section.kind === "intro") {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center">
-        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-slate-50 px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
+        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-[var(--color-page-bg)] px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
           <IntroScreen heading={section.heading ?? section.title} body={section.introBody ?? ""} />
           <Footer />
         </div>
@@ -32,12 +45,13 @@ export function SectionView() {
   if (section.transitionIntro && !dismissedTransitionIds.has(section.id)) {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center">
-        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-slate-50 px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
+        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-[var(--color-intro-backdrop)] px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
           <div className="mx-auto w-full max-w-3xl">
             <TransitionIntroScreen
               title={section.transitionIntro.title}
               description={section.transitionIntro.description}
               checklist={section.transitionIntro.checklist}
+              closingText={section.transitionIntro.closingText}
               imageSrc={section.transitionIntro.imageSrc}
               imageAlt={section.transitionIntro.imageAlt}
             />
@@ -66,12 +80,34 @@ export function SectionView() {
     );
   }
 
-  const visible = getVisibleStandaloneQuestions(section, answers);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {section.heading ? <h2 className="text-xl font-semibold text-ink">{section.heading}</h2> : null}
-      {section.introBody ? <p className="mt-1.5 text-sm text-muted">{section.introBody}</p> : null}
-      <div className={`${section.heading || section.introBody ? "mt-6" : ""} space-y-5`}>
+      <div className="sticky top-14 z-20 -mx-5 mb-6 border-b border-slate-200/90 bg-[var(--color-page-bg)]/95 px-5 py-3 backdrop-blur-sm sm:-mx-8 sm:px-8 supports-[backdrop-filter]:bg-[var(--color-page-bg)]/90">
+        <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
+          <div className="min-w-0 flex-1">
+            {section.heading ? <h2 className="text-xl font-semibold text-ink">{section.heading}</h2> : null}
+            {section.introBody ? (
+              <p className={`text-sm text-muted ${section.heading ? "mt-1.5" : ""}`}>{section.introBody}</p>
+            ) : null}
+          </div>
+          {completion.total > 0 ? (
+            <p
+              className="shrink-0 text-sm tabular-nums text-muted"
+              aria-live="polite"
+              aria-atomic="true"
+              aria-label={`${completion.completed} of ${completion.total} questions completed in this section`}
+            >
+              <span className="font-semibold text-ink">{completion.completed}</span>
+              <span className="text-muted" aria-hidden="true">
+                {" "}
+                /{" "}
+              </span>
+              <span>{completion.total}</span>
+            </p>
+          ) : null}
+        </div>
+      </div>
+      <div className="space-y-5">
         {visible.map((q) => (
           <QuestionCard
             key={q.id}

@@ -5,10 +5,29 @@ import type {
   TimeRangeAnswer,
 } from "./types";
 
-/** True when a value counts as "answered". */
+/**
+ * Stored when the user chooses “I will provide later” on a required scalar question
+ * (so progress treats the card as satisfied without a real value).
+ */
+export const PROVIDE_LATER_SENTINEL = "__fo_provide_later__";
+
+export function isProvideLaterSentinel(value: unknown): boolean {
+  return value === PROVIDE_LATER_SENTINEL;
+}
+
+/** Field-group: user defers credentials to kick-off (progress passes without username/password). */
+export const FIELD_GROUP_KICKOFF_DEFER_KEY = "__kickoff_meeting__";
+
+export function isFieldGroupKickoffDeferred(value: unknown): boolean {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  return (value as Record<string, unknown>)[FIELD_GROUP_KICKOFF_DEFER_KEY] === "yes";
+}
 export function isNonEmpty(value: AnswerValue | undefined | null): boolean {
   if (value === undefined || value === null) return false;
-  if (typeof value === "string") return value.trim().length > 0;
+  if (typeof value === "string") {
+    if (isProvideLaterSentinel(value)) return true;
+    return value.trim().length > 0;
+  }
   if (typeof value === "number") return !Number.isNaN(value);
   if (typeof value === "boolean") return true;
   if (Array.isArray(value)) {

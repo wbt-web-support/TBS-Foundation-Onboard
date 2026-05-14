@@ -27,6 +27,7 @@ export function RepeatableGroup({
   const items: RepeatableAnswer =
     stored.length >= floor ? stored : [...stored, ...Array.from({ length: floor - stored.length }, () => ({}))];
   const label = question.groupItemLabel ?? "Item";
+  const addLabel = question.repeatableAddButtonLabel ?? `Add ${label.toLowerCase()}`;
 
   const updateItem = (index: number, next: FieldGroupAnswer) => {
     const copy = [...items];
@@ -84,7 +85,7 @@ export function RepeatableGroup({
           className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600"
         >
           <Icon name="sparkles" className="size-4" />
-          Add {label.toLowerCase()}
+          {addLabel}
         </button>
       ) : null}
     </div>

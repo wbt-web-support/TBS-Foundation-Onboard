@@ -21,6 +21,8 @@ export interface OnboardingContextValue {
   /** Question ids that failed required validation on the last Next. */
   validationErrors: Set<string>;
   saveStatus: SaveStatus;
+  submissionId: string | null;
+  resumeToken: string | null;
   email: string | null;
   emailSent: boolean;
   resendEmail: () => void;

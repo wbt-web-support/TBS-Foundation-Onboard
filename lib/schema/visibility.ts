@@ -49,7 +49,11 @@ export function isVisible(
   if (!rule) return true;
   const allOk = !rule.all || rule.all.every((c) => evalCondition(c, answers, localScope));
   const anyOk = !rule.any || rule.any.length === 0 || rule.any.some((c) => evalCondition(c, answers, localScope));
-  return allOk && anyOk;
+  const anyOfOk =
+    !rule.anyOf ||
+    rule.anyOf.length === 0 ||
+    rule.anyOf.some((sub) => isVisible(sub, answers, localScope));
+  return allOk && anyOk && anyOfOk;
 }
 
 export function isQuestionVisible(question: Question, answers: Answers): boolean {

@@ -3,14 +3,20 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
+import { SaveProgressHost } from "@/components/save-progress/SaveProgressButton";
+import {
+  LOCAL_RESUME_SESSION_PREFIX,
+  readLocalResumeSession,
+} from "@/lib/saveProgress/localResumeSession";
 import { extractAppAnswersFromDatabase } from "@/lib/submission/persistAnswers";
-import { sectionMissingRequired } from "@/lib/schema/progress";
+import { sectionMissingRequired, sectionVisibleQuestionCompletion } from "@/lib/schema/progress";
 import { asNumberOrNull, asStringOrNull, getByPath } from "@/lib/answers";
 import type {
   Answers,
   AnswerValue,
   AutosavePayload,
   LoadSubmissionResponse,
+  SectionQuestionProgressSnapshot,
   SubmissionResponse,
   UploadResponse,
 } from "@/lib/types";
@@ -22,9 +28,14 @@ import {
 } from "./OnboardingContext";
 import { Sidebar } from "./Sidebar";
 import { SectionView } from "./SectionView";
+import { ResumeRestoreModal } from "./ResumeRestoreModal";
 import { Icon } from "@/components/ui/Icon";
 
 const TOKEN_KEY = "fo_resume_token";
+/** Survives URL strip + React Strict Mode remount so local resume still runs once. */
+const PENDING_RESUME_SESSION_KEY = "fo_pending_resume_session";
+/** Until dismissed: reopen restore modal after hydrate (Strict Mode / `router.replace` remount). */
+const RESUME_RESTORE_MODAL_FLAG = "fo_resume_restore_modal_prompt";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LAST_SECTION = ONBOARDING_SCHEMA.sections.length - 1;
 
@@ -92,6 +103,17 @@ function reducer(state: State, action: Action): State {
 
 // --- helpers --------------------------------------------------------------
 
+function buildSectionQuestionProgressSnapshot(
+  currentSectionIndex: number,
+  answers: Answers,
+): SectionQuestionProgressSnapshot | undefined {
+  const section = ONBOARDING_SCHEMA.sections[currentSectionIndex];
+  if (!section || section.kind === "intro") return undefined;
+  const { completed, total } = sectionVisibleQuestionCompletion(section, answers);
+  if (total === 0) return undefined;
+  return { sectionId: section.id, completed, total };
+}
+
 function buildPayload(state: State, overrides?: Partial<AutosavePayload>): AutosavePayload {
   const a = state.answers;
   return {
@@ -103,6 +125,7 @@ function buildPayload(state: State, overrides?: Partial<AutosavePayload>): Autos
     phone: asStringOrNull(getByPath(a, ONBOARDING_SCHEMA.keyFields.phone)),
     taxId: asStringOrNull(getByPath(a, ONBOARDING_SCHEMA.keyFields.taxId)),
     satisfactionRating: asNumberOrNull(getByPath(a, ONBOARDING_SCHEMA.satisfactionPath)),
+    sectionQuestionProgress: buildSectionQuestionProgressSnapshot(state.currentSectionIndex, a),
     ...overrides,
   };
 }
@@ -118,6 +141,8 @@ export default function OnboardingApp() {
   const searchParams = useSearchParams();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [validationErrors, setValidationErrors] = useState<Set<string>>(new Set());
+  const [resumeRestoreModalOpen, setResumeRestoreModalOpen] = useState(false);
+  const lastRestoredResumeKeyRef = useRef<string | null>(null);
 
   const stateRef = useRef(state);
   useEffect(() => {
@@ -189,21 +214,137 @@ export default function OnboardingApp() {
     await save();
   }, [save]);
 
+  const dismissResumeRestoreModal = useCallback(() => {
+    try {
+      window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
+      window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
+    } catch {
+      /* ignore */
+    }
+    lastRestoredResumeKeyRef.current = null;
+    setResumeRestoreModalOpen(false);
+  }, []);
+
+  const handleResumeStartOver = useCallback(() => {
+    const key = lastRestoredResumeKeyRef.current;
+    if (key) {
+      try {
+        window.localStorage.removeItem(`${LOCAL_RESUME_SESSION_PREFIX}${key}`);
+      } catch {
+        /* ignore */
+      }
+    }
+    try {
+      window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
+      window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
+    } catch {
+      /* ignore */
+    }
+    lastRestoredResumeKeyRef.current = null;
+    setResumeRestoreModalOpen(false);
+    try {
+      window.localStorage.removeItem(TOKEN_KEY);
+    } catch {
+      /* ignore */
+    }
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
+    didFirstSave.current = false;
+    dispatch({ type: "RESET" });
+    setValidationErrors(new Set());
+    router.replace("/");
+  }, [router]);
+
   // --- restore on load ----------------------------------------------------
   useEffect(() => {
     let cancelled = false;
-    const urlToken = searchParams.get("token");
+    const fromUrl = searchParams.get("resume");
+    try {
+      if (fromUrl) window.sessionStorage.setItem(PENDING_RESUME_SESSION_KEY, fromUrl);
+    } catch {
+      /* ignore */
+    }
+    let resumeKey: string | null = fromUrl;
+    if (!resumeKey) {
+      try {
+        resumeKey = window.sessionStorage.getItem(PENDING_RESUME_SESSION_KEY);
+      } catch {
+        resumeKey = null;
+      }
+    }
+    const initialToken = searchParams.get("token");
+
+    const paramsWithoutResume = () => {
+      const p = new URLSearchParams(window.location.search);
+      p.delete("resume");
+      return p;
+    };
+
+    if (resumeKey) {
+      const local = readLocalResumeSession(resumeKey);
+      const params = paramsWithoutResume();
+
+      if (local) {
+        lastRestoredResumeKeyRef.current = resumeKey;
+        if (local.resumeToken) {
+          params.set("token", local.resumeToken);
+          try {
+            window.localStorage.setItem(TOKEN_KEY, local.resumeToken);
+          } catch {
+            /* ignore */
+          }
+        }
+        const qs = params.toString();
+        if (!cancelled) router.replace(qs ? `/?${qs}` : "/");
+
+        const emailValue = asStringOrNull(getByPath(local.answers, ONBOARDING_SCHEMA.emailCapturePath));
+        if (!cancelled) {
+          try {
+            window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
+          } catch {
+            /* ignore */
+          }
+          dispatch({
+            type: "HYDRATE",
+            payload: {
+              submissionId: local.submissionId,
+              resumeToken: local.resumeToken,
+              answers: local.answers,
+              currentSectionIndex: clampSection(local.currentSectionIndex),
+              completed: false,
+              emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
+            },
+          });
+          setResumeRestoreModalOpen(true);
+        }
+        return () => {
+          cancelled = true;
+        };
+      }
+
+      try {
+        window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
+        window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
+      } catch {
+        /* ignore */
+      }
+      const qs = params.toString();
+      if (!cancelled) router.replace(qs ? `/?${qs}` : "/");
+    }
+
     let stored: string | null = null;
     try {
       stored = window.localStorage.getItem(TOKEN_KEY);
     } catch {
       /* ignore */
     }
-    const token = urlToken || stored;
+    const token = initialToken || stored;
 
     (async () => {
       if (!token) {
-        dispatch({ type: "HYDRATE", payload: {} });
+        if (!cancelled) dispatch({ type: "HYDRATE", payload: {} });
         return;
       }
       try {
@@ -218,7 +359,7 @@ export default function OnboardingApp() {
           } catch {
             /* ignore */
           }
-          if (urlToken !== sub.resumeToken) {
+          if (initialToken !== sub.resumeToken) {
             const params = new URLSearchParams(window.location.search);
             params.set("token", sub.resumeToken);
             router.replace(`/?${params.toString()}`);
@@ -249,6 +390,17 @@ export default function OnboardingApp() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!state.hydrated) return;
+    try {
+      if (window.sessionStorage.getItem(RESUME_RESTORE_MODAL_FLAG) === "1") {
+        setResumeRestoreModalOpen(true);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [state.hydrated]);
 
   // --- debounced autosave -------------------------------------------------
   const didFirstSave = useRef(false);
@@ -404,6 +556,8 @@ export default function OnboardingApp() {
       uploadFile,
       validationErrors,
       saveStatus: state.saveStatus,
+      submissionId: state.submissionId,
+      resumeToken: state.resumeToken,
       email,
       emailSent: state.emailSent,
       resendEmail,
@@ -414,6 +568,8 @@ export default function OnboardingApp() {
       state.answers,
       state.currentSectionIndex,
       state.saveStatus,
+      state.submissionId,
+      state.resumeToken,
       state.emailSent,
       state.completed,
       validationErrors,
@@ -431,7 +587,7 @@ export default function OnboardingApp() {
 
   if (!state.hydrated) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
         <div className="size-8 animate-spin rounded-full border-2 border-slate-200 border-t-brand-500" />
       </div>
     );
@@ -439,9 +595,16 @@ export default function OnboardingApp() {
 
   return (
     <OnboardingContext.Provider value={ctx}>
-      <div className="flex min-h-screen">
+      <ResumeRestoreModal
+        open={resumeRestoreModalOpen}
+        onClose={dismissResumeRestoreModal}
+        onContinue={dismissResumeRestoreModal}
+        onStartOver={handleResumeStartOver}
+      />
+      <SaveProgressHost />
+      <div className="flex min-h-[calc(100vh-3.5rem)]">
         <Sidebar />
-        <main className="flex min-h-0 flex-1 flex-col overflow-x-hidden">
+        <main className="flex min-h-0 flex-1 flex-col overflow-x-clip">
           <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-5 py-10 sm:px-8">
             {state.completed ? (
               <div className="flex flex-1 flex-col justify-center">

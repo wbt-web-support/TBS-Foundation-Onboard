@@ -16,11 +16,25 @@ const opts = (...labels: string[]): Option[] =>
   labels.map((l) => ({ value: slug(l), label: l }));
 
 const IMG = (file: string) => `/image/image/${file}`;
+/** Logos and art under `public/brand-img/brand-img/`. */
+const BRAND_IMG = (file: string) => `/brand-img/brand-img/${file}`;
 /** Label + image under `public/image/image/` (value auto-slugged from label). */
 const optImg = (label: string, file: string): Option => ({
   value: slug(label),
   label,
   imageUrl: IMG(file),
+});
+/** Domain provider option with logo from `public/brand-img/brand-img/`. */
+const domainBrand = (value: string, label: string, file: string): Option => ({
+  value,
+  label,
+  imageUrl: BRAND_IMG(file),
+});
+/** Job / quoting software option with logo (`value` = slug of `label`). */
+const jobSoftwareImg = (label: string, file: string): Option => ({
+  value: slug(label),
+  label,
+  imageUrl: BRAND_IMG(file),
 });
 
 const YES_NO = opts("Yes", "No");
@@ -631,7 +645,8 @@ const branding: Section = {
       id: "colour_preference",
       type: "single-choice",
       icon: "palette",
-      title: "To maintain consistency in your branding, could you please let us know your preferred colours for the website branding?",
+      title:
+        "To maintain consistency in your branding, could you please let us know your preferred colours for the website branding?",
       required: true,
       options: [
         opt("choose-list", "Choose from our list"),
@@ -675,41 +690,110 @@ const branding: Section = {
       required: true,
       galleryKey: "button-styles",
       galleryOptions: GALLERIES["button-styles"],
+      visibleIf: {
+        anyOf: [
+          { all: [{ questionId: "colour_preference", equals: "from-logo" }] },
+          { all: [{ questionId: "colour_preference", equals: "from-current-site" }] },
+          {
+            all: [
+              { questionId: "colour_preference", equals: "choose-list" },
+              { questionId: "colour_palette_pick", isAnswered: true },
+            ],
+          },
+          {
+            all: [
+              { questionId: "colour_preference", equals: "create-own" },
+              { questionId: "colour_palette_description", isAnswered: true },
+            ],
+          },
+        ],
+      },
     },
     {
       id: "website_features",
       type: "repeatable-group",
       icon: "sparkles",
       title: "Include details of any features you'd like to add to your website / landing page",
+      helper:
+        "Add one row per feature. Include a URL if it helps explain what you want.\n\nExample:\n[Boiler Quote Form] [https://origin-gph.com/quote/]",
       groupItemLabel: "Feature",
       group: [
         { id: "feature", type: "text", title: "Feature", required: true },
         { id: "url", type: "text", title: "URL (if any)" },
       ],
+      provideLater: {},
     },
     {
       id: "tone_of_voice",
       type: "single-choice",
       icon: "type",
-      title: "How would you like your website to sound?",
+      title: "How would you like your website to sound? Below are four tone-of-voice options.",
       required: true,
-      options: opts(
-        "Formal and Professional",
-        "Friendly and Approachable",
-        "Chatty and Lightly Humorous",
-        "Sales-Driven, Short and Concise",
-      ),
+      singleChoiceColumns: 1,
+      options: [
+        {
+          value: slug("Formal and Professional"),
+          label: "Formal and Professional",
+          description:
+            "Professional, authoritative, and business-focused. Emphasizes expertise and reliability.",
+          example:
+            "Our team delivers high-quality workmanship backed by industry accreditation. We follow all safety regulations and ensure every project is completed to the highest standard.",
+        },
+        {
+          value: slug("Friendly and Approachable"),
+          label: "Friendly and Approachable",
+          description: "Warm and easy to understand. Still professional, but more relaxed.",
+          example:
+            "We're here to make your project as simple and stress-free as possible. Our friendly team is always happy to answer questions and guide you through every step.",
+        },
+        {
+          value: slug("Chatty and Lightly Humorous"),
+          label: "Chatty and Lightly Humorous",
+          description:
+            "Casual, slightly playful. Reflects your personality without sounding unprofessional.",
+          warning: "(Not ideal for very serious or compliance-heavy industries.)",
+          example:
+            "Leaky pipe? Faulty boiler? No worries — we've seen worse! Give us a call and we'll sort it out before it turns into an emergency.",
+        },
+        {
+          value: slug("Sales-Driven, Short and Concise"),
+          label: "Sales-Driven, Short and Concise",
+          description: "Direct, high-impact language. Focuses on benefits, speed and results.",
+          example:
+            "Need a new boiler fast? We install high-performance systems with clear pricing and next-day availability. No fuss. No delays.",
+        },
+      ],
     },
     {
       id: "liked_websites",
       type: "repeatable-group",
       icon: "link",
-      title: "Provide the URLs of any other websites you like, with a detailed description",
+      title:
+        "Please provide the URLs to any other websites that you like and provide a detailed description below.",
+      helper:
+        "We will use these websites as inspiration for your project.\n\nExample:\n[https://gastekhomeassist.co.uk/] [I really like how the background of the main section]",
       groupItemLabel: "Website",
+      repeatableAddButtonLabel: "Add more",
       group: [
-        { id: "website_url", type: "text", title: "Website URL", required: true },
-        { id: "what_you_like", type: "textarea", title: "What do you like about this website?", required: true },
+        {
+          id: "website_url",
+          type: "text",
+          title: "Website URL",
+          required: true,
+          width: "half",
+          placeholder: "Website url*",
+        },
+        {
+          id: "what_you_like",
+          type: "textarea",
+          title: "What do you like about this website?",
+          required: true,
+          width: "half",
+          placeholder: "What do you like about this website?*",
+          rows: 4,
+        },
       ],
+      provideLater: {},
     },
     {
       id: "social_media",
@@ -717,12 +801,48 @@ const branding: Section = {
       icon: "share",
       title: "Add your current social media URLs in the relevant boxes",
       group: [
-        { id: "facebook", type: "text", title: "Facebook", width: "half" },
-        { id: "instagram", type: "text", title: "Instagram", width: "half" },
-        { id: "twitter", type: "text", title: "Twitter / X", width: "half" },
-        { id: "linkedin", type: "text", title: "LinkedIn", width: "half" },
-        { id: "tiktok", type: "text", title: "TikTok", width: "half" },
-        { id: "youtube", type: "text", title: "YouTube", width: "half" },
+        {
+          id: "facebook",
+          type: "text",
+          title: "Facebook",
+          width: "half",
+          labelIconUrl: IMG("facebook.svg"),
+        },
+        {
+          id: "instagram",
+          type: "text",
+          title: "Instagram",
+          width: "half",
+          labelIconUrl: IMG("instagram.svg"),
+        },
+        {
+          id: "twitter",
+          type: "text",
+          title: "Twitter / X",
+          width: "half",
+          labelIconUrl: IMG("twitter-sign.svg"),
+        },
+        {
+          id: "linkedin",
+          type: "text",
+          title: "LinkedIn",
+          width: "half",
+          labelIconUrl: IMG("linkedin.svg"),
+        },
+        {
+          id: "tiktok",
+          type: "text",
+          title: "TikTok",
+          width: "half",
+          labelIconUrl: IMG("tiktok.svg"),
+        },
+        {
+          id: "youtube",
+          type: "text",
+          title: "YouTube",
+          width: "half",
+          labelIconUrl: IMG("youtube.svg"),
+        },
       ],
     },
     {
@@ -748,8 +868,11 @@ const branding: Section = {
       type: "email",
       icon: "mail",
       title: "What email address do you want to display on your website?",
-      helper: "This address will receive your lead notifications.",
+      helper:
+        "This address will receive your lead notifications.\n\nNote: We recommend using a professional email such as info@yourbusinessname.com. If you do not have this yet, please select \"I will provide later\" as we will prompt you to create this during milestone 1.",
+      placeholder: "Email Address",
       required: true,
+      provideLater: {},
     },
   ],
 };
@@ -761,6 +884,24 @@ const ads: Section = {
   subtitle: "Your customers, keywords and ad history",
   kind: "questions",
   heading: "Ads Information",
+  transitionIntro: {
+    title: "Ads Information",
+    description:
+      "Great job on finishing the second part! Now, let's move on to some of the Ads related questions. Your insights will help us create a tailored advertising strategy that aligns perfectly with your goals and values. We will be collecting information on:",
+    checklist: [
+      "Advertising Objectives",
+      "Target Audience",
+      "Content Ideas",
+      "Preferred Platforms",
+      "Specific URLs",
+      "Insights",
+    ],
+    closingText:
+      "If you have any specific ideas or inspiration regarding your ad campaigns, please share them with us. Your input matters.",
+    imageSrc: "/ads-intro.png",
+    imageAlt: "Social media and advertising illustration with megaphone and phone",
+    nextLabel: "NEXT",
+  },
   questions: [
     {
       id: "customer_age",
@@ -774,15 +915,18 @@ const ads: Section = {
       id: "top_keywords_status",
       type: "single-choice",
       icon: "search",
-      title: "If you had a magic wand and could appear at the top of Google for any keywords, what would the top 5 be?",
+      title:
+        "If you had a magic wand and could appear at the top of Google for any keywords, what would the top 5 keywords / phrases be?",
+      helper: "(Please add as many as you feel would be relevant)",
       required: true,
-      options: [opt("list", "I'll list them"), opt("not-sure", "Not sure")],
+      options: [opt("list", "I'll list them"), opt("not-sure", "Not Sure")],
     },
     {
       id: "top_keywords",
       type: "textarea",
       icon: "search",
       title: "Your top 5 keywords / phrases",
+      placeholder: "Write keywords here",
       rows: 5,
       required: true,
       visibleIf: { all: [{ questionId: "top_keywords_status", equals: "list" }] },
@@ -849,8 +993,7 @@ const ads: Section = {
       id: "sales_process_google",
       type: "textarea",
       icon: "flow",
-      title: "Describe and map out your sales process, including the names of the people involved",
-      helper: "Once you get a new lead / enquiry, describe how you turn it into a customer. The more detail, the better.",
+      title: "Do your best to describe & map out your sales process, including the names of the people involved. In other words once you get a new lead/enquiry please describe the process in which you turn that lead into a customer. The more details we have here the better",
       rows: 6,
     },
     {
@@ -873,8 +1016,7 @@ const ads: Section = {
       id: "sales_process_facebook",
       type: "textarea",
       icon: "flow",
-      title: "Describe and map out your sales process (again), including the names of the people involved",
-      helper: "Once you get a new lead / enquiry, describe how you turn it into a customer. The more detail, the better.",
+      title: "Describe and map out your sales process (again), including the names of the people involvedDo your best to describe & map out your sales process, including the names of the people involved. In other words once you get a new lead/enquiry please describe the process in which you turn that lead into a customer. The more details we have here the better.",
       rows: 6,
     },
   ],
@@ -903,6 +1045,15 @@ const access: Section = {
   subtitle: "Domains, hosting and payments",
   kind: "questions",
   heading: "Account Access Information",
+  transitionIntro: {
+    title: "Account Access Information",
+    description:
+      "We're nearly there! Great job on getting this far and providing us with the necessary information for us to become a valuable asset to your business.\n\nWe now just need the account access information that will help us connect payments, third-party job management systems, and make it easy to transfer the new website when it is ready.\n\nWe will be collecting information on:",
+    checklist: ["Domain", "CRM Software", "Stripe", "Website"],
+    imageSrc: "/account-access-hero.svg",
+    imageAlt: "Secure access: padlock and smartphone with account icons",
+    nextLabel: "NEXT",
+  },
   questions: [
     {
       id: "has_current_website",
@@ -965,7 +1116,22 @@ const access: Section = {
       id: "desired_domain_name",
       type: "textarea",
       icon: "link",
-      title: "Type the domain name you'd like us to use for the new website / landing page",
+      title:
+        "Please type the domain name that you would like us to use for the new website/landing page we will be creating.",
+      helperRich: [
+        { type: "text", text: "(If you do not have the domain, please " },
+        {
+          type: "link",
+          text: "click here",
+          href: "https://www.loom.com/share/6d7107a38a244e8cb514507be961dc63?t=12",
+          openInModal: true,
+        },
+        {
+          type: "text",
+          text: " to watch this short video on how to purchase a domain using GoDaddy and add the domain before moving on).",
+        },
+      ],
+      placeholder: "Write Here",
       rows: 3,
       visibleIf: {
         any: [
@@ -987,33 +1153,46 @@ const access: Section = {
       type: "single-choice",
       icon: "globe",
       title: "Please select your domain provider",
+      singleChoiceColumns: 2,
       visibleIf: { all: [{ questionId: "domain_registered", equals: "yes" }] },
       options: [
-        opt("godaddy", "GoDaddy"),
-        opt("hostgator", "HostGator"),
-        opt("bluehost", "Bluehost"),
-        opt("register-com", "Register.com"),
-        opt("domain-com", "Domain.com"),
-        opt("dreamhost", "DreamHost"),
-        opt("name-com", "Name.com"),
-        opt("namecheap", "Namecheap"),
-        opt("namesilo", "NameSilo"),
-        opt("yahoo-mail", "Yahoo Mail"),
-        opt("wix-com", "Wix.com"),
-        opt("ipage", "iPage"),
-        opt("network-solution", "Network Solutions"),
-        opt("other", "Other"),
-        opt("not-sure", "Not sure"),
+        domainBrand("godaddy", "GoDaddy", "GoDaddy-Logo.png"),
+        domainBrand("hostgator", "HostGator", "HostGator.png"),
+        domainBrand("bluehost", "Bluehost", "Bluehost.png"),
+        domainBrand("register-com", "Register.com", "register.com_.png"),
+        domainBrand("domain-com", "Domain.com", "Domain.com_.png"),
+        domainBrand("dreamhost", "DreamHost", "dreamhost.png"),
+        domainBrand("name-com", "Name.com", "Name.com-Logo.png"),
+        domainBrand("namecheap", "Namecheap", "Namecheap.png"),
+        domainBrand("namesilo", "NameSilo", "namesilo.png"),
+        domainBrand("yahoo-mail", "Yahoo Mail", "yahoo-mail-logo.png"),
+        domainBrand("wix-com", "Wix.com", "Wix.com_.png"),
+        domainBrand("ipage", "iPage", "ipage.png"),
+        domainBrand("network-solution", "Network Solutions", "network-solutions.png"),
+        domainBrand("other", "Other", "Other-Domain.png"),
+        domainBrand("not-sure", "Not sure", "Not-Sure.png"),
       ],
     },
     {
       id: "godaddy_delegate_access",
       type: "single-choice",
       icon: "globe",
-      title: "Please grant GoDaddy delegate access to the email address we've provided. Have you done this?",
-      helper: "Watch the 2-minute tutorial to see how this is done.",
+      title:
+        "As you have a Stripe account, we will need developer access to integrate the payment feature into your website/landing page. Please watch the 2-minute tutorial below to see how this is done.",
+      helperRich: [
+        {
+          type: "link",
+          text: "Click here to watch the tutorial on how to share access to GoDaddy",
+          href: "https://www.loom.com/share/6d7107a38a244e8cb514507be961dc63?t=12",
+          openInModal: true,
+        },
+        {
+          type: "text",
+          text: "\n\nPlease provide delegate access to your GoDaddy domain account with the following information:\n\nEmail: clientsupport@webuildtrades.com",
+        },
+      ],
       visibleIf: { all: [{ questionId: "domain_provider", equals: "godaddy" }] },
-      options: YES_NO,
+      options: [opt("yes", "Yes, I have shared the details with you"), opt("no", "No, I will do it later")],
     },
     {
       id: "domain_provider_other_name",
@@ -1028,6 +1207,11 @@ const access: Section = {
       icon: "lock",
       title: "Please enter the username and password for your domain provider",
       visibleIf: { all: [{ questionId: "domain_provider", oneOf: PROVIDERS_NEED_CREDENTIALS }] },
+      provideLater: {
+        label: "I will provide this during the kick-off meeting",
+        deferFieldGroupToKickoff: true,
+        variant: "dark",
+      },
       group: [
         { id: "username", type: "text", title: "Username", required: true, width: "half" },
         { id: "password", type: "password", title: "Password", required: true, width: "half" },
@@ -1082,33 +1266,45 @@ const access: Section = {
       id: "facebook_page_access",
       type: "single-choice",
       icon: "share",
-      title: "Have you given our team access to your Facebook page so we can manage and optimise ad campaigns?",
-      helper: "If you'd rather handle this later, you can skip this step for now.",
-      required: true,
-      options: YES_NO,
+      title:
+        "Please provide access of your Facebook page to the following email addresses so that our team can effectively manage and optimise advertising campaigns. If you'd rather handle this later, feel free to skip this step for now.",
+      helperRich: [
+        {
+          type: "link",
+          text: "Click here to watch the tutorial on How to share access of Facebook page",
+          href: "https://www.loom.com/share/c77ae984a89641b3a24c4c17045baa38?sid=a321fea1-f5af-46b5-859c-2a1c398eaff7",
+          openInModal: true,
+        },
+        {
+          type: "text",
+          text: "\n\nPlease provide access to the following email addresses for your Facebook page:\n\n• master@webuildtrades.com\n• kul@webuildtrades.com\n• daniel@webuildtrades.com\n• jas@webuildtrades.com\n• dom@webuildtrades.com",
+        },
+      ],
+      options: [opt("yes", "Yes, I have shared the access with you"), opt("no", "No, I will do it later")],
     },
     {
       id: "job_management_software",
       type: "multi-choice",
       icon: "wrench",
-      title: "Do you use any of the following quoting or job-management software?",
+      title: "Do you use any of the following quoting or job-management softwares?",
       required: true,
-      options: opts(
-        "ServiceM8",
-        "Commusoft",
-        "Simpro",
-        "Quotient",
-        "Proposify",
-        "Tradify",
-        "Better Proposal",
-        "Xero",
-        "ServiceTitan",
-        "Housecall Pro",
-        "Keap (Infusionsoft)",
-        "HubSpot",
-        "Job Logic",
-        "Other",
-      ),
+      multiChoiceColumns: 3,
+      options: [
+        jobSoftwareImg("ServiceM8", "sericem8-icon.png"),
+        jobSoftwareImg("Commusoft", "commusoft-icon.png"),
+        jobSoftwareImg("Simpro", "simpro-icon.png"),
+        jobSoftwareImg("Quotient", "roofing-icon.png"),
+        jobSoftwareImg("Proposify", "moving-service-icon.png"),
+        jobSoftwareImg("Tradify", "tradify-icon.png"),
+        jobSoftwareImg("Better Proposal", "restroration-service-icon.png"),
+        jobSoftwareImg("Xero", "home-service-icon.png"),
+        jobSoftwareImg("ServiceTitan", "Service-Titan.png"),
+        jobSoftwareImg("Housecall Pro", "housecall.png"),
+        jobSoftwareImg("Keap (Infusionsoft)", "Keap-Infusionsoft.png"),
+        jobSoftwareImg("HubSpot", "Hubspot.png"),
+        jobSoftwareImg("Job Logic", "Job-Logic.png"),
+        jobSoftwareImg("Other", "other-icon.png"),
+      ],
     },
     {
       id: "job_management_software_other",

@@ -96,11 +96,11 @@ export const GALLERIES: Record<string, GalleryOption[]> = {
       swatchColors: ["#050A14", "#1E293B", "#475569", "#64748B", "#F5F0E6"],
     },
   ],
-  // Step 31 — 4 button styles
+  // Step 31 — 4 button styles (visual previews; ids stable for saved answers)
   "button-styles": [
-    { id: "rounded", label: "Rounded", imageUrl: "" },
-    { id: "pill", label: "Pill", imageUrl: "" },
-    { id: "square", label: "Square", imageUrl: "" },
-    { id: "outline", label: "Outline", imageUrl: "" },
+    { id: "square", label: "Style 1", buttonShape: "sharp" },
+    { id: "pill", label: "Style 2", buttonShape: "pill" },
+    { id: "rounded", label: "Style 3", buttonShape: "skew" },
+    { id: "outline", label: "Style 4", buttonShape: "soft" },
   ],
 };

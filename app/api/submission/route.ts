@@ -1,8 +1,10 @@
 import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
+import { sendCompletionReportWithPdf } from "@/lib/email/resend";
 import { mergeAnswersForDatabase } from "@/lib/submission/persistAnswers";
-import type { AutosavePayload, LoadSubmissionResponse, SubmissionResponse } from "@/lib/types";
+import type { Answers, AutosavePayload, LoadSubmissionResponse, SubmissionResponse } from "@/lib/types";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
@@ -57,7 +59,7 @@ export async function POST(request: Request) {
     email: body.email ?? null,
     phone: body.phone ?? null,
     tax_identification_number: body.taxId ?? null,
-    answers: mergeAnswersForDatabase(body.answers ?? {}),
+    answers: mergeAnswersForDatabase(body.answers ?? {}, body.sectionQuestionProgress),
     current_section_index:
       typeof body.currentSectionIndex === "number" ? body.currentSectionIndex : 0,
     satisfaction_rating:
@@ -74,6 +76,12 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (error) return jsonError(error.message, 500);
     if (!data) return jsonError("Submission not found", 404);
+    if (row.completed && row.email && EMAIL_RE.test(row.email)) {
+      const answers = (body.answers ?? {}) as Answers;
+      void sendCompletionReportWithPdf(row.email, answers).catch((err) => {
+        console.error("[completion-pdf-email]", err);
+      });
+    }
     return Response.json({ id: data.id, resumeToken: data.resume_token } satisfies SubmissionResponse);
   }
 
@@ -83,5 +91,11 @@ export async function POST(request: Request) {
     .select("id, resume_token")
     .single();
   if (error) return jsonError(error.message, 500);
+  if (row.completed && row.email && EMAIL_RE.test(row.email)) {
+    const answers = (body.answers ?? {}) as Answers;
+    void sendCompletionReportWithPdf(row.email, answers).catch((err) => {
+      console.error("[completion-pdf-email]", err);
+    });
+  }
   return Response.json({ id: data.id, resumeToken: data.resume_token } satisfies SubmissionResponse);
 }

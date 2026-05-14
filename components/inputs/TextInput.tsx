@@ -1,6 +1,7 @@
 "use client";
 
-import { FIELD_CLASS } from "./fieldStyles";
+import { Icon } from "@/components/ui/Icon";
+import { FIELD_CLASS, INPUT_PREFIX_FIELD, INPUT_PREFIX_LEAD, INPUT_PREFIX_WRAP } from "./fieldStyles";
 
 type Kind = "text" | "email" | "tel" | "number" | "password";
 
@@ -19,6 +20,7 @@ export function TextInput({
   onChange,
   onBlur,
   placeholder,
+  leadingIcon,
 }: {
   id?: string;
   kind?: Kind;
@@ -26,7 +28,30 @@ export function TextInput({
   onChange: (value: string) => void;
   onBlur?: () => void;
   placeholder?: string;
+  /** Icon key into `Icon` (e.g. `mail` for email fields). */
+  leadingIcon?: string;
 }) {
+  if (leadingIcon) {
+    return (
+      <div className={INPUT_PREFIX_WRAP}>
+        <span className={INPUT_PREFIX_LEAD}>
+          <Icon name={leadingIcon} className="size-[18px] shrink-0" />
+        </span>
+        <input
+          id={id}
+          type={HTML_TYPE[kind]}
+          inputMode={kind === "number" ? "numeric" : kind === "tel" ? "tel" : undefined}
+          autoComplete={kind === "email" ? "email" : kind === "tel" ? "tel" : "off"}
+          className={INPUT_PREFIX_FIELD}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          onBlur={onBlur}
+        />
+      </div>
+    );
+  }
+
   return (
     <input
       id={id}

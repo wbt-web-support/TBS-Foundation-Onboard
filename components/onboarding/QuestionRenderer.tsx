@@ -1,5 +1,6 @@
 "use client";
 
+import { isProvideLaterSentinel } from "@/lib/answers";
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
 import type { Question } from "@/lib/schema/types";
 import type { FieldGroupAnswer, RepeatableAnswer, TimeRangeAnswer } from "@/lib/types";
@@ -45,17 +46,21 @@ export function QuestionRenderer({ question }: { question: Question }) {
     case "email":
     case "tel":
     case "number":
-    case "password":
+    case "password": {
+      const raw = asString(value);
+      const inputValue = isProvideLaterSentinel(value) ? "" : raw;
       return (
         <TextInput
           id={id}
           kind={question.type}
-          value={asString(value)}
+          value={inputValue}
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
           placeholder={question.placeholder}
+          leadingIcon={question.type === "email" ? "mail" : undefined}
         />
       );
+    }
     case "textarea":
       return (
         <TextareaInput
@@ -88,6 +93,7 @@ export function QuestionRenderer({ question }: { question: Question }) {
             options={question.options ?? []}
             value={asString(value)}
             onChange={(v) => setAnswer(question.id, v)}
+            columns={question.singleChoiceColumns}
           />
           {showOther && otherId ? (
             <div className="mt-4">
@@ -113,6 +119,7 @@ export function QuestionRenderer({ question }: { question: Question }) {
           options={question.options ?? []}
           value={asStringArray(value)}
           onChange={(v) => setAnswer(question.id, v)}
+          columns={question.multiChoiceColumns}
         />
       );
     case "year-select":

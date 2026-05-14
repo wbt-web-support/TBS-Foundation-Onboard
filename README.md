@@ -17,7 +17,8 @@ multi-step form with autosave to Supabase and a resume-by-email magic link.
   row via [`app/api/submission/route.ts`](app/api/submission/route.ts). Files go to
   Supabase Storage via [`app/api/upload/route.ts`](app/api/upload/route.ts), or **Bunny.net
   Storage** when `BUNNY_*` env vars are set (see [`example.env.local`](example.env.local)).
-- **Resume** — after the email step, a magic link (`/?token=...`) is emailed via Resend
+- **Resume** — after the email step, a magic link (`/?token=...`) is emailed via **SMTP** (when
+  `SMTP_HOST`, `SMTP_USER`, and `SMTP_PASSWORD` are set) or **Resend** otherwise
   ([`app/api/resume-link/route.ts`](app/api/resume-link/route.ts)). Visiting the link
   rehydrates the saved progress.
 
@@ -41,8 +42,14 @@ Required env vars (see [`example.env.local`](example.env.local)):
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | browser key (can't touch the table — no anon RLS policies) |
 | `SUPABASE_SERVICE_ROLE_KEY` | **server only**, never `NEXT_PUBLIC_`; route handlers use it |
 | `NEXT_PUBLIC_APP_URL` | base URL for the emailed resume link |
-| `RESEND_API_KEY` | Resend API key |
-| `RESEND_FROM` | verified sender; `onboarding@resend.dev` works for dev |
+| `SMTP_HOST` | (optional) SMTP server — if set **with** `SMTP_USER` + `SMTP_PASSWORD`, all outbound mail uses SMTP |
+| `SMTP_PORT` | default `587` (STARTTLS); use `465` + `SMTP_SECURE=true` for implicit SSL |
+| `SMTP_SECURE` | `true` / `false` — implicit TLS on port 465; leave `false` for 587 |
+| `SMTP_USER` | SMTP auth username (often the mailbox email) |
+| `SMTP_PASSWORD` | SMTP password or app password |
+| `SMTP_FROM` | From header, e.g. `Foundation <noreply@yourdomain.com>` (defaults to `SMTP_USER`) |
+| `RESEND_API_KEY` | Resend API key (used only when SMTP is **not** fully configured) |
+| `RESEND_FROM` | verified Resend sender; `onboarding@resend.dev` works for dev |
 | `BUNNY_STORAGE_ZONE` | (optional) Bunny Storage zone name — with `BUNNY_STORAGE_API_KEY` + `BUNNY_PUBLIC_CDN_BASE` enables Bunny uploads |
 | `BUNNY_STORAGE_API_KEY` | Storage zone password (HTTP API AccessKey) |
 | `BUNNY_STORAGE_REGION` | Region code, default `de` (Frankfurt uses `storage.bunnycdn.com`) |

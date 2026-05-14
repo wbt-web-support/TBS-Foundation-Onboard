@@ -114,6 +114,13 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M4 9h16M4 15h16M10 3v18" />
     </>
   ),
+  floppy: (
+    <>
+      <path d="M6 3h8l4 4v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+      <path d="M13 3v5h3" />
+      <rect x="8" y="13" width="8" height="7" rx="1" />
+    </>
+  ),
   type: <path d="M4 7V5h16v2M9 19h6M12 5v14" />,
   sparkles: <path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18" />,
   share: (
