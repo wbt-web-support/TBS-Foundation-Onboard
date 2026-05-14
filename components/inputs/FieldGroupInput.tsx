@@ -26,7 +26,13 @@ export function FieldGroupInput({
     <div className="grid grid-cols-2 gap-x-4 gap-y-4">
       {subs.map((s) => (
         <div key={s.id} className={s.width === "half" ? "col-span-2 sm:col-span-1" : "col-span-2"}>
-          <SubFieldInput sub={s} value={current[s.id] ?? null} onChange={(v) => set(s.id, v)} onBlur={onBlur} />
+          <SubFieldInput
+            sub={s}
+            value={current[s.id] ?? null}
+            onChange={(v) => set(s.id, v)}
+            onBlur={onBlur}
+            groupAnswer={current}
+          />
         </div>
       ))}
     </div>

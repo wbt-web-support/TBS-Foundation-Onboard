@@ -1,5 +1,6 @@
 import type { Answers, AnswerValue, FieldGroupAnswer } from "../types";
 import { isNonEmpty, resolveAnswer } from "../answers";
+import { ONBOARDING_SCHEMA } from "./questions";
 import type { Condition, Question, Section, SubQuestion, VisibilityRule } from "./types";
 
 function asArray(value: AnswerValue | undefined): string[] {
@@ -65,6 +66,22 @@ export function isSubQuestionVisible(
 
 export function getVisibleQuestions(section: Section, answers: Answers): Question[] {
   return section.questions.filter((q) => isQuestionVisible(q, answers));
+}
+
+const INLINE_OTHER_TEXT_IDS = (): Set<string> => {
+  const s = new Set<string>();
+  for (const sec of ONBOARDING_SCHEMA.sections) {
+    for (const q of sec.questions) {
+      if (q.type === "single-choice" && q.otherTextAnswerId) s.add(q.otherTextAnswerId);
+    }
+  }
+  return s;
+};
+
+/** Visible questions whose UI is not merged into a parent `single-choice` (e.g. “Other” text). */
+export function getVisibleStandaloneQuestions(section: Section, answers: Answers): Question[] {
+  const skip = INLINE_OTHER_TEXT_IDS();
+  return getVisibleQuestions(section, answers).filter((q) => !skip.has(q.id));
 }
 
 export function getVisibleSubQuestions(

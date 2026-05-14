@@ -11,6 +11,12 @@
   --color-ink: #0f172a;
   --color-muted: #64748b;
 
+  /* Intro hero (card + accents; outer area uses page bg-slate-50) */
+  --color-intro-card: #161b26;
+  --color-intro-badge: #e85d6f;
+  --color-intro-cta: #14b8a6;
+  --color-intro-cta-hover: #0d9488;
+
   --radius-card: 1rem;
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;

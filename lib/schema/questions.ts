@@ -15,8 +15,23 @@ const opt = (value: string, label: string): Option => ({ value, label });
 const opts = (...labels: string[]): Option[] =>
   labels.map((l) => ({ value: slug(l), label: l }));
 
+const IMG = (file: string) => `/image/image/${file}`;
+/** Label + image under `public/image/image/` (value auto-slugged from label). */
+const optImg = (label: string, file: string): Option => ({
+  value: slug(label),
+  label,
+  imageUrl: IMG(file),
+});
+
 const YES_NO = opts("Yes", "No");
 const YES_NO_NA = opts("Yes", "No", "Not Applicable");
+
+/** Public template for “Product Sheet”; override via env in deployment. */
+const GOOGLE_SHEET_TEMPLATE_URL =
+  (typeof process !== "undefined" && process.env.NEXT_PUBLIC_GOOGLE_SHEET_TEMPLATE_URL) ||
+  "https://docs.google.com/spreadsheets/d/1vKhwRehisQVFUruX-SXHlZd7FpuF6-Bsa6RDvbtuFDo/edit?gid=1401709806#gid=1401709806";
+
+const GOOGLE_FONTS_URL = "https://fonts.google.com/";
 
 // --- sections -------------------------------------------------------------
 
@@ -24,10 +39,11 @@ const introduction: Section = {
   id: "introduction",
   number: 1,
   title: "Introduction",
-  subtitle: "Welcome to your onboarding",
+  subtitle: "Questionnaire & initial setup",
   kind: "intro",
+  heading: "WE BUILD TRADES CLIENT QUESTIONNAIRE & INITIAL SETUP",
   introBody:
-    "Welcome. This questionnaire arms us with everything we need to know about your business from day one. It takes a little time, but every answer makes the work we do for you sharper. You can stop at any point and pick up where you left off using the link we email you.",
+    "Please complete the following questionnaire with as much detail as possible. Once complete, you will be able to schedule your kick-off meeting with your account manager.\n\nYou can also save your progress by clicking the save button in the bottom right corner of the screen so you don't have to get through it all in one go.",
   questions: [],
 };
 
@@ -66,7 +82,53 @@ const company: Section = {
           id: "company_registration_number",
           type: "text",
           title: "Company registration number",
+          required: true,
+          inputPrefix: "#",
           visibleIf: { all: [{ questionId: "org_type", isAnswered: true }] },
+          labelBySibling: {
+            siblingId: "org_type",
+            rules: [
+              {
+                when: { oneOf: ["ltd", "plc"] },
+                title: "Company Registration Number",
+                placeholder: "Company Registration Number",
+              },
+              {
+                when: { equals: "llp" },
+                title: "Articles of Organization",
+                placeholder: "Articles of Organization",
+              },
+              {
+                when: { equals: "sole-proprietorship" },
+                title: "Personal Identification",
+                placeholder: "Personal Identification",
+              },
+              {
+                when: { equals: "partnership" },
+                title: "Partnership Agreement",
+                placeholder: "Partnership Agreement",
+              },
+              {
+                when: { equals: "nonprofit" },
+                title: "Employer Identification Number (EIN)",
+                placeholder: "Employer Identification Number (EIN)",
+              },
+              {
+                when: { equals: "cooperative" },
+                title: "Cooperative Registration Number",
+                placeholder: "Cooperative Registration Number",
+              },
+              {
+                when: { equals: "charity" },
+                title: "Charity Registration Number",
+                placeholder: "Charity Registration Number",
+              },
+            ],
+            default: {
+              title: "Company registration number",
+              placeholder: "Company registration number",
+            },
+          },
         },
         {
           id: "tax_identification_number",
@@ -179,6 +241,7 @@ const company: Section = {
     {
       id: "van_picture",
       type: "file",
+      fileUpload: { mode: "image", maxSizeMB: 8 },
       icon: "upload",
       title: "Do you have a real picture of your vans you can upload?",
       visibleIf: { all: [{ questionId: "van_count", oneOf: ["1-4", "5-9", "10-plus"] }] },
@@ -197,7 +260,7 @@ const company: Section = {
       icon: "card",
       title: "Do you provide finance options to your customers?",
       required: true,
-      options: YES_NO_NA,
+      options: opts("Yes", "Not Applicable"),
     },
     {
       id: "finance_company_name",
@@ -252,13 +315,14 @@ const company: Section = {
       id: "competitor_advantages",
       type: "repeatable-group",
       icon: "star",
-      title: "What makes your business better than your competitors, and why should customers choose you?",
+      title:
+        "Please write a detailed list below of what makes your business better than your competitors and why customers should choose you over them.",
       helper: "Add as many points as you like.",
       groupItemLabel: "Reason",
       minItems: 1,
       group: [
         { id: "reason", type: "text", title: "Reason", required: true },
-        { id: "description", type: "textarea", title: "Description", required: true },
+        { id: "description", type: "text", title: "Description", required: true },
       ],
     },
   ],
@@ -271,6 +335,23 @@ const branding: Section = {
   subtitle: "Your logo, look, and content",
   kind: "questions",
   heading: "Website Design & Branding",
+  transitionIntro: {
+    title: "Website Design And Branding",
+    description:
+      "Congratulations on completing the first section of your onboarding questionnaire. We're now going to move onto the website design section.\n\nWe will be collecting information on the following and this will help the design team get a clear vision of what you want to create:",
+    checklist: [
+      "Website Logo",
+      "Mockup Ideas",
+      "Color Palette",
+      "Fonts",
+      "Design Preferences",
+      "Social Media URLs",
+      "Ideas And Inspirations",
+    ],
+    imageSrc: "/design-web.png",
+    imageAlt: "Website design and branding illustration",
+    nextLabel: "NEXT",
+  },
   questions: [
     {
       id: "logo_situation",
@@ -287,6 +368,7 @@ const branding: Section = {
     {
       id: "logo_upload_keep",
       type: "file",
+      fileUpload: { mode: "image", maxSizeMB: 8 },
       icon: "upload",
       title: "Please upload the company logo you want us to make the changes to",
       visibleIf: { all: [{ questionId: "logo_situation", equals: "keep" }] },
@@ -294,6 +376,7 @@ const branding: Section = {
     {
       id: "logo_upload_new",
       type: "file",
+      fileUpload: { mode: "image", maxSizeMB: 8 },
       icon: "upload",
       title: "Please upload the company logo you would like displayed on your website",
       visibleIf: { all: [{ questionId: "logo_situation", equals: "new" }] },
@@ -302,7 +385,7 @@ const branding: Section = {
       id: "logo_new_description",
       type: "textarea",
       icon: "image",
-      title: "What would you like changed or kept about your logo?",
+      title: "Can you tell us more about what you want to change in your logo?",
       visibleIf: { all: [{ questionId: "logo_situation", equals: "new" }] },
     },
     {
@@ -312,6 +395,7 @@ const branding: Section = {
       title: "Please select the style of logo you like the look of",
       galleryKey: "logo-styles",
       galleryOptions: GALLERIES["logo-styles"],
+      galleryMulti: true,
       visibleIf: { all: [{ questionId: "logo_situation", equals: "none" }] },
     },
     {
@@ -325,7 +409,8 @@ const branding: Section = {
       id: "branding_style",
       type: "single-choice",
       icon: "palette",
-      title: "Would you like your branding based on real life, animated, or a mixture of both?",
+      title: "For your brand we can create different styles of design. Please select whether you would like your branding to be based on real life, animated or a mixture of both.",
+      helper: "Please note that once you choose a design style, it cannot be changed.",
       required: true,
       options: opts("Real", "Animated", "Mixed"),
     },
@@ -361,6 +446,7 @@ const branding: Section = {
       type: "textarea",
       icon: "image",
       title: "What do you like or dislike about the mockup / template you chose?",
+      helper: "(You can click the back button below to review the design without losing your input).",
       rows: 5,
     },
     {
@@ -375,7 +461,7 @@ const branding: Section = {
       id: "affiliated_website_url",
       type: "text",
       icon: "link",
-      title: "Please provide the link",
+      title: "Enter Website Name or URL",
       visibleIf: { all: [{ questionId: "affiliated_website", equals: "yes" }] },
     },
     {
@@ -385,19 +471,19 @@ const branding: Section = {
       title: "What industry is your business in?",
       helper: "Select all that apply.",
       required: true,
-      options: opts(
-        "Plumbing",
-        "HVAC",
-        "Electrical",
-        "Roofing",
-        "Moving Services",
-        "Landscaping",
-        "Restoration Services",
-        "Insulation Services",
-        "Security Services",
-        "ECO4 Services",
-        "Other",
-      ),
+      options: [
+        optImg("Plumbing", "plumbing.svg"),
+        optImg("HVAC", "hvac.svg"),
+        optImg("Electrical", "electrical.svg"),
+        optImg("Roofing", "roofing.svg"),
+        optImg("Moving Services", "van.svg"),
+        optImg("Landscaping", "Landscaping.svg"),
+        optImg("Restoration Services", "Retoration.svg"),
+        optImg("Insulation Services", "insulation.svg"),
+        optImg("Security Services", "security.svg"),
+        optImg("ECO4 Services", "eco4.svg"),
+        optImg("Other", "other.svg"),
+      ],
     },
     {
       id: "industry_other",
@@ -426,14 +512,14 @@ const branding: Section = {
       icon: "wrench",
       title: "Which services would you like to include on your new website? Start with your main service.",
       required: true,
-      options: opts(
-        "Boiler & Heating Services",
-        "Solar Energy Services",
-        "EV Charger Services",
-        "Cooling & HVAC Services",
-        "Heat Pump Services",
-        "Other",
-      ),
+      options: [
+        optImg("Boiler & Heating Services", "boiler.svg"),
+        optImg("Solar Energy Services", "solar-panel.svg"),
+        optImg("EV Charger Services", "electric-car.svg"),
+        optImg("Cooling & HVAC Services", "hvac.svg"),
+        optImg("Heat Pump Services", "insulation.svg"),
+        optImg("Other", "other.svg"),
+      ],
     },
     {
       id: "website_services_other",
@@ -446,8 +532,18 @@ const branding: Section = {
       id: "google_sheet_url",
       type: "text",
       icon: "sheet",
-      title: "Copy the Google Sheet, add your products, and submit the URL here",
-      placeholder: "https://docs.google.com/spreadsheets/...",
+      presentation: "google-sheet-dark",
+      title: "Copy the Google sheet, Add Your Products, and Submit the URL Here.",
+      helper:
+        "Click the button below to open the Google Sheets product template. Copy it to your drive, add your products, and then submit the sheet URL below.",
+      placeholder: "Please Enter Google Sheet URL",
+      googleSheetResources: {
+        templateUrl: GOOGLE_SHEET_TEMPLATE_URL,
+        tutorialVideoUrl:
+          "https://www.loom.com/share/dc3757991d6d4bcfaca750a9a8e0159d?sid=d5ae35cb-0894-4d06-830e-5fc7643e2720",
+        tutorialLinkLabel: "Click here to watch a video tutorial on how to add a product to the sheet.",
+        productSheetButtonLabel: "Product Sheet",
+      },
     },
     {
       id: "offers",
@@ -464,7 +560,7 @@ const branding: Section = {
       id: "typography_choice",
       type: "single-choice",
       icon: "type",
-      title: "To keep a consistent brand image, choose one of the typography options below",
+      title: "In order to maintain a consistent brand image, please choose one of the typography options below",
       required: true,
       options: [
         opt("current", "Please use the current fonts we are using on our existing website"),
@@ -476,6 +572,10 @@ const branding: Section = {
       type: "textarea",
       icon: "type",
       title: "Please provide a link to the website or write the name of the font",
+      helper: "Please enter website url or font name.",
+      placeholder: "Write here",
+      rows: 5,
+      required: true,
       visibleIf: { all: [{ questionId: "typography_choice", equals: "current" }] },
     },
     {
@@ -483,14 +583,24 @@ const branding: Section = {
       type: "single-choice",
       icon: "type",
       title: "Please select the HEADING font you like the most",
+      required: true,
+      otherTextAnswerId: "heading_font_other",
       visibleIf: { all: [{ questionId: "typography_choice", equals: "browse" }] },
-      options: opts("Roboto", "Oswald", "Poppins", "Montserrat", "Lato", "Other"),
+      options: [
+        opt("roboto", "Roboto"),
+        opt("oswald", "Oswald"),
+        opt("poppins", "Poppins"),
+        opt("montserrat", "Montserrat"),
+        opt("lato", "Lato"),
+        { value: "other", label: "Other", linkUrl: GOOGLE_FONTS_URL },
+      ],
     },
     {
       id: "heading_font_other",
       type: "text",
       icon: "type",
-      title: "Please tell us the heading font",
+      title: "Enter Google Font Name",
+      placeholder: "Enter Font Name",
       visibleIf: { all: [{ questionId: "heading_font", equals: "other" }] },
     },
     {
@@ -498,23 +608,30 @@ const branding: Section = {
       type: "single-choice",
       icon: "type",
       title: "Please select the PARAGRAPH font you like the most",
-      visibleIf: {
-        all: [{ questionId: "heading_font", oneOf: ["roboto", "oswald", "poppins", "montserrat", "lato"] }],
-      },
-      options: opts("Roboto", "Poppins", "Montserrat", "Lato", "Other"),
+      required: true,
+      otherTextAnswerId: "paragraph_font_other",
+      visibleIf: { all: [{ questionId: "heading_font", isAnswered: true }] },
+      options: [
+        opt("roboto", "Roboto"),
+        opt("poppins", "Poppins"),
+        opt("montserrat", "Montserrat"),
+        opt("lato", "Lato"),
+        { value: "other", label: "Other", linkUrl: GOOGLE_FONTS_URL },
+      ],
     },
     {
       id: "paragraph_font_other",
       type: "text",
       icon: "type",
       title: "Please tell us the paragraph font",
+      placeholder: "Enter Font Name",
       visibleIf: { all: [{ questionId: "paragraph_font", equals: "other" }] },
     },
     {
       id: "colour_preference",
       type: "single-choice",
       icon: "palette",
-      title: "What are your preferred colours for the website branding?",
+      title: "To maintain consistency in your branding, could you please let us know your preferred colours for the website branding?",
       required: true,
       options: [
         opt("choose-list", "Choose from our list"),
@@ -528,6 +645,7 @@ const branding: Section = {
       type: "image-gallery-pick",
       icon: "palette",
       title: "Choose a palette",
+      required: true,
       galleryKey: "colour-palettes",
       galleryOptions: GALLERIES["colour-palettes"],
       visibleIf: { all: [{ questionId: "colour_preference", equals: "choose-list" }] },
@@ -536,7 +654,16 @@ const branding: Section = {
       id: "colour_palette_description",
       type: "textarea",
       icon: "palette",
-      title: "Generate a palette and share it with us here",
+      required: true,
+      title:
+        "Generate palette from here. Check-out how to share the colour palette with us Click here.",
+      titleRich: [
+        { type: "text", text: "Generate palette from " },
+        { type: "link", text: "here", href: "https://coolors.co/palettes/trending" },
+        { type: "text", text: ". Check-out how to share the colour palette with us " },
+        { type: "link", text: "Click here", href: "https://wbt.vmaker.com/record/XnJeedrRMXvoejoW/" },
+        { type: "text", text: "." },
+      ],
       helper: "Paste your generated palette link or describe the colours you have in mind.",
       visibleIf: { all: [{ questionId: "colour_preference", equals: "create-own" }] },
     },
@@ -913,17 +1040,17 @@ const access: Section = {
       icon: "card",
       title: "What forms of payment do you accept?",
       required: true,
-      options: opts(
-        "Stripe",
-        "Cash",
-        "Cheque",
-        "Bacs",
-        "American Express",
-        "Mastercard",
-        "Visa",
-        "Discover",
-        "Paypal",
-      ),
+      options: [
+        optImg("Stripe", "stripe.svg"),
+        optImg("Cash", "cash.svg"),
+        optImg("Cheque", "cheque.svg"),
+        optImg("Bacs", "bacs.svg"),
+        optImg("American Express", "american-express.svg"),
+        optImg("Mastercard", "mastercard.svg"),
+        optImg("Visa", "visa.svg"),
+        optImg("Discover", "discover.svg"),
+        optImg("Paypal", "paypal-logo.svg"),
+      ],
     },
     {
       id: "stripe_developer_access",

@@ -1,7 +1,7 @@
+import { isBunnyStorageConfigured, uploadToBunnyStorage } from "@/lib/bunny/storage";
 import { getServiceClient, UPLOADS_BUCKET } from "@/lib/supabase/server";
 import type { UploadResponse } from "@/lib/types";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_BYTES = 25 * 1024 * 1024; // 25 MB
 
 function sanitize(name: string): string {
@@ -16,6 +16,7 @@ function jsonError(message: string, status: number) {
 }
 
 // POST /api/upload — multipart form: file, questionId, submissionId(optional).
+// Uses Bunny.net Storage when BUNNY_* env is set; otherwise Supabase Storage.
 export async function POST(request: Request) {
   let form: FormData;
   try {
@@ -29,20 +30,32 @@ export async function POST(request: Request) {
   if (file.size > MAX_BYTES) return jsonError("File too large (max 25 MB)", 413);
 
   const questionId = safeSegment(String(form.get("questionId") ?? "misc"));
-  const submissionIdRaw = String(form.get("submissionId") ?? "");
-  const submissionId = UUID_RE.test(submissionIdRaw) ? submissionIdRaw : "anonymous";
+  const companyNameRaw = String(form.get("companyName") ?? "");
+  const companyFolder = safeSegment(companyNameRaw || "unknown-company");
+
+  const path = `foundation-onboard/${companyFolder}/${Date.now()}-${questionId}-${sanitize(file.name)}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const contentType = file.type || "application/octet-stream";
+
+  if (isBunnyStorageConfigured()) {
+    try {
+      const out = await uploadToBunnyStorage({ relativePath: path, buffer, contentType });
+      return Response.json(out satisfies UploadResponse);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Upload failed";
+      return jsonError(msg, 502);
+    }
+  }
 
   let supabase;
   try {
     supabase = getServiceClient();
   } catch {
-    return jsonError("Supabase not configured", 503);
+    return jsonError("Supabase not configured (set Bunny or Supabase env)", 503);
   }
 
-  const path = `submissions/${submissionId}/${questionId}/${Date.now()}-${sanitize(file.name)}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
   const { error } = await supabase.storage.from(UPLOADS_BUCKET).upload(path, buffer, {
-    contentType: file.type || "application/octet-stream",
+    contentType,
     upsert: false,
   });
   if (error) return jsonError(error.message, 500);

@@ -1,6 +1,6 @@
 import type { ButtonHTMLAttributes } from "react";
 
-type Variant = "primary" | "secondary" | "ghost";
+type Variant = "primary" | "secondary" | "ghost" | "introCta";
 
 const STYLES: Record<Variant, string> = {
   primary:
@@ -8,6 +8,8 @@ const STYLES: Record<Variant, string> = {
   secondary:
     "border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50",
   ghost: "text-slate-600 hover:text-slate-900 hover:bg-slate-100",
+  introCta:
+    "!rounded-xl bg-intro-cta px-8 py-3.5 text-sm font-semibold uppercase tracking-wider text-white hover:bg-intro-cta-hover disabled:bg-intro-cta/40 disabled:text-white/90",
 };
 
 export function Button({

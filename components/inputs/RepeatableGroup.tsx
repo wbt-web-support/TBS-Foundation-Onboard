@@ -69,6 +69,7 @@ export function RepeatableGroup({
                     value={(item ?? {})[s.id] ?? null}
                     onChange={(v) => setSub(index, s.id, v)}
                     onBlur={onBlur}
+                    groupAnswer={item ?? {}}
                   />
                 </div>
               ))}

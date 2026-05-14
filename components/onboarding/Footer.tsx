@@ -10,14 +10,27 @@ export function Footer() {
   const isFirst = currentSectionIndex === 0;
   const isLast = currentSectionIndex === ONBOARDING_SCHEMA.sections.length - 1;
   return (
-    <div className="mt-8 flex items-center justify-between">
-      <Button variant="secondary" onClick={goBack} disabled={isFirst}>
-        <Icon name="chevron-left" className="size-4" />
-        Back
-      </Button>
-      <Button variant="primary" onClick={goNext}>
-        {isLast ? "Submit" : "Next"}
-        <Icon name="chevron-right" className="size-4" />
+    <div
+      className={
+        isFirst
+          ? "mx-auto mt-8 w-full max-w-4xl"
+          : `mt-8 flex items-center justify-between`
+      }
+    >
+      {!isFirst ? (
+        <Button variant="secondary" onClick={goBack}>
+          <Icon name="chevron-left" className="size-4" />
+          Back
+        </Button>
+      ) : null}
+      <Button
+        variant={isFirst ? "introCta" : "primary"}
+        onClick={goNext}
+        className={isFirst ? "w-full" : ""}
+      >
+        {isLast ? "Submit" : isFirst ? "Begin questionnaire" : "Next"}
+        {!isLast && !isFirst ? <Icon name="chevron-right" className="size-4" /> : null}
+        {isLast ? <Icon name="chevron-right" className="size-4" /> : null}
       </Button>
     </div>
   );

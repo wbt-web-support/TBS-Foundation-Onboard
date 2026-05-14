@@ -15,7 +15,8 @@ multi-step form with autosave to Supabase and a resume-by-email magic link.
   a `useReducer`). The sidebar sections just navigate within the page.
 - **Persistence** — answers autosave (debounced) to a Supabase `onboarding_submissions`
   row via [`app/api/submission/route.ts`](app/api/submission/route.ts). Files go to
-  Supabase Storage via [`app/api/upload/route.ts`](app/api/upload/route.ts).
+  Supabase Storage via [`app/api/upload/route.ts`](app/api/upload/route.ts), or **Bunny.net
+  Storage** when `BUNNY_*` env vars are set (see [`example.env.local`](example.env.local)).
 - **Resume** — after the email step, a magic link (`/?token=...`) is emailed via Resend
   ([`app/api/resume-link/route.ts`](app/api/resume-link/route.ts)). Visiting the link
   rehydrates the saved progress.
@@ -24,14 +25,15 @@ multi-step form with autosave to Supabase and a resume-by-email magic link.
 
 ```bash
 npm install
-cp .env.local.example .env.local   # then fill in the values
+cp example.env.local .env.local   # then fill in the values
 ```
 
 In Supabase: run [`supabase/migrations/0001_onboarding_submissions.sql`](supabase/migrations/0001_onboarding_submissions.sql)
 in the SQL editor. It creates the table, indexes, RLS posture (RLS on, no anon policies —
-all access is server-side via the service-role key) and the `onboarding-uploads` storage bucket.
+all access is server-side via the service-role key) and the `onboarding-uploads` storage bucket
+(only needed if you are **not** using Bunny for uploads).
 
-Required env vars (see `.env.local.example`):
+Required env vars (see [`example.env.local`](example.env.local)):
 
 | Var | Notes |
 |---|---|
@@ -41,6 +43,11 @@ Required env vars (see `.env.local.example`):
 | `NEXT_PUBLIC_APP_URL` | base URL for the emailed resume link |
 | `RESEND_API_KEY` | Resend API key |
 | `RESEND_FROM` | verified sender; `onboarding@resend.dev` works for dev |
+| `BUNNY_STORAGE_ZONE` | (optional) Bunny Storage zone name — with `BUNNY_STORAGE_API_KEY` + `BUNNY_PUBLIC_CDN_BASE` enables Bunny uploads |
+| `BUNNY_STORAGE_API_KEY` | Storage zone password (HTTP API AccessKey) |
+| `BUNNY_STORAGE_REGION` | Region code, default `de` (Frankfurt uses `storage.bunnycdn.com`) |
+| `BUNNY_PUBLIC_CDN_BASE` | Pull zone URL, e.g. `https://yourzone.b-cdn.net` (no trailing slash) |
+| `BUNNY_STORAGE_HOST` | (optional) Override API host, e.g. `uk.storage.bunnycdn.com` |
 
 ## Run
 

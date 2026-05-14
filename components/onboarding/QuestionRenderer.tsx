@@ -1,5 +1,6 @@
 "use client";
 
+import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
 import type { Question } from "@/lib/schema/types";
 import type { FieldGroupAnswer, RepeatableAnswer, TimeRangeAnswer } from "@/lib/types";
 import { GALLERIES } from "@/lib/schema/galleries";
@@ -12,9 +13,19 @@ import { MultiChoice } from "@/components/inputs/MultiChoice";
 import { YearSelect } from "@/components/inputs/YearSelect";
 import { TimeRangeInput } from "@/components/inputs/TimeRangeInput";
 import { FileUpload } from "@/components/inputs/FileUpload";
+import { ImageUpload } from "@/components/inputs/ImageUpload";
 import { FieldGroupInput } from "@/components/inputs/FieldGroupInput";
 import { RepeatableGroup } from "@/components/inputs/RepeatableGroup";
 import { ImageGalleryPick } from "@/components/inputs/ImageGalleryPick";
+import { LABEL_CLASS } from "@/components/inputs/fieldStyles";
+
+function questionById(id: string): Question | undefined {
+  for (const s of ONBOARDING_SCHEMA.sections) {
+    const q = s.questions.find((x) => x.id === id);
+    if (q) return q;
+  }
+  return undefined;
+}
 
 function asString(v: unknown): string {
   return typeof v === "string" ? v : typeof v === "number" ? String(v) : "";
@@ -66,14 +77,36 @@ export function QuestionRenderer({ question }: { question: Question }) {
           onBlur={onBlur}
         />
       );
-    case "single-choice":
+    case "single-choice": {
+      const otherId = question.otherTextAnswerId;
+      const otherWhen = question.otherTextWhen ?? "other";
+      const otherMeta = otherId ? questionById(otherId) : undefined;
+      const showOther = Boolean(otherId && asString(value) === otherWhen);
       return (
-        <SingleChoice
-          options={question.options ?? []}
-          value={asString(value)}
-          onChange={(v) => setAnswer(question.id, v)}
-        />
+        <>
+          <SingleChoice
+            options={question.options ?? []}
+            value={asString(value)}
+            onChange={(v) => setAnswer(question.id, v)}
+          />
+          {showOther && otherId ? (
+            <div className="mt-4">
+              <label htmlFor={`field-${otherId}`} className={LABEL_CLASS}>
+                {otherMeta?.title ?? "Enter font name"}
+              </label>
+              <TextInput
+                id={`field-${otherId}`}
+                kind="text"
+                value={asString(answers[otherId])}
+                onChange={(v) => setAnswer(otherId, v)}
+                onBlur={onBlur}
+                placeholder={otherMeta?.placeholder ?? "Enter Font Name"}
+              />
+            </div>
+          ) : null}
+        </>
       );
+    }
     case "multi-choice":
       return (
         <MultiChoice
@@ -102,6 +135,16 @@ export function QuestionRenderer({ question }: { question: Question }) {
         />
       );
     case "file":
+      if (question.fileUpload?.mode === "image") {
+        return (
+          <ImageUpload
+            questionId={question.id}
+            value={asString(value)}
+            onChange={(v) => setAnswer(question.id, v)}
+            maxSizeMB={question.fileUpload?.maxSizeMB ?? 5}
+          />
+        );
+      }
       return (
         <FileUpload
           questionId={question.id}
@@ -135,7 +178,8 @@ export function QuestionRenderer({ question }: { question: Question }) {
       return (
         <ImageGalleryPick
           options={options}
-          value={asString(value)}
+          value={question.galleryMulti ? asStringArray(value) : asString(value)}
+          multiple={Boolean(question.galleryMulti)}
           onChange={(v) => setAnswer(question.id, v)}
         />
       );

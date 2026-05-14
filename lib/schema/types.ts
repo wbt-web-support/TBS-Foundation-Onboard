@@ -35,13 +35,19 @@ export type SubQuestionType =
 export interface Option {
   value: string;
   label: string;
+  /** Optional image shown on choice cards (e.g. `/image/image/foo.svg`). */
+  imageUrl?: string;
+  /** Optional link (e.g. Google Fonts) shown under the label; does not change the option value. */
+  linkUrl?: string;
 }
 
 export interface GalleryOption {
   id: string;
   label: string;
-  /** Placeholder allowed until real assets are supplied. */
-  imageUrl: string;
+  /** Image tile when no `swatchColors` (may be empty). */
+  imageUrl?: string;
+  /** When set, the tile shows horizontal colour swatches instead of `imageUrl`. */
+  swatchColors?: string[];
 }
 
 /**
@@ -76,6 +82,12 @@ export interface VisibilityRule {
   any?: Condition[];
 }
 
+/** Match a sibling answer value for `labelBySibling` rules. Use `oneOf` or `equals`, not both. */
+export interface SiblingLabelWhen {
+  equals?: string;
+  oneOf?: string[];
+}
+
 export interface SubQuestion {
   id: string;
   type: SubQuestionType;
@@ -89,7 +101,23 @@ export interface SubQuestion {
   visibleIf?: VisibilityRule;
   /** Layout hint for side-by-side fields. */
   width?: "full" | "half";
+  /**
+   * Override title/placeholder from a sibling sub-field answer (e.g. org type → registration label).
+   * First matching rule wins; then `default`.
+   */
+  labelBySibling?: {
+    siblingId: string;
+    rules: Array<{ when: SiblingLabelWhen; title: string; placeholder?: string }>;
+    default: { title: string; placeholder?: string };
+  };
+  /** Shown inside the control before the input (e.g. "#"). */
+  inputPrefix?: string;
 }
+
+/** Inline segments for a question title (plain text + external links). */
+export type QuestionRichSegment =
+  | { type: "text"; text: string }
+  | { type: "link"; text: string; href: string };
 
 export interface Question {
   /** Stable, unique across the whole schema. */
@@ -97,6 +125,11 @@ export interface Question {
   type: QuestionType;
   title: string;
   helper?: string;
+  /**
+   * When set, the card heading renders these segments instead of plain `title`.
+   * Keep `title` as a readable plain-text fallback (exports, legacy payloads).
+   */
+  titleRich?: QuestionRichSegment[];
   /** Icon key into components/ui/Icon. */
   icon?: string;
   required?: boolean;
@@ -106,12 +139,35 @@ export interface Question {
   options?: Option[]; // select / single-choice / multi-choice
   galleryOptions?: GalleryOption[]; // image-gallery-pick
   galleryKey?: string; // alternative: resolve from lib/schema/galleries
+  galleryMulti?: boolean; // image-gallery-pick: allow selecting multiple tiles
   yearRange?: { from: number; to: number }; // year-select
   group?: SubQuestion[]; // field-group / repeatable-group
   groupItemLabel?: string; // e.g. "Partner", "Offer" (repeatable-group)
   minItems?: number; // repeatable-group
   maxItems?: number; // repeatable-group
   rows?: number; // textarea
+  /** File upload behavior overrides for `type: "file"` questions. */
+  fileUpload?: {
+    mode?: "image" | "file";
+    maxSizeMB?: number;
+  };
+
+  /**
+   * `google-sheet-dark`: Google Sheet URL step with template / Loom links and “provide later”
+   * (uses a dedicated card layout; `type: "text"`).
+   */
+  presentation?: "google-sheet-dark";
+  /** Resource links when `presentation` is `google-sheet-dark`. */
+  googleSheetResources?: {
+    templateUrl: string;
+    tutorialVideoUrl: string;
+    tutorialLinkLabel?: string;
+    productSheetButtonLabel?: string;
+  };
+
+  /** `single-choice`: when value equals `otherTextWhen` (default `other`), text is stored under this answer id (no separate card). */
+  otherTextAnswerId?: string;
+  otherTextWhen?: string;
 
   // routing:
   visibleIf?: VisibilityRule;
@@ -127,8 +183,17 @@ export interface Section {
   kind: SectionKind;
   /** Body copy for intro/congrats screens. */
   introBody?: string;
-  /** Heading shown above the question stack. */
+  /** Main heading: intro screen headline, or title above the question stack. */
   heading?: string;
+  /** Optional transition intro shown before this section's questions. */
+  transitionIntro?: {
+    title: string;
+    description: string;
+    checklist: string[];
+    imageSrc?: string;
+    imageAlt?: string;
+    nextLabel?: string;
+  };
   questions: Question[];
 }
 

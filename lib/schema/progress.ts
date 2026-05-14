@@ -2,7 +2,7 @@ import type { Answers, FieldGroupAnswer, RepeatableAnswer } from "../types";
 import { isNonEmpty } from "../answers";
 import { ONBOARDING_SCHEMA } from "./questions";
 import type { Question, Section } from "./types";
-import { getVisibleQuestions, isSubQuestionVisible, isVisible } from "./visibility";
+import { getVisibleStandaloneQuestions, isSubQuestionVisible, isVisible } from "./visibility";
 
 /** Does this question contribute a "must answer" slot in its section? */
 export function isQuestionRequired(question: Question): boolean {
@@ -50,6 +50,16 @@ export function isQuestionComplete(question: Question, answers: Answers): boolea
   if (question.type === "repeatable-group") {
     return isRequired(question) ? repeatableComplete(question, value, answers) : true;
   }
+  if (question.type === "single-choice" && isRequired(question)) {
+    if (!isNonEmpty(value)) return false;
+    if (question.otherTextAnswerId) {
+      const when = question.otherTextWhen ?? "other";
+      if (value === when) {
+        return isNonEmpty(answers[question.otherTextAnswerId]);
+      }
+    }
+    return true;
+  }
   if (!isRequired(question)) return true;
   return isNonEmpty(value);
 }
@@ -69,7 +79,7 @@ export interface SectionProgress {
 }
 
 export function sectionProgress(section: Section, answers: Answers): SectionProgress {
-  const visibleRequired = getVisibleQuestions(section, answers).filter(isRequired);
+  const visibleRequired = getVisibleStandaloneQuestions(section, answers).filter(isRequired);
   const total = visibleRequired.length;
   const completed = visibleRequired.filter((q) => isQuestionComplete(q, answers)).length;
   const complete = completed === total;
@@ -79,7 +89,7 @@ export function sectionProgress(section: Section, answers: Answers): SectionProg
 
 /** Visible, required, and not-yet-satisfied questions in a section (for Next validation). */
 export function sectionMissingRequired(section: Section, answers: Answers): Question[] {
-  return getVisibleQuestions(section, answers)
+  return getVisibleStandaloneQuestions(section, answers)
     .filter(isRequired)
     .filter((q) => !isQuestionComplete(q, answers));
 }

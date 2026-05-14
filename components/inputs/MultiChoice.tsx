@@ -12,8 +12,17 @@ export function MultiChoice({
   value: string[];
   onChange: (value: string[]) => void;
 }) {
+  const hasImages = options.some((o) => o.imageUrl);
   const longest = options.reduce((m, o) => Math.max(m, o.label.length), 0);
-  const cols = longest > 28 ? 1 : longest > 14 ? 2 : 3;
+  const cols = hasImages
+    ? longest > 22
+      ? 2
+      : 3
+    : longest > 28
+      ? 1
+      : longest > 14
+        ? 2
+        : 3;
   const toggle = (v: string) =>
     onChange(value.includes(v) ? value.filter((x) => x !== v) : [...value, v]);
   return (
@@ -25,6 +34,8 @@ export function MultiChoice({
         <OptionCard
           key={o.value}
           label={o.label}
+          imageUrl={o.imageUrl}
+          linkUrl={o.linkUrl}
           control="checkbox"
           selected={value.includes(o.value)}
           onClick={() => toggle(o.value)}

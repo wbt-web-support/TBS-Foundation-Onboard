@@ -1,4 +1,5 @@
 import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
+import { mergeAnswersForDatabase } from "@/lib/submission/persistAnswers";
 import type { AutosavePayload, LoadSubmissionResponse, SubmissionResponse } from "@/lib/types";
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -56,7 +57,7 @@ export async function POST(request: Request) {
     email: body.email ?? null,
     phone: body.phone ?? null,
     tax_identification_number: body.taxId ?? null,
-    answers: body.answers ?? {},
+    answers: mergeAnswersForDatabase(body.answers ?? {}),
     current_section_index:
       typeof body.currentSectionIndex === "number" ? body.currentSectionIndex : 0,
     satisfaction_rating:

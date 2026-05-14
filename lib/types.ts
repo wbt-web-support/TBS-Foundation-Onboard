@@ -6,7 +6,13 @@ export type FieldGroupAnswer = Record<string, AnswerPrimitive>;
 /** A repeatable-group's answers: an array of field-group answers. */
 export type RepeatableAnswer = FieldGroupAnswer[];
 /** A time-range answer. */
-export type TimeRangeAnswer = { open: string; close: string };
+export type TimeRangeAnswer = {
+  open: string;
+  close: string;
+  saturdayOpen?: boolean;
+  sundayOpen?: boolean;
+  alwaysOpen?: boolean;
+};
 
 export type AnswerValue =
   | AnswerPrimitive

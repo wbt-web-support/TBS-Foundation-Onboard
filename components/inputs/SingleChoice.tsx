@@ -26,6 +26,8 @@ export function SingleChoice({
         <OptionCard
           key={o.value}
           label={o.label}
+          imageUrl={o.imageUrl}
+          linkUrl={o.linkUrl}
           control="radio"
           selected={value === o.value}
           onClick={() => onChange(value === o.value ? "" : o.value)}

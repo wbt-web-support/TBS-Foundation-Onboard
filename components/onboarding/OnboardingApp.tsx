@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
+import { extractAppAnswersFromDatabase } from "@/lib/submission/persistAnswers";
 import { sectionMissingRequired } from "@/lib/schema/progress";
 import { asNumberOrNull, asStringOrNull, getByPath } from "@/lib/answers";
 import type {
@@ -222,7 +223,7 @@ export default function OnboardingApp() {
             params.set("token", sub.resumeToken);
             router.replace(`/?${params.toString()}`);
           }
-          const answers = sub.answers ?? {};
+          const answers = extractAppAnswersFromDatabase(sub.answers ?? {});
           const emailValue = asStringOrNull(getByPath(answers, ONBOARDING_SCHEMA.emailCapturePath));
           dispatch({
             type: "HYDRATE",
@@ -346,9 +347,12 @@ export default function OnboardingApp() {
         await save(undefined, { force: true });
       }
       const submissionId = stateRef.current.submissionId;
+      const companyName =
+        asStringOrNull(getByPath(stateRef.current.answers, "company_details.company_name")) ?? "unknown-company";
       const fd = new FormData();
       fd.append("file", file);
       fd.append("questionId", questionId);
+      fd.append("companyName", companyName);
       if (submissionId) fd.append("submissionId", submissionId);
       const res = await fetch("/api/upload", { method: "POST", body: fd });
       if (!res.ok) throw new Error(`upload ${res.status}`);
@@ -437,9 +441,15 @@ export default function OnboardingApp() {
     <OnboardingContext.Provider value={ctx}>
       <div className="flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 overflow-x-hidden">
-          <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8">
-            {state.completed ? <CompletedScreen /> : <SectionView />}
+        <main className="flex min-h-0 flex-1 flex-col overflow-x-hidden">
+          <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-5 py-10 sm:px-8">
+            {state.completed ? (
+              <div className="flex flex-1 flex-col justify-center">
+                <CompletedScreen />
+              </div>
+            ) : (
+              <SectionView />
+            )}
           </div>
         </main>
       </div>
