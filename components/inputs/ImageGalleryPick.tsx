@@ -1,15 +1,139 @@
 "use client";
 
+import { useState } from "react";
 import type { GalleryOption } from "@/lib/schema/types";
+import { TEMPLATE_UPLOAD_OWN_ID } from "@/lib/schema/templateGalleries";
+import { ImagePreviewModal } from "./ImagePreviewModal";
+import { ImageUpload } from "./ImageUpload";
+import { ChoiceControlVisual } from "./ChoiceControlVisual";
 import { Icon } from "@/components/ui/Icon";
 
+export type GalleryUploadOwnConfig = {
+  questionId: string;
+  value: string;
+  onChange: (value: string) => void;
+  maxSizeMB?: number;
+};
+
 type ButtonShape = NonNullable<GalleryOption["buttonShape"]>;
+type GallerySurface = "light" | "dark";
 
 function shapeRadiusClass(shape: ButtonShape): string {
   if (shape === "sharp" || shape === "skew") return "rounded-none";
   if (shape === "pill") return "rounded-full";
-  /* Style 4: subtle corner radius like reference (~4–6px) */
   return "rounded-[6px]";
+}
+
+function tileChromeClass(
+  surface: GallerySurface,
+  selected: boolean,
+  isButtonStyleGallery: boolean,
+  isButtonPreview: boolean,
+): string {
+  if (surface === "light") {
+    if (isButtonStyleGallery && isButtonPreview) {
+      return selected
+        ? "border-brand-500 bg-slate-900 ring-1 ring-brand-500"
+        : "border-slate-300 bg-slate-900 hover:border-slate-400";
+    }
+    return selected
+      ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
+      : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50";
+  }
+  if (isButtonStyleGallery && isButtonPreview) {
+    return selected
+      ? "border-brand-500 bg-[var(--color-intro-card)] ring-1 ring-brand-500"
+      : "border-slate-600/90 bg-[var(--color-intro-card)] hover:border-slate-500";
+  }
+  return selected
+    ? "border-brand-500 bg-[var(--color-intro-card)] ring-1 ring-brand-500"
+    : "border-white/20 bg-white/5 hover:border-white/35";
+}
+
+function GalleryTileImage({ imageUrl, label }: { imageUrl?: string; label: string }) {
+  const [failed, setFailed] = useState(false);
+  const showPlaceholder = !imageUrl || failed;
+
+  return (
+    <div className="flex flex-1 items-center justify-center px-3 pb-1 pt-8">
+      {showPlaceholder ? (
+        <div className="flex flex-col items-center gap-1.5 text-center">
+          <Icon name="image" className="size-8 text-slate-300" />
+          {failed && imageUrl ? (
+            <span className="max-w-full px-1 text-[10px] text-slate-400">Image unavailable</span>
+          ) : null}
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageUrl}
+          alt={label}
+          className="max-h-12 w-auto max-w-[78%] object-contain sm:max-h-14"
+          onError={() => setFailed(true)}
+        />
+      )}
+    </div>
+  );
+}
+
+function TemplateGalleryTile({
+  imageUrl,
+  previewUrl,
+  label,
+  enableZoom,
+  onZoom,
+}: {
+  imageUrl?: string;
+  previewUrl?: string;
+  label: string;
+  enableZoom: boolean;
+  onZoom: (src: string, alt: string) => void;
+}) {
+  const [failed, setFailed] = useState(false);
+  const showPlaceholder = !imageUrl || failed;
+  const zoomSrc = previewUrl || imageUrl;
+
+  return (
+    <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+      {showPlaceholder ? (
+        <div className="flex h-full flex-col items-center justify-center gap-1.5 px-2 text-center">
+          <Icon name="image" className="size-10 text-slate-300" />
+          {failed && imageUrl ? (
+            <span className="text-[10px] text-slate-400">Image unavailable</span>
+          ) : null}
+        </div>
+      ) : (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={imageUrl}
+          alt={label}
+          className={`h-full w-full object-cover object-top ${enableZoom ? "cursor-zoom-in" : ""}`}
+          onError={() => setFailed(true)}
+          onClick={
+            enableZoom && zoomSrc
+              ? (e) => {
+                  e.stopPropagation();
+                  onZoom(zoomSrc, label);
+                }
+              : undefined
+          }
+        />
+      )}
+      {enableZoom && zoomSrc && !showPlaceholder ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            onZoom(zoomSrc, label);
+          }}
+          className="absolute right-2 top-2 z-20 grid size-9 place-items-center rounded-full bg-slate-900/85 text-white shadow-md ring-1 ring-white/20 transition hover:bg-slate-900 hover:ring-white/40"
+          aria-label={`Preview ${label} in full size`}
+        >
+          <Icon name="zoom-in" className="size-4" />
+        </button>
+      ) : null}
+    </div>
+  );
 }
 
 function ButtonStylePreviewPair({
@@ -19,15 +143,14 @@ function ButtonStylePreviewPair({
   shape: ButtonShape;
   sampleText: string;
 }) {
-  const motion =
+  const motionCls =
     "transition-shadow duration-200 motion-reduce:transition-none group-hover:shadow-md";
 
-  /* Style 3: parallelograms like reference — horizontal pair, ~17° skew, natural chip width */
   if (shape === "skew") {
     const skewOuter = "-skew-x-[17deg]";
     const skewInner = "skew-x-[17deg]";
     const chipBase =
-      `inline-flex shrink-0 items-center justify-center rounded-none border-2 border-[var(--color-intro-cta)] px-3 py-2 text-[9px] font-bold uppercase tracking-widest sm:px-4 sm:py-2.5 sm:text-[10px] ${motion}`;
+      `inline-flex shrink-0 items-center justify-center rounded-none border-2 border-[var(--color-intro-cta)] px-3 py-2 text-[9px] font-bold uppercase tracking-widest sm:px-4 sm:py-2.5 sm:text-[10px] ${motionCls}`;
 
     return (
       <div className="flex min-w-0 flex-row flex-nowrap items-center justify-center gap-2.5 sm:gap-3">
@@ -50,7 +173,7 @@ function ButtonStylePreviewPair({
   }
 
   const base =
-    `box-border flex w-full min-w-0 max-w-full items-center justify-center border-2 border-[var(--color-intro-cta)] px-1.5 py-1.5 text-center text-[8px] font-bold uppercase leading-tight tracking-wide sm:px-2 sm:py-2 sm:text-[9px] ${motion} ` +
+    `box-border flex w-full min-w-0 max-w-full items-center justify-center border-2 border-[var(--color-intro-cta)] px-1.5 py-1.5 text-center text-[8px] font-bold uppercase leading-tight tracking-wide sm:px-2 sm:py-2 sm:text-[9px] ${motionCls} ` +
     shapeRadiusClass(shape);
 
   const filled = `${base} bg-[var(--color-intro-cta)] text-white group-hover:brightness-105`;
@@ -73,17 +196,46 @@ export function ImageGalleryPick({
   value,
   onChange,
   multiple = false,
+  surface = "light",
+  layout = "compact",
+  enableZoom = false,
+  allowUploadOwn = false,
+  uploadOwn,
 }: {
   options: GalleryOption[];
   value: string | string[];
   onChange: (value: string | string[]) => void;
   multiple?: boolean;
+  /** `light` for white question cards; `dark` for intro / dark panels. */
+  surface?: GallerySurface;
+  /** `template` — full mockup thumbnails (Real / Animated / Mixed pickers). */
+  layout?: "compact" | "template";
+  enableZoom?: boolean;
+  /** Adds “Upload my own” tile + action (template galleries). */
+  allowUploadOwn?: boolean;
+  /** When set, the upload control is rendered inside the “Upload my own” card. */
+  uploadOwn?: GalleryUploadOwnConfig;
 }) {
   const selectedValues = Array.isArray(value) ? value : value ? [value] : [];
   const isButtonStyleGallery = options.some((o) => Boolean(o.buttonShape));
+  const controlVariant = multiple ? ("checkbox" as const) : ("radio" as const);
+  const isLight = surface === "light";
+  const isTemplateLayout = layout === "template";
+  const [preview, setPreview] = useState<{ src: string; alt: string } | null>(null);
+
+  const selectUploadOwn = () => onChange(TEMPLATE_UPLOAD_OWN_ID);
+
+  const handleUploadOwnChange = (url: string) => {
+    uploadOwn?.onChange(url);
+    if (url) selectUploadOwn();
+  };
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    <>
+    <div
+      className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4"
+      role={multiple ? "group" : "radiogroup"}
+    >
       {options.map((o) => {
         const selected = selectedValues.includes(o.id);
         const swatches = o.swatchColors?.filter(Boolean) ?? [];
@@ -99,14 +251,92 @@ export function ImageGalleryPick({
           }
         };
 
-        const tileChrome =
-          isButtonStyleGallery && isButtonPreview
-            ? selected
-              ? "border-brand-500 bg-[var(--color-intro-card)] ring-1 ring-brand-500"
-              : "border-slate-600/90 bg-[var(--color-intro-card)] hover:border-slate-500"
-            : selected
-              ? "border-brand-500 bg-[var(--color-intro-card)] ring-1 ring-brand-500"
-              : "border-white/20 bg-white/5 hover:border-white/35";
+        const tileChrome = tileChromeClass(surface, selected, isButtonStyleGallery, isButtonPreview);
+        const controlSurface = isLight && !isButtonPreview ? "default" : "inverse";
+
+        if (isTemplateLayout) {
+          const isUploadOwnTile = allowUploadOwn && o.id === TEMPLATE_UPLOAD_OWN_ID;
+
+          if (isUploadOwnTile) {
+            return (
+              <div
+                key={o.id}
+                data-selected={selected ? "true" : "false"}
+                className={`group relative overflow-hidden rounded-xl border text-left transition ${
+                  selected
+                    ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
+                    : "border-dashed border-slate-300 bg-white hover:border-brand-400 hover:bg-brand-50/50"
+                }`}
+              >
+                <div
+                  className="flex aspect-[4/5] min-h-0 flex-col bg-slate-50 p-2"
+                  onClick={(e) => e.stopPropagation()}
+                  onKeyDown={(e) => e.stopPropagation()}
+                >
+                  {uploadOwn ? (
+                    <ImageUpload
+                      questionId={uploadOwn.questionId}
+                      value={uploadOwn.value}
+                      onChange={handleUploadOwnChange}
+                      maxSizeMB={uploadOwn.maxSizeMB}
+                      variant="compact"
+                      onActivate={selectUploadOwn}
+                    />
+                  ) : (
+                    <div className="flex h-full flex-col items-center justify-center gap-2 px-1 text-center">
+                      <span className="grid size-12 place-items-center rounded-full bg-white shadow-sm ring-1 ring-slate-200">
+                        <Icon name="upload" className="size-6 text-brand-600" />
+                      </span>
+                      <span className="text-xs font-semibold text-slate-700 sm:text-sm">Upload my own</span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => (selected ? onChange("") : selectUploadOwn())}
+                  role="radio"
+                  aria-checked={selected}
+                  aria-label="Upload my own"
+                  className="flex w-full items-center justify-between gap-2 border-t border-slate-700 bg-slate-900 px-2.5 py-2 text-left transition hover:bg-slate-800"
+                >
+                  <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white sm:text-xs">
+                    Select
+                  </span>
+                </button>
+              </div>
+            );
+          }
+
+          return (
+            <div
+              key={o.id}
+              data-selected={selected ? "true" : "false"}
+              className={`group relative overflow-hidden rounded-xl border text-left transition ${tileChrome}`}
+            >
+              <TemplateGalleryTile
+                imageUrl={o.imageUrl}
+                previewUrl={o.previewUrl}
+                label={o.label}
+                enableZoom={enableZoom}
+                onZoom={(src, alt) => setPreview({ src, alt })}
+              />
+              <button
+                type="button"
+                onClick={toggle}
+                role="radio"
+                aria-checked={selected}
+                aria-label={`Select ${o.label}`}
+                className="flex w-full items-center justify-between gap-2 border-t border-slate-700 bg-slate-900 px-2.5 py-2 text-left transition hover:bg-slate-800"
+              >
+                <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-white sm:text-xs">
+                  Select
+                </span>
+              </button>
+            </div>
+          );
+        }
 
         return (
           <button
@@ -114,7 +344,8 @@ export function ImageGalleryPick({
             type="button"
             onClick={toggle}
             data-selected={selected ? "true" : "false"}
-            aria-pressed={selected}
+            role={multiple ? "checkbox" : "radio"}
+            aria-checked={selected}
             aria-label={o.label}
             className={`group relative overflow-hidden rounded-xl border text-left transition ${tileChrome}`}
           >
@@ -129,56 +360,79 @@ export function ImageGalleryPick({
                     />
                   ))}
                 </div>
-                <div className="flex shrink-0 items-center gap-2 border-t border-white/10 bg-[var(--color-intro-card)] px-2 py-2 sm:px-3">
+                <div
+                  className={`flex shrink-0 items-center gap-2 border-t px-2 py-2 sm:px-3 ${
+                    isLight
+                      ? "border-slate-100 bg-white"
+                      : "border-white/10 bg-[var(--color-intro-card)]"
+                  }`}
+                >
+                  <ChoiceControlVisual
+                    variant={controlVariant}
+                    selected={selected}
+                    size="compact"
+                    surface={controlSurface}
+                  />
                   <span
-                    className={`grid size-4 shrink-0 place-items-center rounded-full border-2 sm:size-5 ${
-                      selected ? "border-[var(--color-intro-cta)]" : "border-white/70"
+                    className={`line-clamp-1 text-[10px] font-semibold uppercase tracking-wide sm:text-xs ${
+                      isLight ? "text-slate-700" : "text-white"
                     }`}
-                    aria-hidden
                   >
-                    {selected ? (
-                      <span className="size-2 rounded-full bg-[var(--color-intro-cta)]" />
-                    ) : null}
-                  </span>
-                  <span className="line-clamp-1 text-[10px] font-semibold uppercase tracking-wide text-white sm:text-xs">
                     {o.label}
                   </span>
                 </div>
               </div>
             ) : isButtonPreview && buttonShape ? (
-              <div
-                className={`flex aspect-[4/3] flex-col overflow-hidden ${buttonShape === "skew" ? "p-2.5 sm:p-3" : "p-2 sm:p-2.5"}`}
-              >
+              <>
+                <span className="absolute left-2 top-2 z-20">
+                  <ChoiceControlVisual
+                    variant={controlVariant}
+                    selected={selected}
+                    surface={controlSurface}
+                  />
+                </span>
                 <div
-                  className={`flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center rounded-lg border border-white/10 bg-black/35 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${
-                    buttonShape === "skew"
-                      ? "overflow-visible px-2 py-3 sm:px-3 sm:py-4"
-                      : "overflow-hidden p-2.5 sm:p-3"
-                  }`}
+                  className={`flex aspect-[4/3] flex-col overflow-hidden ${buttonShape === "skew" ? "p-2.5 sm:p-3" : "p-2 sm:p-2.5"}`}
                 >
-                  <ButtonStylePreviewPair shape={buttonShape} sampleText={sampleLabel} />
+                  <div
+                    className={`flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center rounded-lg border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${
+                      isLight
+                        ? "border-slate-600/40 bg-black/35"
+                        : "border-white/10 bg-black/35"
+                    } ${
+                      buttonShape === "skew"
+                        ? "overflow-visible px-2 py-3 sm:px-3 sm:py-4"
+                        : "overflow-hidden p-2.5 sm:p-3"
+                    }`}
+                  >
+                    <ButtonStylePreviewPair shape={buttonShape} sampleText={sampleLabel} />
+                  </div>
+                </div>
+                {isLight ? (
+                  <div className="border-t border-slate-600/30 bg-slate-900/90 px-2 py-1.5 text-center text-[10px] font-medium text-white sm:text-xs">
+                    {o.label}
+                  </div>
+                ) : null}
+              </>
+            ) : isLight ? (
+              <div className="flex min-h-[8.5rem] w-full flex-col sm:min-h-[9.25rem]">
+                <span className="absolute left-2.5 top-2.5 z-10">
+                  <ChoiceControlVisual variant={controlVariant} selected={selected} />
+                </span>
+                <GalleryTileImage imageUrl={o.imageUrl} label={o.label} />
+                <div className="border-t border-slate-100 bg-white px-2 py-2 text-center text-[11px] font-medium leading-snug text-slate-700 sm:text-xs">
+                  {o.label}
                 </div>
               </div>
             ) : (
               <>
-                <div className="relative flex aspect-[4/3] items-center justify-center bg-white px-4 py-5">
-                  {o.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={o.imageUrl}
-                      alt=""
-                      className="relative z-0 max-h-[5.25rem] w-auto max-w-[72%] object-contain sm:max-h-24"
-                      onError={(e) => {
-                        e.currentTarget.style.display = "none";
-                      }}
-                    />
-                  ) : (
-                    <Icon name="image" className="relative z-0 size-8 text-slate-300" />
-                  )}
+                <span className="absolute left-2 top-2 z-20">
+                  <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
+                </span>
+                <div className="relative flex aspect-[4/3] flex-col items-center justify-center bg-white px-4 py-5">
+                  <GalleryTileImage imageUrl={o.imageUrl} label={o.label} />
                 </div>
-                <div
-                  className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[var(--color-intro-card)]/95 px-2 py-2 text-center text-xs font-semibold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100 sm:text-sm"
-                >
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[var(--color-intro-card)]/95 px-2 py-2 text-center text-xs font-semibold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100 sm:text-sm">
                   <span className="line-clamp-2">{o.label}</span>
                 </div>
               </>
@@ -187,5 +441,14 @@ export function ImageGalleryPick({
         );
       })}
     </div>
+    {preview ? (
+      <ImagePreviewModal
+        src={preview.src}
+        alt={preview.alt}
+        onClose={() => setPreview(null)}
+        variant={isTemplateLayout ? "template" : "default"}
+      />
+    ) : null}
+    </>
   );
 }

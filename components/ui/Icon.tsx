@@ -137,6 +137,13 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="m21 21-4.3-4.3" />
     </>
   ),
+  "zoom-in": (
+    <>
+      <circle cx="11" cy="11" r="7" />
+      <path d="M11 8v6M8 11h6" />
+      <path d="m21 21-4.3-4.3" />
+    </>
+  ),
   trend: <path d="m3 17 6-6 4 4 7-7M14 8h7v7" />,
   flow: (
     <>

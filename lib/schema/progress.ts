@@ -1,6 +1,7 @@
 import type { Answers, FieldGroupAnswer, RepeatableAnswer } from "../types";
-import { isFieldGroupKickoffDeferred, isNonEmpty } from "../answers";
+import { isFieldGroupKickoffDeferred, isNonEmpty, isProvideLaterSentinel } from "../answers";
 import { ONBOARDING_SCHEMA } from "./questions";
+import { TEMPLATE_UPLOAD_OWN_ID } from "./templateGalleries";
 import type { Question, Section } from "./types";
 import { getVisibleStandaloneQuestions, isSubQuestionVisible, isVisible } from "./visibility";
 
@@ -45,6 +46,7 @@ function repeatableComplete(question: Question, value: unknown, answers: Answers
 /** Is this (visible) question satisfied? Optional questions are always "complete". */
 export function isQuestionComplete(question: Question, answers: Answers): boolean {
   const value = answers[question.id];
+  if (isProvideLaterSentinel(value)) return true;
   if (question.type === "field-group") {
     return isRequired(question) ? fieldGroupComplete(question, value, answers) : true;
   }
@@ -60,6 +62,14 @@ export function isQuestionComplete(question: Question, answers: Answers): boolea
       }
     }
     return true;
+  }
+  if (
+    question.type === "image-gallery-pick" &&
+    isRequired(question) &&
+    value === TEMPLATE_UPLOAD_OWN_ID &&
+    question.galleryUploadCompanionKey
+  ) {
+    return isNonEmpty(answers[question.galleryUploadCompanionKey]);
   }
   if (!isRequired(question)) return true;
   return isNonEmpty(value);

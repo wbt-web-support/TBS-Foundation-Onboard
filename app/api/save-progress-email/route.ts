@@ -74,8 +74,16 @@ export async function POST(request: Request) {
     );
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Email send failed";
-    if (msg.includes("RESEND_API_KEY") || msg.includes("Email not configured")) return jsonError("Email not configured", 503);
-    return jsonError(msg, 502);
+    if (msg.includes("RESEND_API_KEY") || msg.includes("Email not configured")) {
+      return jsonError("Email not configured", 503);
+    }
+    if (/535|authentication failed|invalid login/i.test(msg)) {
+      return jsonError(
+        "Email could not be sent: SMTP login failed. Check SMTP_USER and SMTP_PASSWORD in .env (Mailgun SMTP password).",
+        502,
+      );
+    }
+    return jsonError("Email could not be sent. Please try again later.", 502);
   }
 
   return Response.json({ ok: true, emailed: true });

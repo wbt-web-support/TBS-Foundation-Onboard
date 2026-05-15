@@ -2,10 +2,9 @@
 
 /* eslint-disable @next/next/no-img-element */
 import { useEffect, useMemo, useRef, useState } from "react";
+import { imageUploadHelperText, IMAGE_ACCEPT, validateImageFile } from "@/lib/imageUpload";
 import { useOnboarding } from "@/components/onboarding/OnboardingContext";
 import { Icon } from "@/components/ui/Icon";
-
-const IMAGE_ACCEPT = ".jpg,.jpeg,.png,.webp";
 
 function fileName(urlOrPath: string): string {
   try {
@@ -16,34 +15,22 @@ function fileName(urlOrPath: string): string {
   }
 }
 
-function extension(fileNameValue: string): string {
-  const match = fileNameValue.toLowerCase().match(/\.([a-z0-9]+)$/);
-  return match?.[1] ?? "";
-}
-
-function validateImage(file: File, maxSizeMB: number): string | null {
-  const validExt = ["jpg", "jpeg", "png", "webp"];
-  const ext = extension(file.name);
-  if (!validExt.includes(ext)) {
-    return "Please upload a JPG, JPEG, PNG, or WEBP image.";
-  }
-  const maxBytes = maxSizeMB * 1024 * 1024;
-  if (file.size > maxBytes) {
-    return `Image is too large. Maximum size is ${maxSizeMB}MB.`;
-  }
-  return null;
-}
-
 export function ImageUpload({
   questionId,
   value,
   onChange,
   maxSizeMB = 5,
+  variant = "default",
+  onActivate,
 }: {
   questionId: string;
   value: string;
   onChange: (value: string) => void;
   maxSizeMB?: number;
+  /** `compact` — fits inside gallery “Upload my own” card. */
+  variant?: "default" | "compact";
+  /** Called before opening the file picker (e.g. auto-select upload-own tile). */
+  onActivate?: () => void;
 }) {
   const { uploadFile } = useOnboarding();
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -55,6 +42,7 @@ export function ImageUpload({
 
   const previewSrc = localPreview || value;
   const hasPreview = Boolean(value || localPreview);
+  const isCompact = variant === "compact";
 
   useEffect(() => {
     if (!previewOpen) return;
@@ -71,29 +59,31 @@ export function ImageUpload({
     };
   }, [localPreview]);
 
-  const helperText = useMemo(
-    () => `Drag & drop or click to upload (JPG, PNG, WEBP up to ${maxSizeMB}MB)`,
-    [maxSizeMB],
-  );
+  const helperText = useMemo(() => imageUploadHelperText(maxSizeMB), [maxSizeMB]);
+
+  const openPicker = () => {
+    onActivate?.();
+    inputRef.current?.click();
+  };
 
   const processFile = async (file: File) => {
+    onActivate?.();
     setError(null);
-    const validationError = validateImage(file, maxSizeMB);
+    const validationError = validateImageFile(file, maxSizeMB);
     if (validationError) {
       setError(validationError);
       return;
     }
 
+    const objectUrl = URL.createObjectURL(file);
     if (localPreview) URL.revokeObjectURL(localPreview);
-    setLocalPreview(URL.createObjectURL(file));
+    setLocalPreview(objectUrl);
     setUploading(true);
     try {
       const stored = await uploadFile(questionId, file);
       onChange(stored);
-      if (localPreview) {
-        URL.revokeObjectURL(localPreview);
-        setLocalPreview(null);
-      }
+      URL.revokeObjectURL(objectUrl);
+      setLocalPreview(null);
     } catch {
       setError("Image upload failed. Please try again.");
     } finally {
@@ -102,8 +92,17 @@ export function ImageUpload({
     }
   };
 
+  const removeFile = () => {
+    onChange("");
+    setError(null);
+    if (localPreview) {
+      URL.revokeObjectURL(localPreview);
+      setLocalPreview(null);
+    }
+  };
+
   return (
-    <div>
+    <div className={isCompact ? "flex h-full min-h-0 flex-col" : undefined}>
       <input
         ref={inputRef}
         type="file"
@@ -116,58 +115,93 @@ export function ImageUpload({
       />
 
       {hasPreview ? (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm">
-          <span className="flex min-w-0 items-center gap-2 text-slate-700">
-            <Icon
-              name={value ? "check" : "upload"}
-              className={`size-4 shrink-0 ${value ? "text-emerald-600" : "text-slate-500"}`}
-            />
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(true)}
-              className="shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white"
-              aria-label="Preview uploaded image"
-            >
-              <img src={previewSrc} alt={fileName(value)} className="size-10 object-cover" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setPreviewOpen(true)}
-              className="truncate text-left hover:underline"
-            >
-              {fileName(value || "selected-image")}
-            </button>
-          </span>
-          <span className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => inputRef.current?.click()}
-              disabled={uploading}
-              className="shrink-0 text-xs font-medium text-brand-600 hover:text-brand-700 disabled:opacity-50"
-            >
-              {uploading ? "Uploading..." : "Replace"}
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                onChange("");
-                setError(null);
-                if (localPreview) {
-                  URL.revokeObjectURL(localPreview);
-                  setLocalPreview(null);
-                }
-              }}
-              disabled={uploading}
-              className="shrink-0 text-xs font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50"
-            >
-              Remove
-            </button>
-          </span>
+        <div
+          className={
+            isCompact
+              ? "flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-2 text-center"
+              : "flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm"
+          }
+        >
+          {isCompact ? (
+            <>
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="min-h-0 w-full flex-1 overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+                aria-label="Preview uploaded image"
+              >
+                <img src={previewSrc} alt={fileName(value)} className="mx-auto h-full max-h-36 w-full object-contain" />
+              </button>
+              <p className="line-clamp-2 w-full text-[10px] font-medium text-slate-600">
+                {fileName(value || "selected-image")}
+              </p>
+              <div className="flex w-full flex-wrap items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={openPicker}
+                  disabled={uploading}
+                  className="text-[10px] font-medium text-brand-600 hover:text-brand-700 disabled:opacity-50"
+                >
+                  {uploading ? "Uploading…" : "Replace"}
+                </button>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  disabled={uploading}
+                  className="text-[10px] font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <span className="flex min-w-0 items-center gap-2 text-slate-700">
+                <Icon
+                  name={value ? "check" : "upload"}
+                  className={`size-4 shrink-0 ${value ? "text-emerald-600" : "text-slate-500"}`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(true)}
+                  className="shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white"
+                  aria-label="Preview uploaded image"
+                >
+                  <img src={previewSrc} alt={fileName(value)} className="size-10 object-cover" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreviewOpen(true)}
+                  className="truncate text-left hover:underline"
+                >
+                  {fileName(value || "selected-image")}
+                </button>
+              </span>
+              <span className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={openPicker}
+                  disabled={uploading}
+                  className="shrink-0 text-xs font-medium text-brand-600 hover:text-brand-700 disabled:opacity-50"
+                >
+                  {uploading ? "Uploading..." : "Replace"}
+                </button>
+                <button
+                  type="button"
+                  onClick={removeFile}
+                  disabled={uploading}
+                  className="shrink-0 text-xs font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                >
+                  Remove
+                </button>
+              </span>
+            </>
+          )}
         </div>
       ) : (
         <button
           type="button"
-          onClick={() => inputRef.current?.click()}
+          onClick={openPicker}
           onDragOver={(e) => {
             e.preventDefault();
             setDragging(true);
@@ -187,23 +221,29 @@ export function ImageUpload({
             if (dropped) void processFile(dropped);
           }}
           disabled={uploading}
-          className={`flex w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-4 py-6 text-sm transition disabled:opacity-50 ${
+          className={`flex w-full flex-col items-center justify-center rounded-lg border border-dashed transition disabled:opacity-50 ${
+            isCompact ? "min-h-0 flex-1 gap-1.5 px-2 py-3 text-[11px]" : "gap-2 px-4 py-6 text-sm"
+          } ${
             dragging
               ? "border-brand-500 bg-brand-50 text-brand-700"
               : "border-slate-300 text-slate-500 hover:border-brand-400 hover:text-brand-600"
           }`}
         >
           <Icon name="upload" className="size-5" />
-          <span>{uploading ? "Uploading..." : "Choose an image to upload"}</span>
-          <span className="text-xs text-muted">{helperText}</span>
+          <span className="font-medium">
+            {uploading ? "Uploading…" : isCompact ? "Click to upload" : "Choose an image to upload"}
+          </span>
+          <span className={`text-muted ${isCompact ? "text-[10px] leading-tight" : "text-xs"}`}>{helperText}</span>
         </button>
       )}
 
-      {error ? <p className="mt-1.5 text-xs text-rose-600">{error}</p> : null}
+      {error ? (
+        <p className={`text-rose-600 ${isCompact ? "mt-1 text-center text-[10px]" : "mt-1.5 text-xs"}`}>{error}</p>
+      ) : null}
 
       {previewOpen && previewSrc ? (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-4"
           onClick={() => setPreviewOpen(false)}
           role="dialog"
           aria-modal="true"

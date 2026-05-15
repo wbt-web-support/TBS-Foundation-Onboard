@@ -1,12 +1,12 @@
 import nodemailer from "nodemailer";
 
+function smtpEnv(name: string): string {
+  return process.env[name]?.trim() ?? "";
+}
+
 /** True when SMTP is fully configured; outbound mail uses SMTP instead of Resend. */
 export function isSmtpConfigured(): boolean {
-  return Boolean(
-    process.env.SMTP_HOST?.trim() &&
-      process.env.SMTP_USER?.trim() &&
-      process.env.SMTP_PASSWORD?.trim(),
-  );
+  return Boolean(smtpEnv("SMTP_HOST") && smtpEnv("SMTP_USER") && smtpEnv("SMTP_PASSWORD"));
 }
 
 /** True when `sendOutbound`-style email can be attempted (SMTP or Resend). */
@@ -15,9 +15,9 @@ export function isOutboundEmailConfigured(): boolean {
 }
 
 function defaultFromAddress(): string {
-  const explicit = process.env.SMTP_FROM?.trim();
+  const explicit = smtpEnv("SMTP_FROM");
   if (explicit) return explicit;
-  return process.env.SMTP_USER!.trim();
+  return smtpEnv("SMTP_USER");
 }
 
 /**
@@ -34,9 +34,9 @@ export async function sendMailViaSmtp(options: {
   replyTo?: string;
   attachments?: Array<{ filename: string; content: Buffer; contentType?: string }>;
 }): Promise<void> {
-  const host = process.env.SMTP_HOST!.trim();
-  const user = process.env.SMTP_USER!.trim();
-  const pass = process.env.SMTP_PASSWORD!;
+  const host = smtpEnv("SMTP_HOST");
+  const user = smtpEnv("SMTP_USER");
+  const pass = smtpEnv("SMTP_PASSWORD");
 
   const port = parseInt(process.env.SMTP_PORT || "587", 10);
   const secureExplicit = process.env.SMTP_SECURE?.trim().toLowerCase();

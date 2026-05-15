@@ -60,7 +60,7 @@ export async function uploadToBunnyStorage(params: {
       AccessKey: accessKey,
       "Content-Type": params.contentType || "application/octet-stream",
     },
-    body: params.buffer,
+    body: new Uint8Array(params.buffer),
   });
 
   if (!res.ok) {

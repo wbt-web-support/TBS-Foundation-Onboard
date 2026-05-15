@@ -33,6 +33,7 @@ export function FieldGroupInput({
         <div key={s.id} className={s.width === "half" ? "col-span-2 sm:col-span-1" : "col-span-2"}>
           <SubFieldInput
             sub={s}
+            fieldScopeId={`${question.id}-${s.id}`}
             value={current[s.id] ?? null}
             onChange={(v) => set(s.id, v)}
             onBlur={onBlur}

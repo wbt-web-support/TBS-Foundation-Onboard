@@ -1,4 +1,5 @@
 import type { GalleryOption } from "./types";
+import { TEMPLATE_GALLERIES } from "./templateGalleries";
 
 // Image-gallery options. Real assets/URLs to be supplied later — `imageUrl`
 // is intentionally a placeholder for now (the gallery component renders a
@@ -13,26 +14,23 @@ const placeholder = (n: number, prefix: string): GalleryOption[] =>
 
 export const GALLERIES: Record<string, GalleryOption[]> = {
   // Step 16 (logo style picker, "I do not currently have a logo")
-  // Drop files into: public/brand-img/
-  // Currently mapped to provided files: brand-logo-1.png ... brand-logo-9.png, brand-logo.png
+  // Assets: public/brand-img/brand-img/brand-logo.png … brand-logo-9.png
   "logo-styles": [
-    { id: "wordmark", label: "Wordmark", imageUrl: "/brand-img/brand-logo.png" },
-    { id: "lettermark", label: "Lettermark / Monogram", imageUrl: "/brand-img/brand-logo-1.png" },
-    { id: "pictorial", label: "Pictorial mark", imageUrl: "/brand-img/brand-logo-2.png" },
-    { id: "abstract", label: "Abstract mark", imageUrl: "/brand-img/brand-logo-3.png" },
-    { id: "mascot", label: "Mascot", imageUrl: "/brand-img/brand-logo-4.png" },
-    { id: "combination", label: "Combination mark", imageUrl: "/brand-img/brand-logo-5.png" },
-    { id: "emblem", label: "Emblem", imageUrl: "/brand-img/brand-logo-6.png" },
-    { id: "badge", label: "Badge style", imageUrl: "/brand-img/brand-logo-7.png" },
-    { id: "minimal", label: "Minimal style", imageUrl: "/brand-img/brand-logo-8.png" },
-    { id: "dynamic", label: "Dynamic style", imageUrl: "/brand-img/brand-logo-9.png" },
+    { id: "wordmark", label: "Wordmark", imageUrl: "/brand-img/brand-img/brand-logo.png" },
+    { id: "lettermark", label: "Lettermark / Monogram", imageUrl: "/brand-img/brand-img/brand-logo-1.png" },
+    { id: "pictorial", label: "Pictorial mark", imageUrl: "/brand-img/brand-img/brand-logo-2.png" },
+    { id: "abstract", label: "Abstract mark", imageUrl: "/brand-img/brand-img/brand-logo-3.png" },
+    { id: "mascot", label: "Mascot", imageUrl: "/brand-img/brand-img/brand-logo-4.png" },
+    { id: "combination", label: "Combination mark", imageUrl: "/brand-img/brand-img/brand-logo-5.png" },
+    { id: "emblem", label: "Emblem", imageUrl: "/brand-img/brand-img/brand-logo-6.png" },
+    { id: "badge", label: "Badge style", imageUrl: "/brand-img/brand-img/brand-logo-7.png" },
+    { id: "minimal", label: "Minimal style", imageUrl: "/brand-img/brand-img/brand-logo-8.png" },
+    { id: "dynamic", label: "Dynamic style", imageUrl: "/brand-img/brand-img/brand-logo-9.png" },
   ],
-  // Step 18A — Real template gallery
-  "templates-real": placeholder(8, "tpl-real"),
-  // Step 18B — Animated template gallery
-  "templates-animated": placeholder(8, "tpl-animated"),
-  // Step 18C — Mixed template gallery
-  "templates-mixed": placeholder(8, "tpl-mixed"),
+  // Step 18 — template galleries (assets in public/new-design-img/)
+  "templates-real": [...TEMPLATE_GALLERIES["templates-real"]],
+  "templates-animated": [...TEMPLATE_GALLERIES["templates-animated"]],
+  "templates-mixed": [...TEMPLATE_GALLERIES["templates-mixed"]],
   // Step 30A — 12 colour palettes (swatches; no image assets)
   "colour-palettes": [
     {

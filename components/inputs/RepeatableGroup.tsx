@@ -67,6 +67,7 @@ export function RepeatableGroup({
                 <div key={s.id} className={s.width === "half" ? "col-span-2 sm:col-span-1" : "col-span-2"}>
                   <SubFieldInput
                     sub={s}
+                    fieldScopeId={`${question.id}-${index}-${s.id}`}
                     value={(item ?? {})[s.id] ?? null}
                     onChange={(v) => setSub(index, s.id, v)}
                     onBlur={onBlur}

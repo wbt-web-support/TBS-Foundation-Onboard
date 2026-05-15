@@ -1,5 +1,7 @@
 import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
 import { sendCompletionReportWithPdf } from "@/lib/email/resend";
+import { buildAndUploadCompletionPdf } from "@/lib/pdf/saveCompletionPdf";
+import { FOUNDATION_COMPLETION_PDF_URL_KEY } from "@/lib/submission/foundationAppAnswersKey";
 import { mergeAnswersForDatabase } from "@/lib/submission/persistAnswers";
 import type { Answers, AutosavePayload, LoadSubmissionResponse, SubmissionResponse } from "@/lib/types";
 
@@ -8,6 +10,33 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
+}
+
+async function enrichStoredAnswersOnCompletion(
+  appAnswers: Answers,
+  submissionId: string,
+  storedAnswers: Record<string, unknown>,
+  email: string | null,
+): Promise<Record<string, unknown>> {
+  try {
+    const { buffer, publicUrl } = await buildAndUploadCompletionPdf(appAnswers, submissionId);
+    const next = { ...storedAnswers };
+    if (publicUrl) next[FOUNDATION_COMPLETION_PDF_URL_KEY] = publicUrl;
+    if (email && EMAIL_RE.test(email)) {
+      void sendCompletionReportWithPdf(email, appAnswers, buffer, publicUrl).catch((err) => {
+        console.error("[completion-pdf-email]", err);
+      });
+    }
+    return next;
+  } catch (err) {
+    console.error("[completion-pdf-bunny]", err);
+    if (email && EMAIL_RE.test(email)) {
+      void sendCompletionReportWithPdf(email, appAnswers).catch((e) => {
+        console.error("[completion-pdf-email]", e);
+      });
+    }
+    return storedAnswers;
+  }
 }
 
 // GET /api/submission?token=<resume_token> — load a saved submission.
@@ -55,19 +84,33 @@ export async function POST(request: Request) {
     return jsonError("Supabase not configured", 503);
   }
 
+  const appAnswers = (body.answers ?? {}) as Answers;
+  const completed = Boolean(body.completed);
+  let storedAnswers = mergeAnswersForDatabase(appAnswers, body.sectionQuestionProgress);
+
   const row = {
     email: body.email ?? null,
     phone: body.phone ?? null,
     tax_identification_number: body.taxId ?? null,
-    answers: mergeAnswersForDatabase(body.answers ?? {}, body.sectionQuestionProgress),
+    answers: storedAnswers,
     current_section_index:
       typeof body.currentSectionIndex === "number" ? body.currentSectionIndex : 0,
     satisfaction_rating:
       typeof body.satisfactionRating === "number" ? body.satisfactionRating : null,
-    completed: Boolean(body.completed),
+    completed,
   };
 
   if (body.submissionId && UUID_RE.test(body.submissionId)) {
+    if (completed) {
+      storedAnswers = await enrichStoredAnswersOnCompletion(
+        appAnswers,
+        body.submissionId,
+        storedAnswers,
+        row.email,
+      );
+      row.answers = storedAnswers;
+    }
+
     const { data, error } = await supabase
       .from(SUBMISSIONS_TABLE)
       .update(row)
@@ -76,12 +119,6 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (error) return jsonError(error.message, 500);
     if (!data) return jsonError("Submission not found", 404);
-    if (row.completed && row.email && EMAIL_RE.test(row.email)) {
-      const answers = (body.answers ?? {}) as Answers;
-      void sendCompletionReportWithPdf(row.email, answers).catch((err) => {
-        console.error("[completion-pdf-email]", err);
-      });
-    }
     return Response.json({ id: data.id, resumeToken: data.resume_token } satisfies SubmissionResponse);
   }
 
@@ -91,11 +128,13 @@ export async function POST(request: Request) {
     .select("id, resume_token")
     .single();
   if (error) return jsonError(error.message, 500);
-  if (row.completed && row.email && EMAIL_RE.test(row.email)) {
-    const answers = (body.answers ?? {}) as Answers;
-    void sendCompletionReportWithPdf(row.email, answers).catch((err) => {
-      console.error("[completion-pdf-email]", err);
-    });
+
+  if (completed && data.id) {
+    const enriched = await enrichStoredAnswersOnCompletion(appAnswers, data.id, storedAnswers, row.email);
+    if (enriched !== storedAnswers) {
+      await supabase.from(SUBMISSIONS_TABLE).update({ answers: enriched }).eq("id", data.id);
+    }
   }
+
   return Response.json({ id: data.id, resumeToken: data.resume_token } satisfies SubmissionResponse);
 }

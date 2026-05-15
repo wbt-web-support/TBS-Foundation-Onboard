@@ -77,12 +77,13 @@ const INLINE_OTHER_TEXT_IDS = (): Set<string> => {
   for (const sec of ONBOARDING_SCHEMA.sections) {
     for (const q of sec.questions) {
       if (q.type === "single-choice" && q.otherTextAnswerId) s.add(q.otherTextAnswerId);
+      if (q.galleryUploadCompanionKey) s.add(q.galleryUploadCompanionKey);
     }
   }
   return s;
 };
 
-/** Visible questions whose UI is not merged into a parent `single-choice` (e.g. “Other” text). */
+/** Visible questions whose UI is not merged into a parent card (e.g. “Other” text, template upload). */
 export function getVisibleStandaloneQuestions(section: Section, answers: Answers): Question[] {
   const skip = INLINE_OTHER_TEXT_IDS();
   return getVisibleQuestions(section, answers).filter((q) => !skip.has(q.id));

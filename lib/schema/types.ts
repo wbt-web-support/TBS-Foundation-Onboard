@@ -52,6 +52,8 @@ export interface GalleryOption {
   label: string;
   /** Image tile when no `swatchColors` (may be empty). */
   imageUrl?: string;
+  /** Full-size image for lightbox / zoom (defaults to `imageUrl` when omitted). */
+  previewUrl?: string;
   /** When set, the tile shows horizontal colour swatches instead of `imageUrl`. */
   swatchColors?: string[];
   /** When set, the tile shows two sample CTA buttons with this corner treatment. */
@@ -176,6 +178,8 @@ export interface Question {
   galleryMulti?: boolean; // image-gallery-pick: allow selecting multiple tiles
   /** `row`: one horizontal strip (e.g. four button styles). Default grid. */
   galleryLayout?: "grid" | "row";
+  /** `image-gallery-pick`: answer id for custom upload when user picks “Upload my own”. */
+  galleryUploadCompanionKey?: string;
   yearRange?: { from: number; to: number }; // year-select
   group?: SubQuestion[]; // field-group / repeatable-group
   groupItemLabel?: string; // e.g. "Partner", "Offer" (repeatable-group)

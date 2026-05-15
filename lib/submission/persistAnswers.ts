@@ -1,6 +1,10 @@
 import type { AnswerValue, Answers, SectionQuestionProgressSnapshot } from "@/lib/types";
 
-import { FOUNDATION_APP_ANSWERS_KEY, FOUNDATION_SECTION_PROGRESS_KEY } from "./foundationAppAnswersKey";
+import {
+  FOUNDATION_APP_ANSWERS_KEY,
+  FOUNDATION_COMPLETION_PDF_URL_KEY,
+  FOUNDATION_SECTION_PROGRESS_KEY,
+} from "./foundationAppAnswersKey";
 import { buildLegacyQuestionnaire, LEGACY_EXPORT_KEYS } from "./legacyQuestionnaire";
 
 /** Stored JSON: legacy questionnaire keys + app state for hydration. */
@@ -36,6 +40,7 @@ export function extractAppAnswersFromDatabase(stored: unknown): Answers {
   for (const [k, v] of Object.entries(o)) {
     if (k === FOUNDATION_APP_ANSWERS_KEY) continue;
     if (k === FOUNDATION_SECTION_PROGRESS_KEY) continue;
+    if (k === FOUNDATION_COMPLETION_PDF_URL_KEY) continue;
     if (LEGACY_EXPORT_KEYS.has(k)) continue;
     out[k] = v as AnswerValue;
   }

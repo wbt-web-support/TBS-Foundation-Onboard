@@ -1,5 +1,6 @@
 "use client";
 
+/* eslint-disable @next/next/no-img-element */
 import { useEffect, useRef, useState } from "react";
 import { useOnboarding } from "@/components/onboarding/OnboardingContext";
 import { Icon } from "@/components/ui/Icon";
@@ -32,10 +33,22 @@ export function FileUpload({
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [imagePreviewFailed, setImagePreviewFailed] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     setImagePreviewFailed(false);
   }, [value]);
+
+  useEffect(() => {
+    if (!previewOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPreviewOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [previewOpen]);
+
+  const canImagePreview = Boolean(value && isLikelyImageUrl(value) && !imagePreviewFailed);
 
   const handlePick = async (file: File) => {
     setError(null);
@@ -66,24 +79,41 @@ export function FileUpload({
         <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm">
           <span className="flex min-w-0 flex-1 items-center gap-2 text-slate-700">
             <Icon name="check" className="size-4 shrink-0 text-emerald-600" />
-            {isLikelyImageUrl(value) && !imagePreviewFailed ? (
-              <img
-                src={value}
-                alt=""
-                loading="lazy"
-                decoding="async"
-                className="size-10 shrink-0 rounded-md border border-slate-200 bg-white object-cover"
-                onError={() => setImagePreviewFailed(true)}
-              />
+            {canImagePreview ? (
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white ring-brand-500/40 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2"
+                aria-label="Preview uploaded image"
+              >
+                <img
+                  src={value}
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                  className="size-10 object-cover"
+                  onError={() => setImagePreviewFailed(true)}
+                />
+              </button>
             ) : null}
-            <a
-              href={value}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="min-w-0 truncate hover:underline"
-            >
-              {fileName(value)}
-            </a>
+            {canImagePreview ? (
+              <button
+                type="button"
+                onClick={() => setPreviewOpen(true)}
+                className="min-w-0 truncate text-left hover:underline"
+              >
+                {fileName(value)}
+              </button>
+            ) : (
+              <a
+                href={value}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-w-0 truncate hover:underline"
+              >
+                {fileName(value)}
+              </a>
+            )}
           </span>
           <button
             type="button"
@@ -106,6 +136,30 @@ export function FileUpload({
         </button>
       )}
       {error ? <p className="mt-1.5 text-xs text-rose-600">{error}</p> : null}
+
+      {previewOpen && canImagePreview && value ? (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-4"
+          onClick={() => setPreviewOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Image preview"
+        >
+          <button
+            type="button"
+            onClick={() => setPreviewOpen(false)}
+            className="absolute right-4 top-4 rounded-md bg-white/10 px-2.5 py-1.5 text-xs font-medium text-white hover:bg-white/20"
+          >
+            Close
+          </button>
+          <img
+            src={value}
+            alt={fileName(value)}
+            className="max-h-[85vh] max-w-[90vw] rounded-lg border border-white/20 bg-white object-contain shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      ) : null}
     </div>
   );
 }

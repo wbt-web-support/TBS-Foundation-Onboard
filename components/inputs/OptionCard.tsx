@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { Icon } from "@/components/ui/Icon";
+import { ChoiceControlVisual } from "./ChoiceControlVisual";
 
 export function OptionCard({
   label,
@@ -35,20 +35,16 @@ export function OptionCard({
         onClick={onClick}
         aria-label={label}
         data-selected={selected ? "true" : "false"}
-        aria-pressed={selected}
+        role="checkbox"
+        aria-checked={selected}
         className={`group relative flex min-h-[8.5rem] w-full flex-col overflow-hidden rounded-lg border text-left text-sm transition sm:min-h-[9.25rem] ${
           selected
             ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
             : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50"
         }`}
       >
-        <span
-          className={`absolute left-2.5 top-2.5 z-10 grid size-5 shrink-0 place-items-center rounded border ${
-            selected ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-transparent"
-          }`}
-          aria-hidden
-        >
-          <Icon name="check" className="size-3.5" />
+        <span className="absolute left-2.5 top-2.5 z-10">
+          <ChoiceControlVisual variant="checkbox" selected={selected} />
         </span>
         <div className="flex flex-1 items-center justify-center px-3 pb-1 pt-8">
           <Image
@@ -71,7 +67,8 @@ export function OptionCard({
     <button
       type="button"
       onClick={onClick}
-      aria-pressed={control === "checkbox" ? selected : undefined}
+      role={control === "radio" ? "radio" : "checkbox"}
+      aria-checked={selected}
       className={`flex w-full rounded-lg border px-3.5 py-3 text-left text-sm transition ${
         imageUrl ? "flex-col gap-2" : hasRichDetail ? "flex-col items-stretch gap-0 py-3.5 sm:px-4 sm:py-4" : "items-center gap-3"
       } ${
@@ -93,19 +90,11 @@ export function OptionCard({
         </div>
       ) : null}
       <div className={`flex min-w-0 flex-1 items-start gap-3 ${hasRichDetail ? "sm:gap-3.5" : ""}`}>
-        <span
-          className={`grid size-5 shrink-0 place-items-center border ${
-            control === "radio" ? "rounded-full" : "rounded"
-          } ${selected ? "border-brand-600 bg-brand-600 text-white" : "border-slate-300 bg-white text-transparent"} ${
-            hasRichDetail ? "mt-0.5" : ""
-          }`}
-        >
-          {control === "radio" ? (
-            <span className={`size-2 rounded-full ${selected ? "bg-white" : "bg-transparent"}`} />
-          ) : (
-            <Icon name="check" className="size-3.5" />
-          )}
-        </span>
+        <ChoiceControlVisual
+          variant={control === "radio" ? "radio" : "checkbox"}
+          selected={selected}
+          className={hasRichDetail ? "mt-0.5" : ""}
+        />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <span className={hasRichDetail ? "font-semibold text-slate-900" : "text-slate-700"}>{label}</span>
           {description ? (

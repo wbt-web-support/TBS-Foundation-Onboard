@@ -2,6 +2,7 @@ import { Resend } from "resend";
 import { applicantBusinessEmail } from "@/lib/email/applicantBusinessEmail";
 import { buildOnboardingAnswersPdfBuffer, completionPdfFilename } from "@/lib/pdf/onboardingAnswersPdf";
 import type { Answers } from "@/lib/types";
+import { buildCompletionPdfEmail } from "./completionPdfTemplate";
 import { buildProgressSavedEmail } from "./progressSavedTemplate";
 import { isOutboundEmailConfigured, isSmtpConfigured, sendMailViaSmtp } from "./smtp";
 
@@ -116,21 +117,27 @@ export async function sendProgressSavedEmail(
 const COMPLETION_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /** Sends a PDF mirror of the questionnaire to the respondent when onboarding is completed (requires outbound mail). */
-export async function sendCompletionReportWithPdf(to: string, answers: Answers): Promise<void> {
+export async function sendCompletionReportWithPdf(
+  to: string,
+  answers: Answers,
+  pdfBuffer?: Buffer,
+  pdfPublicUrl?: string | null,
+): Promise<void> {
   if (!isOutboundEmailConfigured()) return;
   const business = applicantBusinessEmail(answers);
   const target = business && COMPLETION_EMAIL_RE.test(business) ? business : to.trim();
   if (!target || !COMPLETION_EMAIL_RE.test(target)) return;
 
-  const pdf = await buildOnboardingAnswersPdfBuffer(answers);
+  const pdf = pdfBuffer ?? (await buildOnboardingAnswersPdfBuffer(answers));
   const filename = completionPdfFilename(answers);
-  const html = `<p style="font-family:Segoe UI,system-ui,sans-serif;font-size:15px;line-height:1.55;color:#0f172a;">Thank you for completing the Foundation onboarding questionnaire. Your responses are attached as a PDF report.</p>`;
-  const text =
-    "Thank you for completing the Foundation onboarding questionnaire. Your responses are attached as a PDF report.";
+  const { html, text } = buildCompletionPdfEmail({
+    answers,
+    pdfViewUrl: pdfPublicUrl ?? null,
+  });
 
   await sendOutbound({
     to: target,
-    subject: "Foundation onboarding — your completed questionnaire (PDF)",
+    subject: "Questionnaire completed — PDF ready",
     html,
     text,
     attachments: [{ filename, content: pdf, contentType: "application/pdf" }],

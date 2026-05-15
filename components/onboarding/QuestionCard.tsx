@@ -4,7 +4,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import type { Question, QuestionRichSegment } from "@/lib/schema/types";
-import { FIELD_GROUP_KICKOFF_DEFER_KEY, PROVIDE_LATER_SENTINEL } from "@/lib/answers";
+import { provideLaterAnswerValue } from "@/lib/provideLater";
 import { Icon } from "@/components/ui/Icon";
 import { useOnboarding } from "./OnboardingContext";
 
@@ -130,7 +130,7 @@ function GoogleSheetDarkCard({
   if (!r) return null;
 
   const onProvideLater = async () => {
-    setAnswer(question.id, "");
+    setAnswer(question.id, provideLaterAnswerValue(question));
     await flushSave();
     goNext();
   };
@@ -222,22 +222,7 @@ export function QuestionCard({
   const { setAnswer, goNext, flushSave } = useOnboarding();
 
   const onProvideLaterSkip = async () => {
-    const id = question.id;
-    if (question.type === "repeatable-group") {
-      setAnswer(id, []);
-    } else if (question.type === "field-group") {
-      if (question.provideLater?.deferFieldGroupToKickoff) {
-        setAnswer(id, { [FIELD_GROUP_KICKOFF_DEFER_KEY]: "yes" });
-      } else {
-        setAnswer(id, {});
-      }
-    } else if (question.type === "multi-choice") {
-      setAnswer(id, []);
-    } else if (question.provideLater) {
-      setAnswer(id, PROVIDE_LATER_SENTINEL);
-    } else {
-      setAnswer(id, "");
-    }
+    setAnswer(question.id, provideLaterAnswerValue(question));
     await flushSave();
     goNext();
   };

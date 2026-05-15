@@ -5,25 +5,29 @@ import type { AnswerPrimitive, FieldGroupAnswer } from "@/lib/types";
 import { resolveSubFieldPresentation } from "@/lib/schema/siblingPresentation";
 import { TextInput } from "./TextInput";
 import { TextareaInput } from "./TextareaInput";
-import { SelectInput } from "./SelectInput";
+import { DropdownSelect } from "./DropdownSelect";
 import { SingleChoice } from "./SingleChoice";
 import { YearSelect } from "./YearSelect";
 import { FIELD_CLASS, INPUT_PREFIX_FIELD, INPUT_PREFIX_LEAD, INPUT_PREFIX_WRAP, LABEL_CLASS } from "./fieldStyles";
 
 export function SubFieldInput({
   sub,
+  fieldScopeId,
   value,
   onChange,
   onBlur,
   groupAnswer,
 }: {
   sub: SubQuestion;
+  /** Stable id fragment for grouped controls (e.g. radio / checkbox lists). */
+  fieldScopeId?: string;
   value: AnswerPrimitive;
   onChange: (value: AnswerPrimitive) => void;
   onBlur?: () => void;
   /** Field-group row answers; used for `labelBySibling`. */
   groupAnswer?: FieldGroupAnswer;
 }) {
+  const choiceGroupId = fieldScopeId ? `choices-${fieldScopeId}` : undefined;
   const scope = groupAnswer ?? {};
   const { title, placeholder } = resolveSubFieldPresentation(sub, scope);
   const str = value == null ? "" : String(value);
@@ -89,14 +93,32 @@ export function SubFieldInput({
       );
       break;
     case "select":
-      control = <SelectInput options={sub.options ?? []} value={str} onChange={setStr} onBlur={onBlur} />;
+      control = (
+        <DropdownSelect
+          id={choiceGroupId}
+          options={sub.options ?? []}
+          value={str}
+          onChange={setStr}
+          onBlur={onBlur}
+          placeholder={placeholder ?? sub.placeholder ?? "Select…"}
+        />
+      );
       break;
     case "single-choice":
-      control = <SingleChoice options={sub.options ?? []} value={str} onChange={setStr} />;
+      control = (
+        <SingleChoice
+          groupId={choiceGroupId}
+          options={sub.options ?? []}
+          value={str}
+          onChange={setStr}
+          onBlur={onBlur}
+        />
+      );
       break;
     case "year-select":
       control = (
         <YearSelect
+          id={choiceGroupId}
           from={sub.yearRange?.from ?? 1999}
           to={sub.yearRange?.to ?? new Date().getFullYear()}
           value={str}

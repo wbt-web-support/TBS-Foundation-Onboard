@@ -16,15 +16,15 @@ const opts = (...labels: string[]): Option[] =>
   labels.map((l) => ({ value: slug(l), label: l }));
 
 const IMG = (file: string) => `/image/image/${file}`;
-/** Logos and art under `public/brand-img/brand-img/`. */
-const BRAND_IMG = (file: string) => `/brand-img/brand-img/${file}`;
+/** Logos under `public/brand-img/` (e.g. `/brand-img/GoDaddy-Logo.png`). */
+const BRAND_IMG = (file: string) => `/brand-img/${file}`;
 /** Label + image under `public/image/image/` (value auto-slugged from label). */
 const optImg = (label: string, file: string): Option => ({
   value: slug(label),
   label,
   imageUrl: IMG(file),
 });
-/** Domain provider option with logo from `public/brand-img/brand-img/`. */
+/** Domain provider option with logo from `public/brand-img/`. */
 const domainBrand = (value: string, label: string, file: string): Option => ({
   value,
   label,
@@ -223,6 +223,7 @@ const company: Section = {
         { id: "email", type: "email", title: "Email", required: true, width: "half" },
         { id: "phone", type: "tel", title: "Phone number", required: true, width: "half" },
       ],
+      provideLater: {},
     },
     {
       id: "employee_count",
@@ -386,6 +387,7 @@ const branding: Section = {
       icon: "upload",
       title: "Please upload the company logo you want us to make the changes to",
       visibleIf: { all: [{ questionId: "logo_situation", equals: "keep" }] },
+      provideLater: {},
     },
     {
       id: "logo_upload_new",
@@ -394,6 +396,7 @@ const branding: Section = {
       icon: "upload",
       title: "Please upload the company logo you would like displayed on your website",
       visibleIf: { all: [{ questionId: "logo_situation", equals: "new" }] },
+      provideLater: {},
     },
     {
       id: "logo_new_description",
@@ -433,27 +436,60 @@ const branding: Section = {
       type: "image-gallery-pick",
       icon: "image",
       title: "Browse the designs and select the template you like the most (Real). We'll use it as inspiration.",
+      required: true,
       galleryKey: "templates-real",
       galleryOptions: GALLERIES["templates-real"],
+      galleryUploadCompanionKey: "template_real_upload",
       visibleIf: { all: [{ questionId: "branding_style", equals: "real" }] },
+    },
+    {
+      id: "template_real_upload",
+      type: "file",
+      icon: "upload",
+      title: "Upload your design reference",
+      required: true,
+      fileUpload: { mode: "image", maxSizeMB: 10 },
+      visibleIf: { all: [{ questionId: "template_real", equals: "upload-my-own" }] },
     },
     {
       id: "template_animated",
       type: "image-gallery-pick",
       icon: "image",
       title: "Browse the designs and select the template you like the most (Animated). We'll use it as inspiration.",
+      required: true,
       galleryKey: "templates-animated",
       galleryOptions: GALLERIES["templates-animated"],
+      galleryUploadCompanionKey: "template_animated_upload",
       visibleIf: { all: [{ questionId: "branding_style", equals: "animated" }] },
+    },
+    {
+      id: "template_animated_upload",
+      type: "file",
+      icon: "upload",
+      title: "Upload your design reference",
+      required: true,
+      fileUpload: { mode: "image", maxSizeMB: 10 },
+      visibleIf: { all: [{ questionId: "template_animated", equals: "upload-my-own" }] },
     },
     {
       id: "template_mixed",
       type: "image-gallery-pick",
       icon: "image",
       title: "Browse the designs and select the template you like the most (Mixed). We'll use it as inspiration.",
+      required: true,
       galleryKey: "templates-mixed",
       galleryOptions: GALLERIES["templates-mixed"],
+      galleryUploadCompanionKey: "template_mixed_upload",
       visibleIf: { all: [{ questionId: "branding_style", equals: "mixed" }] },
+    },
+    {
+      id: "template_mixed_upload",
+      type: "file",
+      icon: "upload",
+      title: "Upload your design reference",
+      required: true,
+      fileUpload: { mode: "image", maxSizeMB: 10 },
+      visibleIf: { all: [{ questionId: "template_mixed", equals: "upload-my-own" }] },
     },
     {
       id: "template_feedback",
@@ -558,6 +594,7 @@ const branding: Section = {
         tutorialLinkLabel: "Click here to watch a video tutorial on how to add a product to the sheet.",
         productSheetButtonLabel: "Product Sheet",
       },
+      provideLater: {},
     },
     {
       id: "offers",
@@ -569,6 +606,7 @@ const branding: Section = {
         { id: "offer", type: "text", title: "Offer", required: true },
         { id: "description", type: "textarea", title: "Description" },
       ],
+      provideLater: {},
     },
     {
       id: "typography_choice",
@@ -1305,6 +1343,7 @@ const access: Section = {
         jobSoftwareImg("Job Logic", "Job-Logic.png"),
         jobSoftwareImg("Other", "other-icon.png"),
       ],
+      provideLater: {},
     },
     {
       id: "job_management_software_other",

@@ -139,7 +139,10 @@ function rep(answers: Answers, id: string): RepeatableAnswer | undefined {
 
 function str(v: AnswerValue | undefined): string {
   if (v == null) return "";
-  if (typeof v === "string") return v;
+  if (typeof v === "string") {
+    if (isProvideLaterSentinel(v)) return "";
+    return v;
+  }
   if (typeof v === "number") return String(v);
   if (typeof v === "boolean") return v ? "Yes" : "No";
   return "";
@@ -208,9 +211,12 @@ function formatOpeningHours(tr: TimeRangeAnswer): string {
 function galleryLabels(question: Question | undefined, value: AnswerValue | undefined): string {
   if (!question) return str(value as AnswerValue);
   const opts = question.galleryOptions ?? (question.galleryKey ? GALLERIES[question.galleryKey] : []) ?? [];
-  const ids = Array.isArray(value) ? value : value ? [String(value)] : [];
-  return ids
-    .map((id) => opts.find((o) => o.id === id)?.label ?? id)
+  const raw = Array.isArray(value) ? value : value ? [String(value)] : [];
+  return raw
+    .map((id) => {
+      if (id === "upload-my-own") return "Upload my own";
+      return opts.find((o) => o.id === id)?.label ?? id;
+    })
     .filter(Boolean)
     .join(", ");
 }
@@ -332,12 +338,19 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
     );
   }
 
-  const partners = rep(answers, "partners");
-  if (partners?.length) {
+  if (isProvideLaterSentinel(answers.partners)) {
     out.Business_Colleagues_Details = entry(
       " Please provide colleagues or business partner's details: ",
-      formatPartners(partners),
+      "I will provide later",
     );
+  } else {
+    const partners = rep(answers, "partners");
+    if (partners?.length) {
+      out.Business_Colleagues_Details = entry(
+        " Please provide colleagues or business partner's details: ",
+        formatPartners(partners),
+      );
+    }
   }
 
   const ec = str(answers.employee_count);
@@ -500,11 +513,21 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
     );
   }
 
-  const gsu = str(answers.google_sheet_url);
-  if (gsu) {
-    out.Google_Sheet_Products_URL = entry("Google Sheet product URL", gsu);
+  if (isProvideLaterSentinel(answers.google_sheet_url)) {
+    out.Google_Sheet_Products_URL = entry("Google Sheet product URL", "I will provide later");
+  } else {
+    const gsu = str(answers.google_sheet_url);
+    if (gsu) {
+      out.Google_Sheet_Products_URL = entry("Google Sheet product URL", gsu);
+    }
   }
 
+  if (isProvideLaterSentinel(answers.offers)) {
+    out.Offer_for_Customers = entry(
+      " Please list below any discounts or extras you are willing to offer customers for your specific services. ",
+      "I will provide later",
+    );
+  }
   const off = rep(answers, "offers");
   if (off?.length) {
     out.Offer_for_Customers = entry(
@@ -840,12 +863,19 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
     );
   }
 
-  const jm = answers.job_management_software;
-  if (Array.isArray(jm) && jm.length && jm.every((x) => typeof x === "string")) {
+  if (isProvideLaterSentinel(answers.job_management_software)) {
     out.Job_Management_Software = entry(
       " Do you use any of the following quoting or job management softwares? ",
-      multiLabels("job_management_software", jm as string[]),
+      "I will provide later",
     );
+  } else {
+    const jm = answers.job_management_software;
+    if (Array.isArray(jm) && jm.length && jm.every((x) => typeof x === "string")) {
+      out.Job_Management_Software = entry(
+        " Do you use any of the following quoting or job management softwares? ",
+        multiLabels("job_management_software", jm as string[]),
+      );
+    }
   }
 
   const jmo = str(answers.job_management_software_other);

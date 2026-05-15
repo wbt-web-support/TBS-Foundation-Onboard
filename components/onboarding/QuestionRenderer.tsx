@@ -8,13 +8,14 @@ import { GALLERIES } from "@/lib/schema/galleries";
 import { useOnboarding } from "./OnboardingContext";
 import { TextInput } from "@/components/inputs/TextInput";
 import { TextareaInput } from "@/components/inputs/TextareaInput";
-import { SelectInput } from "@/components/inputs/SelectInput";
+import { DropdownSelect } from "@/components/inputs/DropdownSelect";
 import { SingleChoice } from "@/components/inputs/SingleChoice";
 import { MultiChoice } from "@/components/inputs/MultiChoice";
 import { YearSelect } from "@/components/inputs/YearSelect";
 import { TimeRangeInput } from "@/components/inputs/TimeRangeInput";
 import { FileUpload } from "@/components/inputs/FileUpload";
 import { ImageUpload } from "@/components/inputs/ImageUpload";
+import { TEMPLATE_UPLOAD_OWN_ID, TEMPLATE_UPLOAD_OWN_OPTION } from "@/lib/schema/templateGalleries";
 import { FieldGroupInput } from "@/components/inputs/FieldGroupInput";
 import { RepeatableGroup } from "@/components/inputs/RepeatableGroup";
 import { ImageGalleryPick } from "@/components/inputs/ImageGalleryPick";
@@ -61,25 +62,28 @@ export function QuestionRenderer({ question }: { question: Question }) {
         />
       );
     }
-    case "textarea":
+    case "textarea": {
+      const textareaValue = isProvideLaterSentinel(value) ? "" : asString(value);
       return (
         <TextareaInput
           id={id}
-          value={asString(value)}
+          value={textareaValue}
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
           placeholder={question.placeholder}
           rows={question.rows}
         />
       );
+    }
     case "select":
       return (
-        <SelectInput
+        <DropdownSelect
           id={id}
           options={question.options ?? []}
           value={asString(value)}
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
+          placeholder={question.placeholder ?? "Select…"}
         />
       );
     case "single-choice": {
@@ -90,6 +94,7 @@ export function QuestionRenderer({ question }: { question: Question }) {
       return (
         <>
           <SingleChoice
+            groupId={`${id}-choices`}
             options={question.options ?? []}
             value={asString(value)}
             onChange={(v) => setAnswer(question.id, v)}
@@ -116,8 +121,9 @@ export function QuestionRenderer({ question }: { question: Question }) {
     case "multi-choice":
       return (
         <MultiChoice
+          groupId={`${id}-choices`}
           options={question.options ?? []}
-          value={asStringArray(value)}
+          value={isProvideLaterSentinel(value) ? [] : asStringArray(value)}
           onChange={(v) => setAnswer(question.id, v)}
           columns={question.multiChoiceColumns}
         />
@@ -141,12 +147,13 @@ export function QuestionRenderer({ question }: { question: Question }) {
           onBlur={onBlur}
         />
       );
-    case "file":
+    case "file": {
+      const fileValue = isProvideLaterSentinel(value) ? "" : asString(value);
       if (question.fileUpload?.mode === "image") {
         return (
           <ImageUpload
             questionId={question.id}
-            value={asString(value)}
+            value={fileValue}
             onChange={(v) => setAnswer(question.id, v)}
             maxSizeMB={question.fileUpload?.maxSizeMB ?? 5}
           />
@@ -155,10 +162,11 @@ export function QuestionRenderer({ question }: { question: Question }) {
       return (
         <FileUpload
           questionId={question.id}
-          value={asString(value)}
+          value={fileValue}
           onChange={(v) => setAnswer(question.id, v)}
         />
       );
+    }
     case "field-group":
       return (
         <FieldGroupInput
@@ -173,22 +181,48 @@ export function QuestionRenderer({ question }: { question: Question }) {
       return (
         <RepeatableGroup
           question={question}
-          value={(value as RepeatableAnswer | undefined) ?? undefined}
+          value={
+            isProvideLaterSentinel(value) ? undefined : ((value as RepeatableAnswer | undefined) ?? undefined)
+          }
           answers={answers}
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
         />
       );
     case "image-gallery-pick": {
-      const options =
+      const baseOptions =
         question.galleryOptions ?? (question.galleryKey ? GALLERIES[question.galleryKey] : []) ?? [];
+      const isTemplateGallery = question.galleryKey?.startsWith("templates-") ?? false;
+      const options = isTemplateGallery ? [...baseOptions, TEMPLATE_UPLOAD_OWN_OPTION] : baseOptions;
+      const pick = question.galleryMulti ? asStringArray(value) : asString(value);
+      const companionKey = question.galleryUploadCompanionKey;
+      const uploadMeta = companionKey ? questionById(companionKey) : undefined;
+
       return (
-        <ImageGalleryPick
-          options={options}
-          value={question.galleryMulti ? asStringArray(value) : asString(value)}
-          multiple={Boolean(question.galleryMulti)}
-          onChange={(v) => setAnswer(question.id, v)}
-        />
+        <>
+          <ImageGalleryPick
+            options={options}
+            value={pick}
+            multiple={Boolean(question.galleryMulti)}
+            onChange={(v) => {
+              setAnswer(question.id, v);
+              if (companionKey && v !== TEMPLATE_UPLOAD_OWN_ID) setAnswer(companionKey, "");
+            }}
+            layout={isTemplateGallery ? "template" : "compact"}
+            enableZoom={isTemplateGallery}
+            allowUploadOwn={isTemplateGallery}
+            uploadOwn={
+              isTemplateGallery && companionKey && uploadMeta
+                ? {
+                    questionId: companionKey,
+                    value: asString(answers[companionKey]),
+                    onChange: (v) => setAnswer(companionKey, v),
+                    maxSizeMB: uploadMeta.fileUpload?.maxSizeMB ?? 10,
+                  }
+                : undefined
+            }
+          />
+        </>
       );
     }
     default:

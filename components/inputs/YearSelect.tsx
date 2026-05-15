@@ -1,7 +1,7 @@
 "use client";
 
 import type { Option } from "@/lib/schema/types";
-import { SelectInput } from "./SelectInput";
+import { ChoiceGroup } from "./ChoiceGroup";
 
 export function YearSelect({
   id,
@@ -21,13 +21,15 @@ export function YearSelect({
   const years: Option[] = [];
   for (let y = to; y >= from; y--) years.push({ value: String(y), label: String(y) });
   return (
-    <SelectInput
-      id={id}
+    <ChoiceGroup
+      mode="single"
       options={years}
       value={value}
       onChange={onChange}
+      columns={4}
       onBlur={onBlur}
-      placeholder="Select year"
+      className="max-h-56 overflow-y-auto pr-1"
+      groupId={id}
     />
   );
 }
