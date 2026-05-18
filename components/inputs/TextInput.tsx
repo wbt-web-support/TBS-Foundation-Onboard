@@ -3,10 +3,11 @@
 import { Icon } from "@/components/ui/Icon";
 import { FIELD_CLASS, INPUT_PREFIX_FIELD, INPUT_PREFIX_LEAD, INPUT_PREFIX_WRAP } from "./fieldStyles";
 
-type Kind = "text" | "email" | "tel" | "number" | "password";
+type Kind = "text" | "url" | "email" | "tel" | "number" | "password";
 
 const HTML_TYPE: Record<Kind, string> = {
   text: "text",
+  url: "url",
   email: "email",
   tel: "tel",
   number: "text", // keep as text so partial input isn't rejected; inputMode hints the keyboard
@@ -40,8 +41,10 @@ export function TextInput({
         <input
           id={id}
           type={HTML_TYPE[kind]}
-          inputMode={kind === "number" ? "numeric" : kind === "tel" ? "tel" : undefined}
-          autoComplete={kind === "email" ? "email" : kind === "tel" ? "tel" : "off"}
+          inputMode={kind === "number" ? "numeric" : kind === "tel" ? "tel" : kind === "url" ? "url" : undefined}
+          autoComplete={
+            kind === "email" ? "email" : kind === "tel" ? "tel" : kind === "url" ? "url" : "off"
+          }
           className={INPUT_PREFIX_FIELD}
           value={value}
           placeholder={placeholder}
@@ -56,8 +59,10 @@ export function TextInput({
     <input
       id={id}
       type={HTML_TYPE[kind]}
-      inputMode={kind === "number" ? "numeric" : kind === "tel" ? "tel" : undefined}
-      autoComplete={kind === "email" ? "email" : kind === "tel" ? "tel" : "off"}
+      inputMode={kind === "number" ? "numeric" : kind === "tel" ? "tel" : kind === "url" ? "url" : undefined}
+      autoComplete={
+        kind === "email" ? "email" : kind === "tel" ? "tel" : kind === "url" ? "url" : "off"
+      }
       className={FIELD_CLASS}
       value={value}
       placeholder={placeholder}

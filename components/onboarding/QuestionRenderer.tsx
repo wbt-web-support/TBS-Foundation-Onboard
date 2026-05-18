@@ -44,6 +44,7 @@ export function QuestionRenderer({ question }: { question: Question }) {
 
   switch (question.type) {
     case "text":
+    case "url":
     case "email":
     case "tel":
     case "number":
@@ -58,7 +59,9 @@ export function QuestionRenderer({ question }: { question: Question }) {
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
           placeholder={question.placeholder}
-          leadingIcon={question.type === "email" ? "mail" : undefined}
+          leadingIcon={
+            question.type === "email" ? "mail" : question.type === "url" ? "globe" : undefined
+          }
         />
       );
     }

@@ -1,3 +1,4 @@
+import { normalizeResumeUrlForEmail } from "@/lib/appUrl";
 import { isOutboundEmailConfigured } from "@/lib/email/smtp";
 import { sendProgressSavedEmail } from "@/lib/email/resend";
 
@@ -30,7 +31,9 @@ export async function POST(request: Request) {
   const recipient = businessOk ? businessRaw : to;
   const replyToAlternate = businessOk && to.toLowerCase() !== businessRaw.toLowerCase() ? to : undefined;
 
-  const resumeUrl = typeof body.resumeUrl === "string" ? body.resumeUrl.trim() : "";
+  const resumeUrlRaw = typeof body.resumeUrl === "string" ? body.resumeUrl.trim() : "";
+  const requestOrigin = new URL(request.url).origin;
+  const resumeUrl = normalizeResumeUrlForEmail(resumeUrlRaw, requestOrigin);
   let resume: URL;
   try {
     resume = new URL(resumeUrl);

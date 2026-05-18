@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { WbtMark } from "@/components/layout/WbtMark";
+import { Icon } from "@/components/ui/Icon";
 
 export function TransitionIntroScreen({
   title,
@@ -26,9 +26,11 @@ export function TransitionIntroScreen({
             {checklist.map((item) => (
               <span
                 key={item}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-transparent px-3 py-1.5 text-sm font-medium text-ink"
+                className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-transparent px-3 py-1.5 text-sm font-medium text-ink"
               >
-                <WbtMark className="h-4 w-[2.75rem] shrink-0" />
+                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">
+                  <Icon name="check" className="size-3.5" />
+                </span>
                 {item}
               </span>
             ))}

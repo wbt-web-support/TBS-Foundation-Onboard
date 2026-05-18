@@ -36,6 +36,7 @@ export function SubFieldInput({
   let control: React.ReactNode;
   switch (sub.type) {
     case "text":
+    case "url":
     case "email":
     case "tel":
     case "number":
@@ -50,15 +51,27 @@ export function SubFieldInput({
               ? "email"
               : sub.type === "tel"
                 ? "tel"
-                : "text";
+                : sub.type === "url"
+                  ? "url"
+                  : "text";
       if (sub.inputPrefix) {
         control = (
           <div className={INPUT_PREFIX_WRAP}>
             <span className={`${INPUT_PREFIX_LEAD} font-medium`}>{sub.inputPrefix}</span>
             <input
               type={htmlType}
-              inputMode={sub.type === "number" ? "numeric" : sub.type === "tel" ? "tel" : undefined}
-              autoComplete={sub.type === "email" ? "email" : sub.type === "tel" ? "tel" : "off"}
+              inputMode={
+                sub.type === "number" ? "numeric" : sub.type === "tel" ? "tel" : sub.type === "url" ? "url" : undefined
+              }
+              autoComplete={
+                sub.type === "email"
+                  ? "email"
+                  : sub.type === "tel"
+                    ? "tel"
+                    : sub.type === "url"
+                      ? "url"
+                      : "off"
+              }
               className={INPUT_PREFIX_FIELD}
               value={str}
               placeholder={ph}
@@ -75,7 +88,7 @@ export function SubFieldInput({
             onChange={setStr}
             onBlur={onBlur}
             placeholder={ph}
-            leadingIcon={sub.type === "email" ? "mail" : undefined}
+            leadingIcon={sub.type === "email" ? "mail" : sub.type === "url" ? "globe" : undefined}
           />
         );
       }

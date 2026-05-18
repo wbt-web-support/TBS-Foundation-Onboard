@@ -6,6 +6,7 @@ import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
 import { SaveProgressHost } from "@/components/save-progress/SaveProgressButton";
 import {
   LOCAL_RESUME_SESSION_PREFIX,
+  consumeExplicitSavePending,
   readLocalResumeSession,
 } from "@/lib/saveProgress/localResumeSession";
 import { extractAppAnswersFromDatabase } from "@/lib/submission/persistAnswers";
@@ -138,6 +139,13 @@ function hasAnyAnswer(answers: Answers): boolean {
   return Object.keys(answers).length > 0;
 }
 
+/** Restore modal: after Save progress (same browser) or opening the resume link from email (?token=). */
+function shouldPromptResumeRestore(answers: Answers, fromEmailLink: boolean): boolean {
+  if (!hasAnyAnswer(answers)) return false;
+  if (fromEmailLink) return true;
+  return consumeExplicitSavePending();
+}
+
 // --- component ------------------------------------------------------------
 
 export default function OnboardingApp() {
@@ -203,9 +211,6 @@ export default function OnboardingApp() {
         }
         dispatch({ type: "SET_SAVE_STATUS", status: "saved" });
 
-        if (submissionId && !stateRef.current.emailSent && body.email && EMAIL_RE.test(body.email)) {
-          void triggerResumeEmail(submissionId);
-        }
         return { id: submissionId, resumeToken: data.resumeToken };
       } catch {
         dispatch({ type: "SET_SAVE_STATUS", status: "error" });
@@ -318,7 +323,8 @@ export default function OnboardingApp() {
         const emailValue = asStringOrNull(getByPath(answers, ONBOARDING_SCHEMA.emailCapturePath));
         restoreSourceRef.current = `token:${sub.resumeToken}`;
         didFirstSave.current = false;
-        if (hasAnyAnswer(answers)) {
+        const showRestoreModal = shouldPromptResumeRestore(answers, tokenWasInUrl);
+        if (showRestoreModal) {
           try {
             window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
           } catch {
@@ -336,7 +342,7 @@ export default function OnboardingApp() {
             emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
           },
         });
-        if (hasAnyAnswer(answers)) setResumeRestoreModalOpen(true);
+        if (showRestoreModal) setResumeRestoreModalOpen(true);
       } else {
         restoreSourceRef.current = sourceKey;
         dispatch({ type: "HYDRATE", payload: {} });
@@ -396,10 +402,13 @@ export default function OnboardingApp() {
             if (!cancelled) {
               restoreSourceRef.current = `resume:${resumeKey}`;
               didFirstSave.current = false;
-              try {
-                window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
-              } catch {
-                /* ignore */
+              const showRestoreModal = shouldPromptResumeRestore(local.answers, false);
+              if (showRestoreModal) {
+                try {
+                  window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
+                } catch {
+                  /* ignore */
+                }
               }
               dispatch({
                 type: "HYDRATE",
@@ -412,7 +421,7 @@ export default function OnboardingApp() {
                   emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
                 },
               });
-              setResumeRestoreModalOpen(true);
+              if (showRestoreModal) setResumeRestoreModalOpen(true);
             }
             return;
           }

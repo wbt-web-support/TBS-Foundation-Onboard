@@ -1,3 +1,4 @@
+import { buildResumeUrl } from "@/lib/appUrl";
 import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
 import { applicantBusinessEmail } from "@/lib/email/applicantBusinessEmail";
 import { sendResumeEmail } from "@/lib/email/resend";
@@ -38,9 +39,7 @@ export async function POST(request: Request) {
     fromForm && EMAIL_RE.test(fromForm) ? fromForm : typeof data.email === "string" ? data.email.trim() : "";
   if (!recipient || !EMAIL_RE.test(recipient)) return jsonError("No email on submission yet", 400);
 
-  const base =
-    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, "") || new URL(request.url).origin;
-  const link = `${base}/?token=${encodeURIComponent(data.resume_token)}`;
+  const link = buildResumeUrl(data.resume_token, new URL(request.url).origin);
 
   try {
     await sendResumeEmail(recipient, link);

@@ -1,9 +1,11 @@
 import { Resend } from "resend";
+import { asStringOrNull, getByPath } from "@/lib/answers";
 import { applicantBusinessEmail } from "@/lib/email/applicantBusinessEmail";
 import { buildOnboardingAnswersPdfBuffer, completionPdfFilename } from "@/lib/pdf/onboardingAnswersPdf";
 import type { Answers } from "@/lib/types";
 import { buildCompletionPdfEmail } from "./completionPdfTemplate";
 import { buildProgressSavedEmail } from "./progressSavedTemplate";
+import { buildUserCompletionEmail } from "./userCompletionTemplate";
 import { isOutboundEmailConfigured, isSmtpConfigured, sendMailViaSmtp } from "./smtp";
 
 let cached: Resend | null = null;
@@ -116,7 +118,13 @@ export async function sendProgressSavedEmail(
 
 const COMPLETION_EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Sends a PDF mirror of the questionnaire to the respondent when onboarding is completed (requires outbound mail). */
+function adminNotificationEmail(): string {
+  const fromEnv = process.env.ADMIN_NOTIFICATION_EMAIL?.trim();
+  if (fromEnv && COMPLETION_EMAIL_RE.test(fromEnv)) return fromEnv;
+  return "test@webuildtrades.com";
+}
+
+/** Sends user thank-you + admin notification when onboarding is completed (requires outbound mail). */
 export async function sendCompletionReportWithPdf(
   to: string,
   answers: Answers,
@@ -124,22 +132,33 @@ export async function sendCompletionReportWithPdf(
   pdfPublicUrl?: string | null,
 ): Promise<void> {
   if (!isOutboundEmailConfigured()) return;
+
   const business = applicantBusinessEmail(answers);
-  const target = business && COMPLETION_EMAIL_RE.test(business) ? business : to.trim();
-  if (!target || !COMPLETION_EMAIL_RE.test(target)) return;
+  const userTarget = business && COMPLETION_EMAIL_RE.test(business) ? business : to.trim();
+  if (!userTarget || !COMPLETION_EMAIL_RE.test(userTarget)) return;
 
   const pdf = pdfBuffer ?? (await buildOnboardingAnswersPdfBuffer(answers));
   const filename = completionPdfFilename(answers);
-  const { html, text } = buildCompletionPdfEmail({
-    answers,
-    pdfViewUrl: pdfPublicUrl ?? null,
+  const attachment = [{ filename, content: pdf, contentType: "application/pdf" as const }];
+  const pdfViewUrl = pdfPublicUrl ?? null;
+
+  const userMail = buildUserCompletionEmail({ answers, pdfViewUrl });
+  await sendOutbound({
+    to: userTarget,
+    subject: "We received your onboarding questionnaire",
+    html: userMail.html,
+    text: userMail.text,
+    attachments: attachment,
   });
 
+  const company = asStringOrNull(getByPath(answers, "company_details.company_name")) ?? "Onboarding";
+  const adminMail = buildCompletionPdfEmail({ answers, pdfViewUrl });
   await sendOutbound({
-    to: target,
-    subject: "Questionnaire completed — PDF ready",
-    html,
-    text,
-    attachments: [{ filename, content: pdf, contentType: "application/pdf" }],
+    to: adminNotificationEmail(),
+    subject: `New onboarding submission — ${company}`,
+    html: adminMail.html,
+    text: adminMail.text,
+    replyTo: userTarget,
+    attachments: attachment,
   });
 }

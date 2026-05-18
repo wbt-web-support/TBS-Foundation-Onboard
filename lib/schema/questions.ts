@@ -509,7 +509,7 @@ const branding: Section = {
     },
     {
       id: "affiliated_website_url",
-      type: "text",
+      type: "url",
       icon: "link",
       title: "Enter Website Name or URL",
       visibleIf: { all: [{ questionId: "affiliated_website", equals: "yes" }] },
@@ -580,7 +580,7 @@ const branding: Section = {
     },
     {
       id: "google_sheet_url",
-      type: "text",
+      type: "url",
       icon: "sheet",
       presentation: "google-sheet-dark",
       title: "Copy the Google sheet, Add Your Products, and Submit the URL Here.",
@@ -757,7 +757,7 @@ const branding: Section = {
       groupItemLabel: "Feature",
       group: [
         { id: "feature", type: "text", title: "Feature", required: true },
-        { id: "url", type: "text", title: "URL (if any)" },
+        { id: "url", type: "url", title: "URL (if any)" },
       ],
       provideLater: {},
     },
@@ -815,7 +815,7 @@ const branding: Section = {
       group: [
         {
           id: "website_url",
-          type: "text",
+          type: "url",
           title: "Website URL",
           required: true,
           width: "half",
@@ -843,42 +843,42 @@ const branding: Section = {
       group: [
         {
           id: "facebook",
-          type: "text",
+          type: "url",
           title: "Facebook",
           width: "half",
           labelIconUrl: IMG("facebook.svg"),
         },
         {
           id: "instagram",
-          type: "text",
+          type: "url",
           title: "Instagram",
           width: "half",
           labelIconUrl: IMG("instagram.svg"),
         },
         {
           id: "twitter",
-          type: "text",
+          type: "url",
           title: "Twitter / X",
           width: "half",
           labelIconUrl: IMG("twitter-sign.svg"),
         },
         {
           id: "linkedin",
-          type: "text",
+          type: "url",
           title: "LinkedIn",
           width: "half",
           labelIconUrl: IMG("linkedin.svg"),
         },
         {
           id: "tiktok",
-          type: "text",
+          type: "url",
           title: "TikTok",
           width: "half",
           labelIconUrl: IMG("tiktok.svg"),
         },
         {
           id: "youtube",
-          type: "text",
+          type: "url",
           title: "YouTube",
           width: "half",
           labelIconUrl: IMG("youtube.svg"),
@@ -901,7 +901,7 @@ const branding: Section = {
       groupItemLabel: "Review link",
       minItems: 1,
       visibleIf: { all: [{ questionId: "has_reviews", equals: "yes" }] },
-      group: [{ id: "url", type: "text", title: "URL", required: true }],
+      group: [{ id: "url", type: "url", title: "URL", required: true }],
     },
     {
       id: "display_email",
@@ -1105,7 +1105,7 @@ const access: Section = {
     },
     {
       id: "current_website_domain",
-      type: "text",
+      type: "url",
       icon: "link",
       title: "Can you provide the current website's domain name (URL)?",
       visibleIf: { all: [{ questionId: "has_current_website", equals: "yes" }] },
@@ -1128,7 +1128,7 @@ const access: Section = {
     },
     {
       id: "other_affiliated_domain",
-      type: "text",
+      type: "url",
       icon: "link",
       title: "Can you provide the other website's domain name (URL)?",
       visibleIf: { all: [{ questionId: "has_other_affiliated_website", equals: "yes" }] },

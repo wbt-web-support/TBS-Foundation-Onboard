@@ -7,11 +7,13 @@ import type { Question } from "@/lib/schema/types";
 import { asStringOrNull, getByPath } from "@/lib/answers";
 import type { Answers } from "@/lib/types";
 import {
+  markExplicitSavePending,
   readSaveProgressNotifyEmail,
   writeLocalResumeSession,
   writeSaveProgressNotifyEmail,
   type LocalResumePayload,
 } from "@/lib/saveProgress/localResumeSession";
+import { buildResumeUrl } from "@/lib/appUrl";
 import { SAVE_PROGRESS_UNLOCK_AFTER_QUESTION_ID } from "@/lib/saveProgress/unlock";
 import { Icon } from "@/components/ui/Icon";
 import { useOnboarding } from "@/components/onboarding/OnboardingContext";
@@ -26,7 +28,6 @@ export interface SaveProgressButtonProps {
   currentSectionIndex: number;
   formData: Answers;
   totalSteps: number;
-  /** Called after local session is written (e.g. scroll to top). */
   onRestoreSession?: () => void;
   /** `emailed` is false when the server has no mail configured but local save still succeeded. */
   onSaveSuccess: (emailed: boolean) => void;
@@ -85,8 +86,9 @@ export function SaveProgressButton({
           resumeToken: serverToken,
         };
         writeLocalResumeSession(sessionKey, payload);
+        markExplicitSavePending();
 
-        const resumeUrl = `${window.location.origin}${window.location.pathname}?token=${encodeURIComponent(serverToken)}`;
+        const resumeUrl = buildResumeUrl(serverToken, window.location.origin);
 
         const res = await fetch("/api/save-progress-email", {
           method: "POST",

@@ -35,8 +35,6 @@ export function Sidebar() {
     email,
     saveStatus,
     signOut,
-    emailSent,
-    resendEmail,
     completed,
   } = useOnboarding();
   const overall = overallProgress(answers);
@@ -92,15 +90,6 @@ export function Sidebar() {
           <SaveDot status={saveStatus} />
           <span>{SAVE_LABEL[saveStatus]}</span>
         </div>
-        {email ? (
-          <button
-            type="button"
-            onClick={resendEmail}
-            className="mt-1.5 text-xs text-brand-600 hover:underline"
-          >
-            {emailSent ? "Resend resume link" : "Email me a link to resume later"}
-          </button>
-        ) : null}
       </div>
     </aside>
   );

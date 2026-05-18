@@ -4,6 +4,7 @@
 
 export type QuestionType =
   | "text"
+  | "url"
   | "email"
   | "tel"
   | "number"
@@ -22,6 +23,7 @@ export type QuestionType =
 /** Sub-field types allowed inside field-group / repeatable-group cards. */
 export type SubQuestionType =
   | "text"
+  | "url"
   | "email"
   | "tel"
   | "number"

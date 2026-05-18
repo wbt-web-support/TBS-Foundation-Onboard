@@ -2,6 +2,8 @@ import type { Answers } from "@/lib/types";
 
 export const LOCAL_RESUME_SESSION_PREFIX = "fo_local_resume_";
 export const SAVE_PROGRESS_NOTIFY_EMAIL_KEY = "fo_save_progress_email";
+/** Set when the user explicitly clicks "Save progress"; consumed on next load to show the restore modal. */
+export const EXPLICIT_SAVE_FLAG_KEY = "fo_explicit_save_pending";
 
 export const LOCAL_RESUME_PAYLOAD_VERSION = 1 as const;
 
@@ -66,4 +68,25 @@ export function writeSaveProgressNotifyEmail(email: string): void {
   } catch {
     /* ignore */
   }
+}
+
+export function markExplicitSavePending(): void {
+  try {
+    window.localStorage.setItem(EXPLICIT_SAVE_FLAG_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+export function consumeExplicitSavePending(): boolean {
+  try {
+    const v = window.localStorage.getItem(EXPLICIT_SAVE_FLAG_KEY);
+    if (v === "1") {
+      window.localStorage.removeItem(EXPLICIT_SAVE_FLAG_KEY);
+      return true;
+    }
+  } catch {
+    /* ignore */
+  }
+  return false;
 }
