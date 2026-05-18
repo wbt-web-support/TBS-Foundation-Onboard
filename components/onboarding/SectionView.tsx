@@ -16,9 +16,11 @@ import { Footer } from "./Footer";
 import { TransitionIntroScreen } from "./TransitionIntroScreen";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
+import { SectionValidationAlert } from "./SectionValidationAlert";
 
 export function SectionView() {
-  const { answers, currentSectionIndex, validationErrors, goBack } = useOnboarding();
+  const { answers, currentSectionIndex, validationErrors, sectionValidationMessage, goBack } =
+    useOnboarding();
   const section = ONBOARDING_SCHEMA.sections[currentSectionIndex];
   const [dismissedTransitionIds, setDismissedTransitionIds] = useState<Set<string>>(new Set());
 
@@ -55,14 +57,13 @@ export function SectionView() {
               imageSrc={section.transitionIntro.imageSrc}
               imageAlt={section.transitionIntro.imageAlt}
             />
-            <div className="mt-8 flex flex-col-reverse items-center gap-4 sm:flex-col">
+            <div className="mt-8 flex items-center justify-between gap-3">
               <Button variant="secondary" onClick={goBack}>
                 <Icon name="chevron-left" className="size-4" />
                 Back
               </Button>
               <Button
                 variant="introCta"
-                className="w-full"
                 onClick={() =>
                   setDismissedTransitionIds((prev) => {
                     const next = new Set(prev);
@@ -107,6 +108,7 @@ export function SectionView() {
           ) : null}
         </div>
       </div>
+      {sectionValidationMessage ? <SectionValidationAlert message={sectionValidationMessage} /> : null}
       <div className="space-y-5">
         {visible.map((q) => (
           <QuestionCard

@@ -182,6 +182,8 @@ export interface Question {
   galleryUploadCompanionKey?: string;
   yearRange?: { from: number; to: number }; // year-select
   group?: SubQuestion[]; // field-group / repeatable-group
+  /** `field-group`: minimum number of sub-fields that must have a value (default: all visible). */
+  fieldGroupMinFilled?: number;
   groupItemLabel?: string; // e.g. "Partner", "Offer" (repeatable-group)
   minItems?: number; // repeatable-group
   maxItems?: number; // repeatable-group

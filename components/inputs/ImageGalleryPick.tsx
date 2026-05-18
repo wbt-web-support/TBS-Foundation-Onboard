@@ -147,27 +147,23 @@ function ButtonStylePreviewPair({
     "transition-shadow duration-200 motion-reduce:transition-none group-hover:shadow-md";
 
   if (shape === "skew") {
-    const skewOuter = "-skew-x-[17deg]";
-    const skewInner = "skew-x-[17deg]";
-    const chipBase =
-      `inline-flex shrink-0 items-center justify-center rounded-none border-2 border-[var(--color-intro-cta)] px-3 py-2 text-[9px] font-bold uppercase tracking-widest sm:px-4 sm:py-2.5 sm:text-[10px] ${motionCls}`;
+    const chipShell =
+      `box-border inline-flex w-full min-w-0 -skew-x-[16deg] items-center justify-center rounded-none border-2 border-[var(--color-intro-cta)] px-2 py-1.5 sm:px-2.5 sm:py-2 ${motionCls}`;
+    const chipLabel =
+      "inline-block skew-x-[16deg] text-center text-[8px] font-bold uppercase leading-tight tracking-wide sm:text-[9px]";
+
+    const SkewButton = ({ className }: { className: string }) => (
+      <div className="flex min-w-0 items-stretch justify-center overflow-visible px-1 sm:px-1.5">
+        <span className={`${chipShell} ${className}`}>
+          <span className={chipLabel}>{sampleText}</span>
+        </span>
+      </div>
+    );
 
     return (
-      <div className="flex min-w-0 flex-row flex-nowrap items-center justify-center gap-2.5 sm:gap-3">
-        <span className={`inline-flex shrink-0 origin-center ${skewOuter}`}>
-          <span
-            className={`inline-flex shrink-0 origin-center ${skewInner} ${chipBase} bg-[var(--color-intro-cta)] text-white group-hover:brightness-105`}
-          >
-            {sampleText}
-          </span>
-        </span>
-        <span className={`inline-flex shrink-0 origin-center ${skewOuter}`}>
-          <span
-            className={`inline-flex shrink-0 origin-center ${skewInner} ${chipBase} bg-white text-[var(--color-intro-cta)]`}
-          >
-            {sampleText}
-          </span>
-        </span>
+      <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:gap-2.5">
+        <SkewButton className="bg-[var(--color-intro-cta)] text-white group-hover:brightness-105" />
+        <SkewButton className="bg-white text-[var(--color-intro-cta)]" />
       </div>
     );
   }
@@ -347,7 +343,7 @@ export function ImageGalleryPick({
             role={multiple ? "checkbox" : "radio"}
             aria-checked={selected}
             aria-label={o.label}
-            className={`group relative overflow-hidden rounded-xl border text-left transition ${tileChrome}`}
+            className={`group relative rounded-xl border text-left transition ${isButtonPreview && buttonShape === "skew" ? "overflow-visible" : "overflow-hidden"} ${tileChrome}`}
           >
             {isSwatchTile ? (
               <div className="flex aspect-[4/3] flex-col overflow-hidden">
@@ -392,7 +388,7 @@ export function ImageGalleryPick({
                   />
                 </span>
                 <div
-                  className={`flex aspect-[4/3] flex-col overflow-hidden ${buttonShape === "skew" ? "p-2.5 sm:p-3" : "p-2 sm:p-2.5"}`}
+                  className={`flex aspect-[4/3] flex-col ${buttonShape === "skew" ? "overflow-visible p-2.5 sm:p-3" : "overflow-hidden p-2 sm:p-2.5"}`}
                 >
                   <div
                     className={`flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center rounded-lg border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${

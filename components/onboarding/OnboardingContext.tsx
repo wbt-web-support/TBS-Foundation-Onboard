@@ -5,6 +5,9 @@ import type { Answers, AnswerValue } from "@/lib/types";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
 
+/** Result of an immediate server save (used for cross-browser resume links). */
+export type SaveResult = { id: string; resumeToken: string } | null;
+
 export interface OnboardingContextValue {
   answers: Answers;
   setAnswer: (questionId: string, value: AnswerValue) => void;
@@ -15,11 +18,13 @@ export interface OnboardingContextValue {
   goNext: () => void;
   goBack: () => void;
   /** Cancel the debounce and save immediately. */
-  flushSave: () => Promise<void>;
+  flushSave: () => Promise<SaveResult>;
   /** Upload a file for a question; returns the stored URL/path. */
   uploadFile: (questionId: string, file: File) => Promise<string>;
   /** Question ids that failed required validation on the last Next. */
   validationErrors: Set<string>;
+  /** Shown when Next or sidebar navigation is blocked by missing required fields. */
+  sectionValidationMessage: string | null;
   saveStatus: SaveStatus;
   submissionId: string | null;
   resumeToken: string | null;

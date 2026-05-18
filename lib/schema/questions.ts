@@ -838,6 +838,8 @@ const branding: Section = {
       type: "field-group",
       icon: "share",
       title: "Add your current social media URLs in the relevant boxes",
+      helper: "Add at least one social profile URL — you do not need to fill every box.",
+      fieldGroupMinFilled: 1,
       group: [
         {
           id: "facebook",

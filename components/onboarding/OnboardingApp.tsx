@@ -9,7 +9,11 @@ import {
   readLocalResumeSession,
 } from "@/lib/saveProgress/localResumeSession";
 import { extractAppAnswersFromDatabase } from "@/lib/submission/persistAnswers";
-import { sectionMissingRequired, sectionVisibleQuestionCompletion } from "@/lib/schema/progress";
+import {
+  firstIncompleteSectionBefore,
+  sectionMissingRequired,
+  sectionVisibleQuestionCompletion,
+} from "@/lib/schema/progress";
 import { asNumberOrNull, asStringOrNull, getByPath } from "@/lib/answers";
 import type {
   Answers,
@@ -141,8 +145,12 @@ export default function OnboardingApp() {
   const searchParams = useSearchParams();
   const [state, dispatch] = useReducer(reducer, initialState);
   const [validationErrors, setValidationErrors] = useState<Set<string>>(new Set());
+  const [sectionValidationMessage, setSectionValidationMessage] = useState<string | null>(null);
   const [resumeRestoreModalOpen, setResumeRestoreModalOpen] = useState(false);
   const lastRestoredResumeKeyRef = useRef<string | null>(null);
+  /** Prevents duplicate restore; changes when URL token / resume key changes. */
+  const restoreSourceRef = useRef<string | null>(null);
+  const didFirstSave = useRef(false);
 
   const stateRef = useRef(state);
   useEffect(() => {
@@ -168,7 +176,7 @@ export default function OnboardingApp() {
   const save = useCallback(
     async (overrides?: Partial<AutosavePayload>, opts?: { force?: boolean }) => {
       const s = stateRef.current;
-      if (!s.submissionId && !hasAnyAnswer(s.answers) && !opts?.force) return;
+      if (!s.submissionId && !hasAnyAnswer(s.answers) && !opts?.force) return null;
 
       const body = buildPayload(s, overrides);
       dispatch({ type: "SET_SAVE_STATUS", status: "saving" });
@@ -181,9 +189,8 @@ export default function OnboardingApp() {
         if (!res.ok) throw new Error(`save ${res.status}`);
         const data: SubmissionResponse = await res.json();
 
-        let submissionId = s.submissionId;
-        if (!submissionId) {
-          submissionId = data.id;
+        let submissionId = s.submissionId ?? data.id;
+        if (!s.submissionId) {
           dispatch({ type: "SET_IDS", submissionId: data.id, resumeToken: data.resumeToken });
           try {
             window.localStorage.setItem(TOKEN_KEY, data.resumeToken);
@@ -199,8 +206,10 @@ export default function OnboardingApp() {
         if (submissionId && !stateRef.current.emailSent && body.email && EMAIL_RE.test(body.email)) {
           void triggerResumeEmail(submissionId);
         }
+        return { id: submissionId, resumeToken: data.resumeToken };
       } catch {
         dispatch({ type: "SET_SAVE_STATUS", status: "error" });
+        return null;
       }
     },
     [router, triggerResumeEmail],
@@ -211,7 +220,7 @@ export default function OnboardingApp() {
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
     }
-    await save();
+    return save(undefined, { force: true });
   }, [save]);
 
   const dismissResumeRestoreModal = useCallback(() => {
@@ -222,6 +231,7 @@ export default function OnboardingApp() {
       /* ignore */
     }
     lastRestoredResumeKeyRef.current = null;
+    restoreSourceRef.current = null;
     setResumeRestoreModalOpen(false);
   }, []);
 
@@ -241,6 +251,7 @@ export default function OnboardingApp() {
       /* ignore */
     }
     lastRestoredResumeKeyRef.current = null;
+    restoreSourceRef.current = null;
     setResumeRestoreModalOpen(false);
     try {
       window.localStorage.removeItem(TOKEN_KEY);
@@ -260,136 +271,190 @@ export default function OnboardingApp() {
   // --- restore on load ----------------------------------------------------
   useEffect(() => {
     let cancelled = false;
-    const fromUrl = searchParams.get("resume");
-    try {
-      if (fromUrl) window.sessionStorage.setItem(PENDING_RESUME_SESSION_KEY, fromUrl);
-    } catch {
-      /* ignore */
+
+    const readClientSearchParams = () => {
+      if (typeof window === "undefined") return new URLSearchParams();
+      return new URLSearchParams(window.location.search);
+    };
+
+    const urlParams = readClientSearchParams();
+    const urlToken = urlParams.get("token") ?? searchParams.get("token");
+    const urlResume = urlParams.get("resume") ?? searchParams.get("resume");
+
+    const sourceKey = urlToken
+      ? `token:${urlToken}`
+      : urlResume
+        ? `resume:${urlResume}`
+        : "stored";
+
+    if (restoreSourceRef.current === sourceKey && stateRef.current.hydrated) {
+      return;
     }
-    let resumeKey: string | null = fromUrl;
-    if (!resumeKey) {
-      try {
-        resumeKey = window.sessionStorage.getItem(PENDING_RESUME_SESSION_KEY);
-      } catch {
-        resumeKey = null;
-      }
-    }
-    const initialToken = searchParams.get("token");
 
     const paramsWithoutResume = () => {
-      const p = new URLSearchParams(window.location.search);
+      const p = readClientSearchParams();
       p.delete("resume");
       return p;
     };
 
-    if (resumeKey) {
-      const local = readLocalResumeSession(resumeKey);
-      const params = paramsWithoutResume();
-
-      if (local) {
-        lastRestoredResumeKeyRef.current = resumeKey;
-        if (local.resumeToken) {
-          params.set("token", local.resumeToken);
-          try {
-            window.localStorage.setItem(TOKEN_KEY, local.resumeToken);
-          } catch {
-            /* ignore */
-          }
+    const hydrateFromServer = async (token: string, tokenWasInUrl: boolean) => {
+      const res = await fetch(`/api/submission?token=${encodeURIComponent(token)}`);
+      if (!res.ok) throw new Error("load failed");
+      const data: LoadSubmissionResponse = await res.json();
+      if (cancelled) return;
+      if (data.found && data.submission) {
+        const sub = data.submission;
+        try {
+          window.localStorage.setItem(TOKEN_KEY, sub.resumeToken);
+        } catch {
+          /* ignore */
         }
-        const qs = params.toString();
-        if (!cancelled) router.replace(qs ? `/?${qs}` : "/");
-
-        const emailValue = asStringOrNull(getByPath(local.answers, ONBOARDING_SCHEMA.emailCapturePath));
-        if (!cancelled) {
+        if (tokenWasInUrl && token !== sub.resumeToken) {
+          const params = readClientSearchParams();
+          params.set("token", sub.resumeToken);
+          router.replace(`/?${params.toString()}`);
+        }
+        const answers = extractAppAnswersFromDatabase(sub.answers ?? {});
+        const emailValue = asStringOrNull(getByPath(answers, ONBOARDING_SCHEMA.emailCapturePath));
+        restoreSourceRef.current = `token:${sub.resumeToken}`;
+        didFirstSave.current = false;
+        if (hasAnyAnswer(answers)) {
           try {
             window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
           } catch {
             /* ignore */
           }
-          dispatch({
-            type: "HYDRATE",
-            payload: {
-              submissionId: local.submissionId,
-              resumeToken: local.resumeToken,
-              answers: local.answers,
-              currentSectionIndex: clampSection(local.currentSectionIndex),
-              completed: false,
-              emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
-            },
-          });
-          setResumeRestoreModalOpen(true);
         }
-        return () => {
-          cancelled = true;
-        };
+        dispatch({
+          type: "HYDRATE",
+          payload: {
+            submissionId: sub.id,
+            resumeToken: sub.resumeToken,
+            answers,
+            currentSectionIndex: clampSection(sub.currentSectionIndex),
+            completed: sub.completed,
+            emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
+          },
+        });
+        if (hasAnyAnswer(answers)) setResumeRestoreModalOpen(true);
+      } else {
+        restoreSourceRef.current = sourceKey;
+        dispatch({ type: "HYDRATE", payload: {} });
       }
+    };
 
+    void (async () => {
       try {
-        window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
-        window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
-      } catch {
-        /* ignore */
-      }
-      const qs = params.toString();
-      if (!cancelled) router.replace(qs ? `/?${qs}` : "/");
-    }
-
-    let stored: string | null = null;
-    try {
-      stored = window.localStorage.getItem(TOKEN_KEY);
-    } catch {
-      /* ignore */
-    }
-    const token = initialToken || stored;
-
-    (async () => {
-      if (!token) {
-        if (!cancelled) dispatch({ type: "HYDRATE", payload: {} });
-        return;
-      }
-      try {
-        const res = await fetch(`/api/submission?token=${encodeURIComponent(token)}`);
-        if (!res.ok) throw new Error("load failed");
-        const data: LoadSubmissionResponse = await res.json();
-        if (cancelled) return;
-        if (data.found && data.submission) {
-          const sub = data.submission;
+        if (urlToken) {
           try {
-            window.localStorage.setItem(TOKEN_KEY, sub.resumeToken);
+            window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
+            window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
           } catch {
             /* ignore */
           }
-          if (initialToken !== sub.resumeToken) {
-            const params = new URLSearchParams(window.location.search);
-            params.set("token", sub.resumeToken);
-            router.replace(`/?${params.toString()}`);
+          await hydrateFromServer(urlToken, true);
+          return;
+        }
+
+        if (urlResume) {
+          try {
+            window.sessionStorage.setItem(PENDING_RESUME_SESSION_KEY, urlResume);
+          } catch {
+            /* ignore */
           }
-          const answers = extractAppAnswersFromDatabase(sub.answers ?? {});
-          const emailValue = asStringOrNull(getByPath(answers, ONBOARDING_SCHEMA.emailCapturePath));
-          dispatch({
-            type: "HYDRATE",
-            payload: {
-              submissionId: sub.id,
-              resumeToken: sub.resumeToken,
-              answers,
-              currentSectionIndex: clampSection(sub.currentSectionIndex),
-              completed: sub.completed,
-              emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
-            },
-          });
-        } else {
+        }
+
+        let resumeKey: string | null = urlResume;
+        if (!resumeKey) {
+          try {
+            resumeKey = window.sessionStorage.getItem(PENDING_RESUME_SESSION_KEY);
+          } catch {
+            resumeKey = null;
+          }
+        }
+
+        if (resumeKey) {
+          const local = readLocalResumeSession(resumeKey);
+          const params = paramsWithoutResume();
+
+          if (local) {
+            lastRestoredResumeKeyRef.current = resumeKey;
+            if (local.resumeToken) {
+              params.set("token", local.resumeToken);
+              try {
+                window.localStorage.setItem(TOKEN_KEY, local.resumeToken);
+              } catch {
+                /* ignore */
+              }
+            }
+            const qs = params.toString();
+            if (!cancelled) router.replace(qs ? `/?${qs}` : "/");
+
+            const emailValue = asStringOrNull(
+              getByPath(local.answers, ONBOARDING_SCHEMA.emailCapturePath),
+            );
+            if (!cancelled) {
+              restoreSourceRef.current = `resume:${resumeKey}`;
+              didFirstSave.current = false;
+              try {
+                window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
+              } catch {
+                /* ignore */
+              }
+              dispatch({
+                type: "HYDRATE",
+                payload: {
+                  submissionId: local.submissionId,
+                  resumeToken: local.resumeToken,
+                  answers: local.answers,
+                  currentSectionIndex: clampSection(local.currentSectionIndex),
+                  completed: false,
+                  emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
+                },
+              });
+              setResumeRestoreModalOpen(true);
+            }
+            return;
+          }
+
+          try {
+            window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
+            window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
+          } catch {
+            /* ignore */
+          }
+          const qs = params.toString();
+          if (!cancelled) router.replace(qs ? `/?${qs}` : "/");
+        }
+
+        let stored: string | null = null;
+        try {
+          stored = window.localStorage.getItem(TOKEN_KEY);
+        } catch {
+          /* ignore */
+        }
+
+        if (stored) {
+          await hydrateFromServer(stored, false);
+          return;
+        }
+
+        if (!cancelled) {
+          restoreSourceRef.current = "fresh";
           dispatch({ type: "HYDRATE", payload: {} });
         }
       } catch {
-        if (!cancelled) dispatch({ type: "HYDRATE", payload: {} });
+        if (!cancelled) {
+          restoreSourceRef.current = sourceKey;
+          dispatch({ type: "HYDRATE", payload: {} });
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [searchParams, router]);
 
   useEffect(() => {
     if (!state.hydrated) return;
@@ -403,7 +468,6 @@ export default function OnboardingApp() {
   }, [state.hydrated]);
 
   // --- debounced autosave -------------------------------------------------
-  const didFirstSave = useRef(false);
   useEffect(() => {
     if (!state.hydrated) return;
     // Skip the very first run right after hydrate (nothing changed yet).
@@ -444,19 +508,54 @@ export default function OnboardingApp() {
   }, []);
 
   // --- actions ------------------------------------------------------------
+  const applyValidationFailure = useCallback(
+    (missing: { id: string }[], message: string) => {
+      setValidationErrors(new Set(missing.map((q) => q.id)));
+      setSectionValidationMessage(message);
+      const el = document.getElementById(`q-${missing[0]?.id}`);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+    },
+    [],
+  );
+
   const setAnswer = useCallback((questionId: string, value: AnswerValue) => {
     dispatch({ type: "SET_ANSWER", questionId, value });
     setValidationErrors((prev) => {
       if (!prev.has(questionId)) return prev;
       const next = new Set(prev);
       next.delete(questionId);
+      if (next.size === 0) setSectionValidationMessage(null);
       return next;
     });
   }, []);
 
   const goToSection = useCallback(
     async (index: number) => {
+      const s = stateRef.current;
       const target = clampSection(index);
+
+      if (target > s.currentSectionIndex) {
+        const block = firstIncompleteSectionBefore(target, s.answers);
+        if (block) {
+          const targetSection = ONBOARDING_SCHEMA.sections[target];
+          const message =
+            block.sectionIndex === s.currentSectionIndex
+              ? "Please complete all required fields in this section before continuing."
+              : `Complete Step ${block.section.number}: ${block.section.title} before opening Step ${targetSection.number}: ${targetSection.title}.`;
+          applyValidationFailure(block.missing, message);
+          if (block.sectionIndex !== s.currentSectionIndex) {
+            if (debounceRef.current) {
+              clearTimeout(debounceRef.current);
+              debounceRef.current = null;
+            }
+            await save({ currentSectionIndex: block.sectionIndex });
+            dispatch({ type: "GOTO_SECTION", index: block.sectionIndex });
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          }
+          return;
+        }
+      }
+
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
         debounceRef.current = null;
@@ -464,9 +563,10 @@ export default function OnboardingApp() {
       await save({ currentSectionIndex: target });
       dispatch({ type: "GOTO_SECTION", index: target });
       setValidationErrors(new Set());
+      setSectionValidationMessage(null);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [save],
+    [save, applyValidationFailure],
   );
 
   const goBack = useCallback(() => {
@@ -478,12 +578,14 @@ export default function OnboardingApp() {
     const section = ONBOARDING_SCHEMA.sections[s.currentSectionIndex];
     const missing = sectionMissingRequired(section, s.answers);
     if (missing.length > 0) {
-      setValidationErrors(new Set(missing.map((q) => q.id)));
-      const el = document.getElementById(`q-${missing[0].id}`);
-      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      applyValidationFailure(
+        missing,
+        `Please complete all required fields in Step ${section.number}: ${section.title} before continuing.`,
+      );
       return;
     }
     setValidationErrors(new Set());
+    setSectionValidationMessage(null);
     if (s.currentSectionIndex >= LAST_SECTION) {
       await save({ completed: true }, { force: true });
       dispatch({ type: "MARK_COMPLETED" });
@@ -491,7 +593,7 @@ export default function OnboardingApp() {
     } else {
       await goToSection(s.currentSectionIndex + 1);
     }
-  }, [save, goToSection]);
+  }, [save, goToSection, applyValidationFailure]);
 
   const uploadFile = useCallback(
     async (questionId: string, file: File): Promise<string> => {
@@ -527,6 +629,7 @@ export default function OnboardingApp() {
   }, [flushSave, triggerResumeEmail]);
 
   const signOut = useCallback(() => {
+    restoreSourceRef.current = null;
     try {
       window.localStorage.removeItem(TOKEN_KEY);
     } catch {
@@ -539,6 +642,7 @@ export default function OnboardingApp() {
     didFirstSave.current = false;
     dispatch({ type: "RESET" });
     setValidationErrors(new Set());
+    setSectionValidationMessage(null);
     router.replace("/");
   }, [router]);
 
@@ -555,6 +659,7 @@ export default function OnboardingApp() {
       flushSave,
       uploadFile,
       validationErrors,
+      sectionValidationMessage,
       saveStatus: state.saveStatus,
       submissionId: state.submissionId,
       resumeToken: state.resumeToken,
@@ -573,6 +678,7 @@ export default function OnboardingApp() {
       state.emailSent,
       state.completed,
       validationErrors,
+      sectionValidationMessage,
       email,
       setAnswer,
       goToSection,

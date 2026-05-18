@@ -61,10 +61,12 @@ export function SaveProgressButton({
       setModalError(null);
       setErrorMsg(null);
       try {
-        try {
-          await flushSave();
-        } catch {
-          /* best-effort server save */
+        const saved = await flushSave();
+        const serverToken = saved?.resumeToken ?? resumeToken;
+        if (!serverToken) {
+          throw new Error(
+            "Could not save your progress to the server. Check your connection and try again.",
+          );
         }
 
         const sessionKey = crypto.randomUUID();
@@ -79,12 +81,12 @@ export function SaveProgressButton({
           currentSectionIndex,
           savedAt,
           notifyEmail: effectiveNotify,
-          submissionId,
-          resumeToken,
+          submissionId: saved?.id ?? submissionId,
+          resumeToken: serverToken,
         };
         writeLocalResumeSession(sessionKey, payload);
 
-        const resumeUrl = `${window.location.origin}${window.location.pathname}?resume=${encodeURIComponent(sessionKey)}`;
+        const resumeUrl = `${window.location.origin}${window.location.pathname}?token=${encodeURIComponent(serverToken)}`;
 
         const res = await fetch("/api/save-progress-email", {
           method: "POST",
@@ -96,7 +98,7 @@ export function SaveProgressButton({
             savedAt,
             currentStep,
             totalSteps,
-            referenceId: sessionKey,
+            referenceId: serverToken,
             displayName: displayName ?? undefined,
           }),
         });
@@ -186,7 +188,7 @@ export function SaveProgressButton({
               Save progress
             </h2>
             <p className="mt-1 text-sm text-muted">
-              We&apos;ll email you a link to continue on this device. Enter your email:
+              We&apos;ll email you a link to continue on any device. Enter your email:
             </p>
             <form onSubmit={onModalSubmit} className="mt-4 space-y-3">
               <input

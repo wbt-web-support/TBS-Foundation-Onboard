@@ -10,14 +10,12 @@ export function isQuestionRequired(question: Question): boolean {
   return isRequired(question);
 }
 
-function isRequired(question: Question): boolean {
-  if (question.type === "repeatable-group") {
-    return Boolean(question.required) || (question.minItems ?? 0) >= 1;
-  }
-  if (question.type === "field-group") {
-    return (question.group ?? []).some((s) => s.required);
-  }
-  return Boolean(question.required);
+/**
+ * Visible questions always block Next / later steps until satisfied.
+ * The only skip path is an explicit “I will provide later” on that question (`provideLater`).
+ */
+function isRequired(_question: Question): boolean {
+  return true;
 }
 
 function fieldGroupComplete(question: Question, value: unknown, answers: Answers): boolean {
@@ -25,15 +23,27 @@ function fieldGroupComplete(question: Question, value: unknown, answers: Answers
     ? value
     : {}) as FieldGroupAnswer;
   if (isFieldGroupKickoffDeferred(scope)) return true;
-  return (question.group ?? [])
-    .filter((s) => isSubQuestionVisible(s, answers, scope))
-    .filter((s) => s.required)
-    .every((s) => isNonEmpty(scope[s.id]));
+
+  const visibleSubs = (question.group ?? []).filter((s) => isSubQuestionVisible(s, answers, scope));
+  if (visibleSubs.length === 0) return true;
+
+  const minFilled = question.fieldGroupMinFilled;
+  if (typeof minFilled === "number" && minFilled > 0) {
+    const filled = visibleSubs.filter((s) => isNonEmpty(scope[s.id])).length;
+    return filled >= minFilled;
+  }
+
+  if (question.provideLater) {
+    const requiredSubs = visibleSubs.filter((s) => s.required);
+    return requiredSubs.length === 0 || requiredSubs.every((s) => isNonEmpty(scope[s.id]));
+  }
+
+  return visibleSubs.every((s) => isNonEmpty(scope[s.id]));
 }
 
 function repeatableComplete(question: Question, value: unknown, answers: Answers): boolean {
   const items = (Array.isArray(value) ? value : []) as RepeatableAnswer;
-  const minItems = Math.max(question.minItems ?? (question.required ? 1 : 0), isRequired(question) ? 1 : 0);
+  const minItems = Math.max(question.minItems ?? 1, 1);
   if (items.length < minItems) return false;
   return items.every((item) =>
     (question.group ?? [])
@@ -113,6 +123,22 @@ export function sectionMissingRequired(section: Section, answers: Answers): Ques
   return getVisibleStandaloneQuestions(section, answers)
     .filter(isRequired)
     .filter((q) => !isQuestionComplete(q, answers));
+}
+
+/** First section before `targetIndex` that still has required answers missing. */
+export function firstIncompleteSectionBefore(
+  targetIndex: number,
+  answers: Answers,
+): { sectionIndex: number; section: Section; missing: Question[] } | null {
+  const target = Math.max(0, Math.min(targetIndex, ONBOARDING_SCHEMA.sections.length));
+  for (let i = 0; i < target; i++) {
+    const section = ONBOARDING_SCHEMA.sections[i];
+    const missing = sectionMissingRequired(section, answers);
+    if (missing.length > 0) {
+      return { sectionIndex: i, section, missing };
+    }
+  }
+  return null;
 }
 
 export function overallProgress(answers: Answers): number {

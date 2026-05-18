@@ -41,8 +41,15 @@ export async function POST(request: Request) {
 
   const referenceId = typeof body.referenceId === "string" ? body.referenceId.trim() : "";
   if (!referenceId || !UUID_RE.test(referenceId)) return jsonError("Invalid referenceId", 400);
+  const tokenParam = resume.searchParams.get("token");
   const resumeParam = resume.searchParams.get("resume");
-  if (resumeParam !== referenceId) return jsonError("referenceId must match resume query in resumeUrl", 400);
+  if (tokenParam) {
+    if (tokenParam !== referenceId) return jsonError("referenceId must match token in resumeUrl", 400);
+  } else if (resumeParam) {
+    if (resumeParam !== referenceId) return jsonError("referenceId must match resume query in resumeUrl", 400);
+  } else {
+    return jsonError("resumeUrl must include token or resume query", 400);
+  }
 
   const savedAt = typeof body.savedAt === "string" ? body.savedAt : "";
   if (!savedAt) return jsonError("Invalid savedAt", 400);
