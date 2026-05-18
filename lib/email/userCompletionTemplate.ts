@@ -1,16 +1,7 @@
 import { asStringOrNull, getByPath } from "@/lib/answers";
-import type { Answers, FieldGroupAnswer } from "@/lib/types";
+import type { Answers } from "@/lib/types";
+import { getApplicantFirstName } from "./applicantFirstName";
 import { buildWbtEmailLayout, escapeHtml, WBT_EMAIL_THEME, WBT_WEBSITE_URL } from "./wbtEmailBranding";
-
-function submitterFirstName(answers: Answers): string | null {
-  const card = answers.your_name;
-  if (card && typeof card === "object" && !Array.isArray(card)) {
-    const fg = card as FieldGroupAnswer;
-    const first = typeof fg.first_name === "string" ? fg.first_name.trim() : "";
-    if (first) return first;
-  }
-  return null;
-}
 
 function companyName(answers: Answers): string {
   return asStringOrNull(getByPath(answers, "company_details.company_name")) ?? "your business";
@@ -23,7 +14,7 @@ export interface UserCompletionEmailParams {
 
 /** Thank-you email sent to the person who completed the onboarding form. */
 export function buildUserCompletionEmail(params: UserCompletionEmailParams): { html: string; text: string } {
-  const first = submitterFirstName(params.answers);
+  const first = getApplicantFirstName(params.answers);
   const company = escapeHtml(companyName(params.answers));
   const headline = first
     ? `Thank you, ${escapeHtml(first)}!`

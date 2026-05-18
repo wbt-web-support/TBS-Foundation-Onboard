@@ -244,6 +244,11 @@ export interface Section {
   introBody?: string;
   /** Main heading: intro screen headline, or title above the question stack. */
   heading?: string;
+  /** Welcome screen shown before this section's questions (e.g. Step 1 questionnaire intro). */
+  welcomeIntro?: {
+    heading: string;
+    body: string;
+  };
   /** Optional transition intro shown before this section's questions. */
   transitionIntro?: {
     title: string;

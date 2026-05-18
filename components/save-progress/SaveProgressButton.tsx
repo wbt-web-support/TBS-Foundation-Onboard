@@ -6,8 +6,8 @@ import { questionDisplayComplete } from "@/lib/schema/progress";
 import type { Question } from "@/lib/schema/types";
 import { asStringOrNull, getByPath } from "@/lib/answers";
 import type { Answers } from "@/lib/types";
+import { getApplicantDisplayName } from "@/lib/email/applicantFirstName";
 import {
-  markExplicitSavePending,
   readSaveProgressNotifyEmail,
   writeLocalResumeSession,
   writeSaveProgressNotifyEmail,
@@ -72,7 +72,7 @@ export function SaveProgressButton({
 
         const sessionKey = crypto.randomUUID();
         const savedAt = new Date().toISOString();
-        const displayName = asStringOrNull(getByPath(formData, "your_name.first_name"));
+        const displayName = getApplicantDisplayName(formData);
         const businessEmail = asStringOrNull(getByPath(formData, ONBOARDING_SCHEMA.keyFields.email));
         const effectiveNotify =
           businessEmail && EMAIL_RE.test(businessEmail) ? businessEmail : notifyEmail.trim();
@@ -86,7 +86,6 @@ export function SaveProgressButton({
           resumeToken: serverToken,
         };
         writeLocalResumeSession(sessionKey, payload);
-        markExplicitSavePending();
 
         const resumeUrl = buildResumeUrl(serverToken, window.location.origin);
 

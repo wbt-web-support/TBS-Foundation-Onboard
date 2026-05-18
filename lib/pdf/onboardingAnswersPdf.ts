@@ -123,7 +123,7 @@ function orgTypeLabel(answers: Answers): string {
 function companySectionFields(answers: Answers): PdfField[] {
   const details = fg(answers, "company_details");
   const name = fg(answers, "your_name");
-  const contact = fg(answers, "company_contact");
+  const legacyContact = fg(answers, "company_contact");
   const owner = [fgStr(name, "first_name"), fgStr(name, "last_name")].filter(Boolean).join(" ");
 
   return [
@@ -140,9 +140,21 @@ function companySectionFields(answers: Answers): PdfField[] {
       icon: "building",
     },
     { label: "Owner Name", value: owner || "—", icon: "person" },
-    { label: "Contact number", value: fgStr(contact, "company_landline") || "—", icon: "phone" },
-    { label: "Business Email", value: fgStr(contact, "business_email") || "—", icon: "email" },
-    { label: "Phone", value: fgStr(contact, "phone_number") || "—", icon: "phone" },
+    {
+      label: "Contact number",
+      value: fgStr(details, "company_landline") || fgStr(legacyContact, "company_landline") || "—",
+      icon: "phone",
+    },
+    {
+      label: "Business Email",
+      value: fgStr(details, "business_email") || fgStr(legacyContact, "business_email") || "—",
+      icon: "email",
+    },
+    {
+      label: "Phone",
+      value: fgStr(details, "phone_number") || fgStr(legacyContact, "phone_number") || "—",
+      icon: "phone",
+    },
   ];
 }
 
@@ -201,7 +213,7 @@ function formatQuestionBlock(q: Question, answers: Answers): string {
 function sectionFieldsFromQuestions(section: Section, answers: Answers): PdfField[] {
   const fields: PdfField[] = [];
   for (const q of getVisibleStandaloneQuestions(section, answers)) {
-    if (q.id === "company_details" || q.id === "your_name" || q.id === "company_contact") continue;
+    if (q.id === "company_details" || q.id === "your_name") continue;
     const body = formatQuestionBlock(q, answers);
     if (!body.trim()) continue;
     const isLong = body.length > 120 || body.includes("\n");

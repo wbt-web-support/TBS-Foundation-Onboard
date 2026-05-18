@@ -211,12 +211,14 @@ export function QuestionCard({
   required,
   complete,
   invalid,
+  invalidMessage,
   children,
 }: {
   question: Question;
   required: boolean;
   complete: boolean;
   invalid: boolean;
+  invalidMessage?: string;
   children: ReactNode;
 }) {
   const { setAnswer, goNext, flushSave } = useOnboarding();
@@ -310,7 +312,9 @@ export function QuestionCard({
         <span className={complete ? "font-medium text-emerald-600" : "text-slate-400"}>
           {complete ? "Completed" : required ? "Required" : "Optional"}
         </span>
-        {invalid ? <span className="ml-2 text-rose-600">This field is required.</span> : null}
+        {invalid ? (
+          <span className="ml-2 text-rose-600">{invalidMessage ?? "This field is required."}</span>
+        ) : null}
       </div>
     </div>
   );

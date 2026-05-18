@@ -11,25 +11,16 @@ export function Footer() {
   const isLast = currentSectionIndex === ONBOARDING_SCHEMA.sections.length - 1;
 
   return (
-    <div
-      className={
-        isFirst ? "mx-auto mt-8 w-full max-w-4xl" : "mt-8 flex items-center justify-between gap-3"
-      }
-    >
+    <div className="mt-8 flex items-center justify-between gap-3">
       {!isFirst ? (
         <Button variant="secondary" onClick={goBack}>
           <Icon name="chevron-left" className="size-4" />
           Back
         </Button>
       ) : null}
-      <Button
-        variant={isFirst ? "introCta" : "primary"}
-        onClick={goNext}
-        className={isFirst ? "w-full" : ""}
-      >
-        {isLast ? "Submit" : isFirst ? "Begin questionnaire" : "Next"}
-        {!isLast && !isFirst ? <Icon name="chevron-right" className="size-4" /> : null}
-        {isLast ? <Icon name="chevron-right" className="size-4" /> : null}
+      <Button variant="primary" onClick={goNext} className={isFirst ? "ml-auto w-full sm:w-auto" : ""}>
+        {isLast ? "Submit" : "Next"}
+        <Icon name="chevron-right" className="size-4" />
       </Button>
     </div>
   );

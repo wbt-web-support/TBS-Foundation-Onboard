@@ -22,6 +22,46 @@ export function isFieldGroupKickoffDeferred(value: unknown): boolean {
   if (!value || typeof value !== "object" || Array.isArray(value)) return false;
   return (value as Record<string, unknown>)[FIELD_GROUP_KICKOFF_DEFER_KEY] === "yes";
 }
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function isValidEmail(value: unknown): boolean {
+  if (value == null || typeof value !== "string") return false;
+  const s = value.trim();
+  if (!s || isProvideLaterSentinel(s)) return false;
+  return EMAIL_RE.test(s);
+}
+
+/**
+ * Social profile fields: full URL, domain path, @handle, or #tag (min 2 chars, no spaces).
+ * Kept loose so testing and partial entries (e.g. `#facebook`) still allow Next.
+ */
+export function isValidSocialProfileLink(value: unknown): boolean {
+  if (value == null || typeof value !== "string") return false;
+  const s = value.trim();
+  if (!s || isProvideLaterSentinel(s)) return false;
+  if (/\s/.test(s) || s.length < 2) return false;
+  if (isValidUrl(s)) return true;
+  return /^[@#]?[\w][\w.\-/#@]*$/i.test(s);
+}
+
+/** Accepts `https://…`, `http://…`, or `example.com/path` (adds https for parsing). */
+export function isValidUrl(value: unknown): boolean {
+  if (value == null || typeof value !== "string") return false;
+  const s = value.trim();
+  if (!s || isProvideLaterSentinel(s)) return false;
+  if (/\s/.test(s)) return false;
+  try {
+    const normalized = /^https?:\/\//i.test(s) ? s : `https://${s}`;
+    const u = new URL(normalized);
+    if (u.protocol !== "http:" && u.protocol !== "https:") return false;
+    const host = u.hostname;
+    if (!host || !host.includes(".")) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function isNonEmpty(value: AnswerValue | undefined | null): boolean {
   if (value === undefined || value === null) return false;
   if (typeof value === "string") {

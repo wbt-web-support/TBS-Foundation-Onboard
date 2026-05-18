@@ -5,6 +5,8 @@ import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
 import { getVisibleStandaloneQuestions } from "@/lib/schema/visibility";
 import {
   isQuestionRequired,
+  hasInvalidUrlAnswer,
+  invalidUrlMessageForQuestion,
   questionDisplayComplete,
   sectionVisibleQuestionCompletion,
 } from "@/lib/schema/progress";
@@ -17,12 +19,53 @@ import { TransitionIntroScreen } from "./TransitionIntroScreen";
 import { Button } from "@/components/ui/Button";
 import { Icon } from "@/components/ui/Icon";
 import { SectionValidationAlert } from "./SectionValidationAlert";
+import { isNonEmpty } from "@/lib/answers";
+import type { Section } from "@/lib/schema/types";
+import type { Answers } from "@/lib/types";
+
+const DISMISSED_PANEL_KEY = "fo_dismissed_panel";
+
+function sectionHasSavedAnswers(section: Section, answers: Answers): boolean {
+  return section.questions.some((q) => {
+    const v = answers[q.id];
+    return v !== undefined && isNonEmpty(v);
+  });
+}
+
+function readDismissedPanels(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.sessionStorage.getItem(DISMISSED_PANEL_KEY);
+    if (!raw) return new Set();
+    const ids = JSON.parse(raw) as unknown;
+    return Array.isArray(ids) ? new Set(ids.filter((id) => typeof id === "string")) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function persistDismissedPanels(ids: Set<string>) {
+  try {
+    window.sessionStorage.setItem(DISMISSED_PANEL_KEY, JSON.stringify([...ids]));
+  } catch {
+    /* ignore */
+  }
+}
 
 export function SectionView() {
   const { answers, currentSectionIndex, validationErrors, sectionValidationMessage, goBack } =
     useOnboarding();
   const section = ONBOARDING_SCHEMA.sections[currentSectionIndex];
-  const [dismissedTransitionIds, setDismissedTransitionIds] = useState<Set<string>>(new Set());
+  const [dismissedPanels, setDismissedPanels] = useState<Set<string>>(readDismissedPanels);
+
+  const dismissPanel = (panelId: string) => {
+    setDismissedPanels((prev) => {
+      const next = new Set(prev);
+      next.add(panelId);
+      persistDismissedPanels(next);
+      return next;
+    });
+  };
 
   const visible = useMemo(
     () => getVisibleStandaloneQuestions(section, answers),
@@ -33,18 +76,39 @@ export function SectionView() {
     [section, answers],
   );
 
-  if (section.kind === "intro") {
+  const welcomePanelId = `${section.id}:welcome`;
+
+  if (
+    section.welcomeIntro &&
+    !dismissedPanels.has(welcomePanelId) &&
+    !sectionHasSavedAnswers(section, answers)
+  ) {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center">
         <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-[var(--color-page-bg)] px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
-          <IntroScreen heading={section.heading ?? section.title} body={section.introBody ?? ""} />
-          <Footer />
+          <IntroScreen
+            heading={section.welcomeIntro.heading}
+            body={section.welcomeIntro.body}
+            stepNumber={section.number}
+            stepTitle={section.title}
+            stepSubtitle={section.subtitle}
+          />
+          <div className="mx-auto mt-8 w-full max-w-4xl">
+            <Button
+              type="button"
+              variant="introCta"
+              className="w-full"
+              onClick={() => dismissPanel(welcomePanelId)}
+            >
+              Begin questionnaire
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
 
-  if (section.transitionIntro && !dismissedTransitionIds.has(section.id)) {
+  if (section.transitionIntro && !dismissedPanels.has(section.id)) {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center">
         <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-[var(--color-intro-backdrop)] px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
@@ -62,16 +126,7 @@ export function SectionView() {
                 <Icon name="chevron-left" className="size-4" />
                 Back
               </Button>
-              <Button
-                variant="introCta"
-                onClick={() =>
-                  setDismissedTransitionIds((prev) => {
-                    const next = new Set(prev);
-                    next.add(section.id);
-                    return next;
-                  })
-                }
-              >
+              <Button variant="introCta" onClick={() => dismissPanel(section.id)}>
                 {(section.transitionIntro.nextLabel ?? "NEXT").toUpperCase()}
               </Button>
             </div>
@@ -110,17 +165,21 @@ export function SectionView() {
       </div>
       {sectionValidationMessage ? <SectionValidationAlert message={sectionValidationMessage} /> : null}
       <div className="space-y-5">
-        {visible.map((q) => (
-          <QuestionCard
-            key={q.id}
-            question={q}
-            required={isQuestionRequired(q)}
-            complete={questionDisplayComplete(q, answers)}
-            invalid={validationErrors.has(q.id)}
-          >
-            <QuestionRenderer question={q} />
-          </QuestionCard>
-        ))}
+        {visible.map((q) => {
+          const urlInvalid = hasInvalidUrlAnswer(q, answers);
+          return (
+            <QuestionCard
+              key={q.id}
+              question={q}
+              required={isQuestionRequired(q)}
+              complete={questionDisplayComplete(q, answers) && !urlInvalid}
+              invalid={validationErrors.has(q.id) || urlInvalid}
+              invalidMessage={urlInvalid ? invalidUrlMessageForQuestion(q) : undefined}
+            >
+              <QuestionRenderer question={q} />
+            </QuestionCard>
+          );
+        })}
       </div>
       <Footer />
     </div>

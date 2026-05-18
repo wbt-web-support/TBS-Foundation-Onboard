@@ -37,7 +37,7 @@ export function Sidebar() {
     signOut,
     completed,
   } = useOnboarding();
-  const overall = overallProgress(answers);
+  const overall = overallProgress(answers, currentSectionIndex);
 
   return (
     <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
@@ -48,7 +48,7 @@ export function Sidebar() {
 
       <nav className="flex-1 overflow-y-auto px-2 py-3">
         {ONBOARDING_SCHEMA.sections.map((s, i) => {
-          const p = sectionProgress(s, answers);
+          const p = sectionProgress(s, answers, { sectionIndex: i, currentSectionIndex });
           const state =
             i === currentSectionIndex ? "active" : completed || p.complete ? "complete" : "todo";
           return (

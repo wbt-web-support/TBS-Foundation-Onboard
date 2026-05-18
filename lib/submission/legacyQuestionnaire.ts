@@ -284,7 +284,10 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
       ans.client_company_registration_number = str(cd.company_registration_number);
     if (cd.tax_identification_number != null)
       ans.client_tax_identification_number = str(cd.tax_identification_number);
-    out.Company_Information_Part1 = entry("  What is Your company name  ", ans);
+    if (cd.company_landline != null) ans.client_landline_number = str(cd.company_landline);
+    if (cd.business_email != null) ans.client_business_email = str(cd.business_email);
+    if (cd.phone_number != null) ans.client_phone_number = str(cd.phone_number);
+    out.Company_Information_Part1 = entry(" What is your company name & contact details? ", ans);
   }
 
   const yn = fg(answers, "your_name");
@@ -296,7 +299,7 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
   }
 
   const cc = fg(answers, "company_contact");
-  if (cc) {
+  if (cc && !cd?.business_email) {
     out.Company_Information_Part3 = entry(" Enter your company contact details ", {
       client_landline_number: str(cc.company_landline),
       client_business_email: str(cc.business_email),

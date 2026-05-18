@@ -1,8 +1,28 @@
 import Image from "next/image";
+import { StepNavItem } from "./StepNavItem";
 
-export function IntroScreen({ heading, body }: { heading: string; body: string }) {
+export function IntroScreen({
+  heading,
+  body,
+  stepNumber = 1,
+  stepTitle = "Company Information",
+  stepSubtitle = "Basic details about your company",
+}: {
+  heading: string;
+  body: string;
+  stepNumber?: number;
+  stepTitle?: string;
+  stepSubtitle?: string;
+}) {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6">
+      <StepNavItem
+        number={stepNumber}
+        title={stepTitle}
+        subtitle={stepSubtitle}
+        state="active"
+        className="w-full md:hidden"
+      />
       <p className="rounded-lg bg-intro-badge px-4 py-2.5 text-center text-[11px] font-semibold uppercase leading-snug tracking-wide text-white shadow-sm sm:px-5 sm:text-xs">
         Complete with as much detail as possible
       </p>

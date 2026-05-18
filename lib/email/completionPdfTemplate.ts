@@ -1,18 +1,7 @@
 import { asStringOrNull, getByPath } from "@/lib/answers";
-import type { Answers, FieldGroupAnswer } from "@/lib/types";
+import type { Answers } from "@/lib/types";
+import { getApplicantFullName } from "./applicantFirstName";
 import { buildWbtEmailLayout, escapeHtml, WBT_EMAIL_THEME } from "./wbtEmailBranding";
-
-function submitterName(answers: Answers): string {
-  const card = answers.your_name;
-  if (card && typeof card === "object" && !Array.isArray(card)) {
-    const fg = card as FieldGroupAnswer;
-    const first = typeof fg.first_name === "string" ? fg.first_name.trim() : "";
-    const last = typeof fg.last_name === "string" ? fg.last_name.trim() : "";
-    const full = [first, last].filter(Boolean).join(" ");
-    if (full) return full;
-  }
-  return "A client";
-}
 
 function companyName(answers: Answers): string {
   return asStringOrNull(getByPath(answers, "company_details.company_name")) ?? "your business";
@@ -23,35 +12,39 @@ export interface CompletionPdfEmailParams {
   pdfViewUrl: string | null;
 }
 
+/** Admin notification when a client completes onboarding (PDF attached). */
 export function buildCompletionPdfEmail(params: CompletionPdfEmailParams): { html: string; text: string } {
-  const name = escapeHtml(submitterName(params.answers));
+  const submitter = escapeHtml(getApplicantFullName(params.answers) ?? "A client");
   const company = escapeHtml(companyName(params.answers));
   const pdfUrl = params.pdfViewUrl?.trim() || "";
+  const strong = WBT_EMAIL_THEME.bodyStrong;
 
-  const bodyHtml = `A new questionnaire form has been completed on behalf of <strong style="color:${WBT_EMAIL_THEME.bodyStrong};">${company}</strong>. Review the submission below.`;
+  const headline = `<strong style="color:${strong};">${company}</strong> has filled out the questionnaire form for <strong style="color:${strong};">${submitter}</strong>.`;
+
+  const bodyHtml = "You can access the PDF file by clicking the button below.";
 
   const ctas: { label: string; href: string; variant: "primary" | "outline" | "dark" }[] = [];
   if (pdfUrl) {
-    ctas.push({ label: "View PDF", href: pdfUrl, variant: "dark" });
-    ctas.push({ label: "Download", href: pdfUrl, variant: "outline" });
+    ctas.push({ label: "PDF file", href: pdfUrl, variant: "dark" });
   }
 
   const html = buildWbtEmailLayout({
     badge: "Form completed",
-    headline: `${name} submitted the questionnaire`,
+    headline,
     bodyHtml,
-    ctas:
-      ctas.length > 0
-        ? ctas
-        : [{ label: "Open We Build Trades", href: "https://webuildtrades.com/", variant: "primary" }],
-    footerNote: "PDF copy also attached to this email.",
+    ctas,
+    footerNote: "Copy of the PDF is also attached for your reference.",
   });
 
-  const text = `${submitterName(params.answers)} submitted the questionnaire
+  const plainSubmitter = getApplicantFullName(params.answers) ?? "A client";
+  const plainCompany = companyName(params.answers);
 
-A new questionnaire form has been completed on behalf of ${companyName(params.answers)}.
+  const text = `${plainCompany} has filled out the questionnaire form for ${plainSubmitter}.
 
-${pdfUrl ? `View PDF: ${pdfUrl}\n` : ""}PDF copy also attached to this email.`;
+You can access the PDF file by clicking the button below.
+
+${pdfUrl ? `PDF file: ${pdfUrl}\n` : ""}
+Copy of the PDF is also attached for your reference.`;
 
   return { html, text };
 }

@@ -28,13 +28,26 @@ export function mergeAnswersForDatabase(
   return out;
 }
 
+/** Merge legacy `company_contact` into `company_details` (single card in Step 1). */
+export function normalizeCompanyAnswers(answers: Answers): Answers {
+  const cc = answers.company_contact;
+  if (!cc || typeof cc !== "object" || Array.isArray(cc)) return answers;
+  const cd = answers.company_details;
+  const merged = {
+    ...(typeof cd === "object" && cd && !Array.isArray(cd) ? cd : {}),
+    ...cc,
+  };
+  const { company_contact: _removed, ...rest } = answers;
+  return { ...rest, company_details: merged };
+}
+
 /** Recover the in-app `Answers` map from a DB row (supports pre-legacy rows). */
 export function extractAppAnswersFromDatabase(stored: unknown): Answers {
   if (!stored || typeof stored !== "object" || Array.isArray(stored)) return {};
   const o = stored as Record<string, unknown>;
   const inner = o[FOUNDATION_APP_ANSWERS_KEY];
   if (inner && typeof inner === "object" && !Array.isArray(inner)) {
-    return inner as Answers;
+    return normalizeCompanyAnswers(inner as Answers);
   }
   const out: Answers = {};
   for (const [k, v] of Object.entries(o)) {
@@ -44,5 +57,5 @@ export function extractAppAnswersFromDatabase(stored: unknown): Answers {
     if (LEGACY_EXPORT_KEYS.has(k)) continue;
     out[k] = v as AnswerValue;
   }
-  return out;
+  return normalizeCompanyAnswers(out);
 }

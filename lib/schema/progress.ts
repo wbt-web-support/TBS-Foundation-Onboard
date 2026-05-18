@@ -1,8 +1,15 @@
-import type { Answers, FieldGroupAnswer, RepeatableAnswer } from "../types";
-import { isFieldGroupKickoffDeferred, isNonEmpty, isProvideLaterSentinel } from "../answers";
+import type { AnswerValue, Answers, FieldGroupAnswer, RepeatableAnswer } from "../types";
+import {
+  isFieldGroupKickoffDeferred,
+  isNonEmpty,
+  isProvideLaterSentinel,
+  isValidEmail,
+  isValidSocialProfileLink,
+  isValidUrl,
+} from "../answers";
 import { ONBOARDING_SCHEMA } from "./questions";
 import { TEMPLATE_UPLOAD_OWN_ID } from "./templateGalleries";
-import type { Question, Section } from "./types";
+import type { Question, Section, SubQuestion } from "./types";
 import { getVisibleStandaloneQuestions, isSubQuestionVisible, isVisible } from "./visibility";
 
 /** Does this question contribute a "must answer" slot in its section? */
@@ -18,6 +25,66 @@ function isRequired(_question: Question): boolean {
   return true;
 }
 
+function isSubUrlValueValid(parentQuestionId: string | undefined, value: unknown): boolean {
+  if (parentQuestionId === "social_media") return isValidSocialProfileLink(value);
+  return isValidUrl(value);
+}
+
+function isSubAnswerSatisfied(sub: SubQuestion, value: unknown, parentQuestionId?: string): boolean {
+  if (sub.type === "url") {
+    const s = typeof value === "string" ? value.trim() : "";
+    if (!s) return !sub.required;
+    return isSubUrlValueValid(parentQuestionId, value);
+  }
+  if (sub.type === "email") {
+    const s = typeof value === "string" ? value.trim() : "";
+    if (!s) return !sub.required;
+    return isValidEmail(value);
+  }
+  return isNonEmpty(value as AnswerValue);
+}
+
+function isScalarAnswerSatisfied(question: Question, value: unknown): boolean {
+  if (question.type === "url") {
+    const s = typeof value === "string" ? value.trim() : "";
+    if (!s) return false;
+    return isValidUrl(value);
+  }
+  if (question.type === "email") {
+    const s = typeof value === "string" ? value.trim() : "";
+    if (!s) return false;
+    return isValidEmail(value);
+  }
+  return isNonEmpty(value as AnswerValue);
+}
+
+/** True when a URL field has text that is not a valid URL (for inline errors). */
+export function hasInvalidUrlAnswer(question: Question, answers: Answers): boolean {
+  if (question.type === "url") {
+    const v = answers[question.id];
+    if (typeof v !== "string" || !v.trim() || isProvideLaterSentinel(v)) return false;
+    return !isValidUrl(v);
+  }
+  if (question.type === "field-group") {
+    const scope = (answers[question.id] ?? {}) as FieldGroupAnswer;
+    return (question.group ?? []).some((s) => {
+      if (s.type !== "url") return false;
+      const v = scope[s.id];
+      if (typeof v !== "string" || !v.trim()) return false;
+      return !isSubUrlValueValid(question.id, v);
+    });
+  }
+  return false;
+}
+
+/** Inline error copy when a URL field has invalid text. */
+export function invalidUrlMessageForQuestion(question: Question): string {
+  if (question.id === "social_media") {
+    return "Enter a profile link or handle (e.g. https://facebook.com/yourpage or @yourpage).";
+  }
+  return "Enter a valid URL (e.g. https://example.com or example.com).";
+}
+
 function fieldGroupComplete(question: Question, value: unknown, answers: Answers): boolean {
   const scope = (value && typeof value === "object" && !Array.isArray(value)
     ? value
@@ -29,16 +96,19 @@ function fieldGroupComplete(question: Question, value: unknown, answers: Answers
 
   const minFilled = question.fieldGroupMinFilled;
   if (typeof minFilled === "number" && minFilled > 0) {
-    const filled = visibleSubs.filter((s) => isNonEmpty(scope[s.id])).length;
+    const filled = visibleSubs.filter((s) => isSubAnswerSatisfied(s, scope[s.id], question.id)).length;
     return filled >= minFilled;
   }
 
   if (question.provideLater) {
     const requiredSubs = visibleSubs.filter((s) => s.required);
-    return requiredSubs.length === 0 || requiredSubs.every((s) => isNonEmpty(scope[s.id]));
+    return (
+      requiredSubs.length === 0 ||
+      requiredSubs.every((s) => isSubAnswerSatisfied(s, scope[s.id], question.id))
+    );
   }
 
-  return visibleSubs.every((s) => isNonEmpty(scope[s.id]));
+  return visibleSubs.every((s) => isSubAnswerSatisfied(s, scope[s.id], question.id));
 }
 
 function repeatableComplete(question: Question, value: unknown, answers: Answers): boolean {
@@ -49,7 +119,7 @@ function repeatableComplete(question: Question, value: unknown, answers: Answers
     (question.group ?? [])
       .filter((s) => isSubQuestionVisible(s, answers, item ?? {}))
       .filter((s) => s.required)
-      .every((s) => isNonEmpty(item?.[s.id])),
+      .every((s) => isSubAnswerSatisfied(s, item?.[s.id])),
   );
 }
 
@@ -82,13 +152,24 @@ export function isQuestionComplete(question: Question, answers: Answers): boolea
     return isNonEmpty(answers[question.galleryUploadCompanionKey]);
   }
   if (!isRequired(question)) return true;
-  return isNonEmpty(value);
+  return isScalarAnswerSatisfied(question, value);
 }
 
 /** For the per-card "Completed" badge: required cards use full validation; optional cards just check for any value. */
 export function questionDisplayComplete(question: Question, answers: Answers): boolean {
   if (isRequired(question)) return isQuestionComplete(question, answers);
-  return isNonEmpty(answers[question.id]);
+  const value = answers[question.id];
+  if (question.type === "url") {
+    const s = typeof value === "string" ? value.trim() : "";
+    if (!s) return false;
+    return isValidUrl(value);
+  }
+  if (question.type === "email") {
+    const s = typeof value === "string" ? value.trim() : "";
+    if (!s) return false;
+    return isValidEmail(value);
+  }
+  return isNonEmpty(value);
 }
 
 /** Visible standalone questions completed vs total (matches per-card "Completed" in the UI). */
@@ -109,7 +190,16 @@ export interface SectionProgress {
   percent: number; // 0-100
 }
 
-export function sectionProgress(section: Section, answers: Answers): SectionProgress {
+export interface SectionProgressContext {
+  sectionIndex: number;
+  currentSectionIndex: number;
+}
+
+export function sectionProgress(
+  section: Section,
+  answers: Answers,
+  _ctx?: SectionProgressContext,
+): SectionProgress {
   const visibleRequired = getVisibleStandaloneQuestions(section, answers).filter(isRequired);
   const total = visibleRequired.length;
   const completed = visibleRequired.filter((q) => isQuestionComplete(q, answers)).length;
@@ -129,6 +219,7 @@ export function sectionMissingRequired(section: Section, answers: Answers): Ques
 export function firstIncompleteSectionBefore(
   targetIndex: number,
   answers: Answers,
+  currentSectionIndex: number,
 ): { sectionIndex: number; section: Section; missing: Question[] } | null {
   const target = Math.max(0, Math.min(targetIndex, ONBOARDING_SCHEMA.sections.length));
   for (let i = 0; i < target; i++) {
@@ -141,11 +232,12 @@ export function firstIncompleteSectionBefore(
   return null;
 }
 
-export function overallProgress(answers: Answers): number {
+export function overallProgress(answers: Answers, currentSectionIndex = 0): number {
   let total = 0;
   let completed = 0;
-  for (const section of ONBOARDING_SCHEMA.sections) {
-    const p = sectionProgress(section, answers);
+  for (let i = 0; i < ONBOARDING_SCHEMA.sections.length; i++) {
+    const section = ONBOARDING_SCHEMA.sections[i];
+    const p = sectionProgress(section, answers, { sectionIndex: i, currentSectionIndex });
     total += p.total;
     completed += p.completed;
   }

@@ -4,12 +4,8 @@ import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "r
 import { useRouter, useSearchParams } from "next/navigation";
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
 import { SaveProgressHost } from "@/components/save-progress/SaveProgressButton";
-import {
-  LOCAL_RESUME_SESSION_PREFIX,
-  consumeExplicitSavePending,
-  readLocalResumeSession,
-} from "@/lib/saveProgress/localResumeSession";
-import { extractAppAnswersFromDatabase } from "@/lib/submission/persistAnswers";
+import { LOCAL_RESUME_SESSION_PREFIX, readLocalResumeSession } from "@/lib/saveProgress/localResumeSession";
+import { extractAppAnswersFromDatabase, normalizeCompanyAnswers } from "@/lib/submission/persistAnswers";
 import {
   firstIncompleteSectionBefore,
   sectionMissingRequired,
@@ -39,8 +35,8 @@ import { Icon } from "@/components/ui/Icon";
 const TOKEN_KEY = "fo_resume_token";
 /** Survives URL strip + React Strict Mode remount so local resume still runs once. */
 const PENDING_RESUME_SESSION_KEY = "fo_pending_resume_session";
-/** Until dismissed: reopen restore modal after hydrate (Strict Mode / `router.replace` remount). */
-const RESUME_RESTORE_MODAL_FLAG = "fo_resume_restore_modal_prompt";
+/** Per resume token: user already saw/dismissed the restore modal this browser session. */
+const RESTORE_MODAL_SEEN_PREFIX = "fo_restore_modal_seen:";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LAST_SECTION = ONBOARDING_SCHEMA.sections.length - 1;
 
@@ -113,7 +109,7 @@ function buildSectionQuestionProgressSnapshot(
   answers: Answers,
 ): SectionQuestionProgressSnapshot | undefined {
   const section = ONBOARDING_SCHEMA.sections[currentSectionIndex];
-  if (!section || section.kind === "intro") return undefined;
+  if (!section) return undefined;
   const { completed, total } = sectionVisibleQuestionCompletion(section, answers);
   if (total === 0) return undefined;
   return { sectionId: section.id, completed, total };
@@ -139,11 +135,43 @@ function hasAnyAnswer(answers: Answers): boolean {
   return Object.keys(answers).length > 0;
 }
 
-/** Restore modal: after Save progress (same browser) or opening the resume link from email (?token=). */
-function shouldPromptResumeRestore(answers: Answers, fromEmailLink: boolean): boolean {
-  if (!hasAnyAnswer(answers)) return false;
-  if (fromEmailLink) return true;
-  return consumeExplicitSavePending();
+function restoreModalSeenKey(resumeToken: string): string {
+  return `${RESTORE_MODAL_SEEN_PREFIX}${resumeToken}`;
+}
+
+function hasSeenRestoreModal(resumeToken: string): boolean {
+  try {
+    return window.sessionStorage.getItem(restoreModalSeenKey(resumeToken)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markRestoreModalSeen(resumeToken: string): void {
+  try {
+    window.sessionStorage.setItem(restoreModalSeenKey(resumeToken), "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+/** `?token=` present on first page load (not added later by save-progress redirect). */
+function captureInitialUrlToken(ref: { current: string | null | undefined }): string | null {
+  if (ref.current === undefined) {
+    ref.current =
+      typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("token") : null;
+  }
+  return ref.current;
+}
+
+/** Restore modal: email link on first load with saved answers, once per token until dismissed. */
+function shouldPromptResumeRestore(
+  answers: Answers,
+  resumeToken: string,
+  arrivedViaEmailLink: boolean,
+): boolean {
+  if (!arrivedViaEmailLink || !hasAnyAnswer(answers) || !resumeToken) return false;
+  return !hasSeenRestoreModal(resumeToken);
 }
 
 // --- component ------------------------------------------------------------
@@ -158,6 +186,7 @@ export default function OnboardingApp() {
   const lastRestoredResumeKeyRef = useRef<string | null>(null);
   /** Prevents duplicate restore; changes when URL token / resume key changes. */
   const restoreSourceRef = useRef<string | null>(null);
+  const initialUrlTokenRef = useRef<string | null | undefined>(undefined);
   const didFirstSave = useRef(false);
 
   const stateRef = useRef(state);
@@ -229,14 +258,13 @@ export default function OnboardingApp() {
   }, [save]);
 
   const dismissResumeRestoreModal = useCallback(() => {
+    const token = stateRef.current.resumeToken;
+    if (token) markRestoreModalSeen(token);
     try {
       window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
-      window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
     } catch {
       /* ignore */
     }
-    lastRestoredResumeKeyRef.current = null;
-    restoreSourceRef.current = null;
     setResumeRestoreModalOpen(false);
   }, []);
 
@@ -251,7 +279,6 @@ export default function OnboardingApp() {
     }
     try {
       window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
-      window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
     } catch {
       /* ignore */
     }
@@ -323,14 +350,13 @@ export default function OnboardingApp() {
         const emailValue = asStringOrNull(getByPath(answers, ONBOARDING_SCHEMA.emailCapturePath));
         restoreSourceRef.current = `token:${sub.resumeToken}`;
         didFirstSave.current = false;
-        const showRestoreModal = shouldPromptResumeRestore(answers, tokenWasInUrl);
-        if (showRestoreModal) {
-          try {
-            window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
-          } catch {
-            /* ignore */
-          }
-        }
+        const arrivedViaEmailLink =
+          tokenWasInUrl && captureInitialUrlToken(initialUrlTokenRef) != null;
+        const showRestoreModal = shouldPromptResumeRestore(
+          answers,
+          sub.resumeToken,
+          arrivedViaEmailLink,
+        );
         dispatch({
           type: "HYDRATE",
           payload: {
@@ -351,10 +377,11 @@ export default function OnboardingApp() {
 
     void (async () => {
       try {
+        captureInitialUrlToken(initialUrlTokenRef);
+
         if (urlToken) {
           try {
             window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
-            window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
           } catch {
             /* ignore */
           }
@@ -402,33 +429,23 @@ export default function OnboardingApp() {
             if (!cancelled) {
               restoreSourceRef.current = `resume:${resumeKey}`;
               didFirstSave.current = false;
-              const showRestoreModal = shouldPromptResumeRestore(local.answers, false);
-              if (showRestoreModal) {
-                try {
-                  window.sessionStorage.setItem(RESUME_RESTORE_MODAL_FLAG, "1");
-                } catch {
-                  /* ignore */
-                }
-              }
               dispatch({
                 type: "HYDRATE",
                 payload: {
                   submissionId: local.submissionId,
                   resumeToken: local.resumeToken,
-                  answers: local.answers,
+                  answers: normalizeCompanyAnswers(local.answers),
                   currentSectionIndex: clampSection(local.currentSectionIndex),
                   completed: false,
                   emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
                 },
               });
-              if (showRestoreModal) setResumeRestoreModalOpen(true);
             }
             return;
           }
 
           try {
             window.sessionStorage.removeItem(PENDING_RESUME_SESSION_KEY);
-            window.sessionStorage.removeItem(RESUME_RESTORE_MODAL_FLAG);
           } catch {
             /* ignore */
           }
@@ -464,17 +481,6 @@ export default function OnboardingApp() {
       cancelled = true;
     };
   }, [searchParams, router]);
-
-  useEffect(() => {
-    if (!state.hydrated) return;
-    try {
-      if (window.sessionStorage.getItem(RESUME_RESTORE_MODAL_FLAG) === "1") {
-        setResumeRestoreModalOpen(true);
-      }
-    } catch {
-      /* ignore */
-    }
-  }, [state.hydrated]);
 
   // --- debounced autosave -------------------------------------------------
   useEffect(() => {
@@ -544,7 +550,7 @@ export default function OnboardingApp() {
       const target = clampSection(index);
 
       if (target > s.currentSectionIndex) {
-        const block = firstIncompleteSectionBefore(target, s.answers);
+        const block = firstIncompleteSectionBefore(target, s.answers, s.currentSectionIndex);
         if (block) {
           const targetSection = ONBOARDING_SCHEMA.sections[target];
           const message =

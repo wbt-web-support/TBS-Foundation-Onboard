@@ -49,38 +49,40 @@ const GOOGLE_FONTS_URL = "https://fonts.google.com/";
 
 // --- sections -------------------------------------------------------------
 
-const introduction: Section = {
-  id: "introduction",
-  number: 1,
-  title: "Introduction",
-  subtitle: "Questionnaire & initial setup",
-  kind: "intro",
-  heading: "WE BUILD TRADES CLIENT QUESTIONNAIRE & INITIAL SETUP",
-  introBody:
-    "Please complete the following questionnaire with as much detail as possible. Once complete, you will be able to schedule your kick-off meeting with your account manager.\n\nYou can also save your progress by clicking the save button in the bottom right corner of the screen so you don't have to get through it all in one go.",
-  questions: [],
-};
-
 const company: Section = {
   id: "company",
-  number: 2,
+  number: 1,
   title: "Company Information",
   subtitle: "Basic details about your company",
   kind: "questions",
+  welcomeIntro: {
+    heading: "WE BUILD TRADES CLIENT QUESTIONNAIRE & INITIAL SETUP",
+    body: "Please complete the following questionnaire with as much detail as possible. Once complete, you will be able to schedule your kick-off meeting with your account manager.\n\nYou can also save your progress by clicking the save button in the bottom right corner of the screen so you don't have to get through it all in one go.",
+  },
   heading: "Company Information",
   questions: [
     {
       id: "company_details",
       type: "field-group",
       icon: "building",
-      title: "What is your company name & details?",
+      title: "What is your company name & contact details?",
       group: [
-        { id: "company_name", type: "text", title: "Company name", required: true },
+        { id: "company_name", type: "text", title: "Company name", required: true, width: "half" },
+        {
+          id: "business_email",
+          type: "email",
+          title: "Business email",
+          required: true,
+          width: "half",
+        },
+        { id: "phone_number", type: "tel", title: "Phone number", required: true, width: "half" },
+        { id: "company_landline", type: "tel", title: "Company landline no.", width: "half" },
         {
           id: "org_type",
           type: "select",
           title: "Company / organisation type",
           required: true,
+          width: "half",
           options: [
             opt("ltd", "Limited Company (LTD)"),
             opt("plc", "Public Limited Company (PLC)"),
@@ -97,6 +99,7 @@ const company: Section = {
           type: "text",
           title: "Company registration number",
           required: true,
+          width: "half",
           inputPrefix: "#",
           visibleIf: { all: [{ questionId: "org_type", isAnswered: true }] },
           labelBySibling: {
@@ -153,13 +156,6 @@ const company: Section = {
       ],
     },
     {
-      id: "business_proof_of_address",
-      type: "file",
-      icon: "upload",
-      title: "Upload business proof of address",
-      helper: "A recent utility bill, bank statement or council document showing your business address.",
-    },
-    {
       id: "your_name",
       type: "field-group",
       icon: "user",
@@ -170,15 +166,11 @@ const company: Section = {
       ],
     },
     {
-      id: "company_contact",
-      type: "field-group",
-      icon: "phone",
-      title: "Enter your company contact details",
-      group: [
-        { id: "company_landline", type: "tel", title: "Company landline no.", width: "half" },
-        { id: "business_email", type: "email", title: "Business email", required: true, width: "half" },
-        { id: "phone_number", type: "tel", title: "Phone number", required: true, width: "half" },
-      ],
+      id: "business_proof_of_address",
+      type: "file",
+      icon: "upload",
+      title: "Upload business proof of address",
+      helper: "A recent utility bill, bank statement or council document showing your business address.",
     },
     {
       id: "company_address",
@@ -345,7 +337,7 @@ const company: Section = {
 
 const branding: Section = {
   id: "branding",
-  number: 3,
+  number: 2,
   title: "Website Design & Branding",
   subtitle: "Your logo, look, and content",
   kind: "questions",
@@ -919,7 +911,7 @@ const branding: Section = {
 
 const ads: Section = {
   id: "ads",
-  number: 4,
+  number: 3,
   title: "Ads Information",
   subtitle: "Your customers, keywords and ad history",
   kind: "questions",
@@ -1080,7 +1072,7 @@ const PROVIDERS_NEED_CREDENTIALS = [
 
 const access: Section = {
   id: "access",
-  number: 5,
+  number: 4,
   title: "Account Access Information",
   subtitle: "Domains, hosting and payments",
   kind: "questions",
@@ -1370,7 +1362,7 @@ const access: Section = {
 
 const completion: Section = {
   id: "completion",
-  number: 6,
+  number: 5,
   title: "Final Section",
   subtitle: "A quick rating and any feedback",
   kind: "questions",
@@ -1397,12 +1389,12 @@ const completion: Section = {
 };
 
 export const ONBOARDING_SCHEMA: OnboardingSchema = {
-  sections: [introduction, company, branding, ads, access, completion],
+  sections: [company, branding, ads, access, completion],
   keyFields: {
-    email: "company_contact.business_email",
-    phone: "company_contact.phone_number",
+    email: "company_details.business_email",
+    phone: "company_details.phone_number",
     taxId: "company_details.tax_identification_number",
   },
-  emailCapturePath: "company_contact.business_email",
+  emailCapturePath: "company_details.business_email",
   satisfactionPath: "satisfaction_rating",
 };
