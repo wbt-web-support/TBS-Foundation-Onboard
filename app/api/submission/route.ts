@@ -12,14 +12,20 @@ function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
 
+export type CompletionPdfArtifacts = {
+  storedAnswers: Record<string, unknown>;
+  pdfBuffer: Buffer | null;
+  pdfFilename: string | null;
+};
+
 async function enrichStoredAnswersOnCompletion(
   appAnswers: Answers,
   submissionId: string,
   storedAnswers: Record<string, unknown>,
   email: string | null,
-): Promise<Record<string, unknown>> {
+): Promise<CompletionPdfArtifacts> {
   try {
-    const { buffer, publicUrl } = await buildAndUploadCompletionPdf(appAnswers, submissionId);
+    const { buffer, filename, publicUrl } = await buildAndUploadCompletionPdf(appAnswers, submissionId);
     const next = { ...storedAnswers };
     if (publicUrl) next[FOUNDATION_COMPLETION_PDF_URL_KEY] = publicUrl;
     if (email && EMAIL_RE.test(email)) {
@@ -27,7 +33,7 @@ async function enrichStoredAnswersOnCompletion(
         console.error("[completion-pdf-email]", err);
       });
     }
-    return next;
+    return { storedAnswers: next, pdfBuffer: buffer, pdfFilename: filename };
   } catch (err) {
     console.error("[completion-pdf-bunny]", err);
     if (email && EMAIL_RE.test(email)) {
@@ -35,7 +41,7 @@ async function enrichStoredAnswersOnCompletion(
         console.error("[completion-pdf-email]", e);
       });
     }
-    return storedAnswers;
+    return { storedAnswers, pdfBuffer: null, pdfFilename: null };
   }
 }
 
@@ -101,19 +107,31 @@ export async function POST(request: Request) {
   };
 
   if (body.submissionId && UUID_RE.test(body.submissionId)) {
+    let pdfBuffer: Buffer | null = null;
+    let pdfFilename: string | null = null;
+
     if (completed) {
-      storedAnswers = await enrichStoredAnswersOnCompletion(
+      const enriched = await enrichStoredAnswersOnCompletion(
         appAnswers,
         body.submissionId,
         storedAnswers,
         row.email,
       );
+      storedAnswers = enriched.storedAnswers;
+      pdfBuffer = enriched.pdfBuffer;
+      pdfFilename = enriched.pdfFilename;
       row.answers = storedAnswers;
+    }
+
+    const updatePayload: Record<string, unknown> = { ...row };
+    if (completed && pdfBuffer) {
+      updatePayload.completion_pdf = `\\x${pdfBuffer.toString("hex")}`;
+      updatePayload.completion_pdf_filename = pdfFilename;
     }
 
     const { data, error } = await supabase
       .from(SUBMISSIONS_TABLE)
-      .update(row)
+      .update(updatePayload)
       .eq("id", body.submissionId)
       .select("id, resume_token")
       .maybeSingle();
@@ -131,9 +149,12 @@ export async function POST(request: Request) {
 
   if (completed && data.id) {
     const enriched = await enrichStoredAnswersOnCompletion(appAnswers, data.id, storedAnswers, row.email);
-    if (enriched !== storedAnswers) {
-      await supabase.from(SUBMISSIONS_TABLE).update({ answers: enriched }).eq("id", data.id);
+    const patch: Record<string, unknown> = { answers: enriched.storedAnswers };
+    if (enriched.pdfBuffer) {
+      patch.completion_pdf = `\\x${enriched.pdfBuffer.toString("hex")}`;
+      patch.completion_pdf_filename = enriched.pdfFilename;
     }
+    await supabase.from(SUBMISSIONS_TABLE).update(patch).eq("id", data.id);
   }
 
   return Response.json({ id: data.id, resumeToken: data.resume_token } satisfies SubmissionResponse);

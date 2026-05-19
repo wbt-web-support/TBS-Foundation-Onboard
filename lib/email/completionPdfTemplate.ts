@@ -19,7 +19,7 @@ export function buildCompletionPdfEmail(params: CompletionPdfEmailParams): { htm
   const pdfUrl = params.pdfViewUrl?.trim() || "";
   const strong = WBT_EMAIL_THEME.bodyStrong;
 
-  const headline = `<strong style="color:${strong};">${company}</strong> has filled out the questionnaire form for <strong style="color:${strong};">${submitter}</strong>.`;
+  const headline = `<strong style="color:${strong};">${submitter}</strong> has filled out the questionnaire form for <strong style="color:${strong};">${company}</strong>.`;
 
   const bodyHtml = "You can access the PDF file by clicking the button below.";
 
@@ -39,7 +39,7 @@ export function buildCompletionPdfEmail(params: CompletionPdfEmailParams): { htm
   const plainSubmitter = getApplicantFullName(params.answers) ?? "A client";
   const plainCompany = companyName(params.answers);
 
-  const text = `${plainCompany} has filled out the questionnaire form for ${plainSubmitter}.
+  const text = `${plainSubmitter} has filled out the questionnaire form for ${plainCompany}.
 
 You can access the PDF file by clicking the button below.
 

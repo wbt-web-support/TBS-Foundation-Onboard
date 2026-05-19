@@ -14,7 +14,9 @@ create table if not exists public.onboarding_submissions (
   satisfaction_rating         integer,
   completed                   boolean not null default false,
   created_at                  timestamptz not null default now(),
-  updated_at                  timestamptz not null default now()
+  updated_at                  timestamptz not null default now(),
+  completion_pdf              bytea,
+  completion_pdf_filename       text
 );
 
 create index if not exists onboarding_submissions_resume_token_idx

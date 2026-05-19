@@ -3,6 +3,13 @@
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
+import {
+  trackStepViewed,
+  trackStepCompleted,
+  trackStepBack,
+  trackFieldErrored,
+  trackFormCompleted,
+} from "@/lib/analytics/track";
 import { SaveProgressHost } from "@/components/save-progress/SaveProgressButton";
 import { LOCAL_RESUME_SESSION_PREFIX, readLocalResumeSession } from "@/lib/saveProgress/localResumeSession";
 import { extractAppAnswersFromDatabase, normalizeCompanyAnswers } from "@/lib/submission/persistAnswers";
@@ -194,6 +201,8 @@ export default function OnboardingApp() {
     stateRef.current = state;
   }, [state]);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Track when the user entered the current step (for time-on-step calculation)
+  const stepEnteredAtRef = useRef<number>(Date.now());
 
   // --- magic-link email ---------------------------------------------------
   const triggerResumeEmail = useCallback(async (submissionId: string) => {
@@ -482,6 +491,15 @@ export default function OnboardingApp() {
     };
   }, [searchParams, router]);
 
+  // --- analytics: track step views ----------------------------------------
+  useEffect(() => {
+    if (!state.hydrated) return;
+    const section = ONBOARDING_SCHEMA.sections[state.currentSectionIndex];
+    if (!section) return;
+    stepEnteredAtRef.current = Date.now();
+    trackStepViewed(section.title);
+  }, [state.currentSectionIndex, state.hydrated]);
+
   // --- debounced autosave -------------------------------------------------
   useEffect(() => {
     if (!state.hydrated) return;
@@ -548,6 +566,7 @@ export default function OnboardingApp() {
     async (index: number) => {
       const s = stateRef.current;
       const target = clampSection(index);
+      const currentSection = ONBOARDING_SCHEMA.sections[s.currentSectionIndex];
 
       if (target > s.currentSectionIndex) {
         const block = firstIncompleteSectionBefore(target, s.answers, s.currentSectionIndex);
@@ -568,6 +587,17 @@ export default function OnboardingApp() {
             window.scrollTo({ top: 0, behavior: "smooth" });
           }
           return;
+        }
+        // Forward navigation: step completed
+        if (currentSection) {
+          const timeSpentMs = Date.now() - stepEnteredAtRef.current;
+          trackStepCompleted(currentSection.title, timeSpentMs);
+        }
+      } else if (target < s.currentSectionIndex) {
+        // Back navigation
+        const targetSection = ONBOARDING_SCHEMA.sections[target];
+        if (currentSection && targetSection) {
+          trackStepBack(currentSection.title, targetSection.title);
         }
       }
 
@@ -597,12 +627,17 @@ export default function OnboardingApp() {
         missing,
         `Please complete all required fields in Step ${section.number}: ${section.title} before continuing.`,
       );
+      // Track each field that triggered a validation error
+      for (const q of missing) {
+        trackFieldErrored(section.title, q.id);
+      }
       return;
     }
     setValidationErrors(new Set());
     setSectionValidationMessage(null);
     if (s.currentSectionIndex >= LAST_SECTION) {
       await save({ completed: true }, { force: true });
+      trackFormCompleted();
       dispatch({ type: "MARK_COMPLETED" });
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
