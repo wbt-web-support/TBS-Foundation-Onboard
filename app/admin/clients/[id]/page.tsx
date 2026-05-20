@@ -48,6 +48,20 @@ function ClientDetailPageContent({ user: _user }: { user: AuthUser }) {
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Failed to load client");
       setClient(data.client);
+
+      // Auto-generate PDF in background only for completed submissions
+      if (isSubmissionId(id) && (data.client.completed || data.client.percentComplete >= 100) && !data.client.pdfUrl && !data.client.hasStoredPdf) {
+        void fetch(`/api/admin/clients/${id}/generate-pdf`, {
+          ...adminFetchHeaders(),
+          method: "POST",
+        }).then(async (genRes) => {
+          if (genRes.ok) {
+            const refreshRes = await fetch(`/api/admin/clients/${id}`, adminFetchHeaders());
+            const refreshData = await refreshRes.json();
+            if (refreshRes.ok) setClient(refreshData.client);
+          }
+        }).catch(() => {});
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load client");
       setClient(null);

@@ -1,26 +1,64 @@
 "use client";
 
 import { useState } from "react";
+import { adminFetchHeaders } from "@/components/admin/AdminGate";
 import { Icon } from "@/components/ui/Icon";
 import type { ClientDocument } from "@/lib/admin/clients";
+import { fetchSubmissionPdfBlob, isAdminPdfApiUrl } from "@/lib/admin/submissionPdf";
+import { isSubmissionId } from "@/lib/admin/submissionId";
 
-function fileName(url: string): string {
-  try {
-    return decodeURIComponent(url.split("/").pop()?.split("?")[0] ?? "file");
-  } catch {
-    return "file";
-  }
+
+function SubmissionPdfLink({
+  submissionId,
+  label,
+}: {
+  submissionId: string;
+  label: string;
+}) {
+  const [loading, setLoading] = useState(false);
+
+  const open = async () => {
+    if (!isSubmissionId(submissionId)) return;
+    setLoading(true);
+    try {
+      const { blob } = await fetchSubmissionPdfBlob(submissionId, adminFetchHeaders());
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank", "noopener,noreferrer");
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not open PDF");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={open}
+      disabled={loading}
+      className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline disabled:opacity-60"
+    >
+      <Icon name="sheet" className="size-4 text-red-600" />
+      {loading ? "Opening…" : label}
+    </button>
+  );
 }
 
-export function ClientUploadsGallery({ documents }: { documents: ClientDocument[] }) {
+export function ClientUploadsGallery({
+  documents,
+  submissionId,
+}: {
+  documents: ClientDocument[];
+  submissionId: string;
+}) {
   const submissionPdf = documents.find((d) => d.id.startsWith("completion-pdf"));
   const uploads = documents.filter((d) => !d.id.startsWith("completion-pdf"));
   const images = uploads.filter((d) => d.kind === "image");
-  const files = uploads.filter((d) => d.kind !== "image");
 
   const [lightbox, setLightbox] = useState<string | null>(null);
 
-  if (!submissionPdf && uploads.length === 0) {
+  if (!submissionPdf && images.length === 0) {
     return <p className="text-sm text-slate-400">No uploads found in this submission.</p>;
   }
 
@@ -30,15 +68,19 @@ export function ClientUploadsGallery({ documents }: { documents: ClientDocument[
         <div className="rounded-lg border border-brand-100 bg-brand-50/50 px-4 py-3">
           <p className="text-xs font-medium uppercase tracking-wide text-brand-700">Submission PDF</p>
           <p className="mt-1 text-sm text-slate-700">{submissionPdf.questionLabel ?? submissionPdf.label}</p>
-          <a
-            href={submissionPdf.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline"
-          >
-            <Icon name="sheet" className="size-4 text-red-600" />
-            Open PDF (same as email)
-          </a>
+          {isAdminPdfApiUrl(submissionPdf.url) ? (
+            <SubmissionPdfLink submissionId={submissionId} label="Open PDF" />
+          ) : (
+            <a
+              href={submissionPdf.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand-600 hover:underline"
+            >
+              <Icon name="sheet" className="size-4 text-red-600" />
+              Open PDF (same as email)
+            </a>
+          )}
         </div>
       )}
 
@@ -88,39 +130,6 @@ export function ClientUploadsGallery({ documents }: { documents: ClientDocument[
         </div>
       )}
 
-      {files.length > 0 && (
-        <div>
-          <p className="mb-3 text-xs font-medium uppercase tracking-wide text-slate-500">
-            Documents ({files.length})
-          </p>
-          <ul className="grid gap-3">
-            {files.map((doc) => (
-              <li
-                key={doc.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 bg-slate-50 px-4 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-700">
-                    {doc.questionLabel ?? doc.label}
-                  </p>
-                  {doc.sectionName && (
-                    <p className="text-xs text-slate-500">{doc.sectionName}</p>
-                  )}
-                  <p className="truncate text-xs text-slate-400">{fileName(doc.url)}</p>
-                </div>
-                <a
-                  href={doc.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-medium text-brand-600 ring-1 ring-slate-200 hover:bg-brand-50"
-                >
-                  Download
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {lightbox && (
         <div

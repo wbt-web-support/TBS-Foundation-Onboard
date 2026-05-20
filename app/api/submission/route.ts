@@ -2,6 +2,7 @@ import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
 import { sendCompletionReportWithPdf } from "@/lib/email/resend";
 import { buildAndUploadCompletionPdf } from "@/lib/pdf/saveCompletionPdf";
 import { FOUNDATION_COMPLETION_PDF_URL_KEY } from "@/lib/submission/foundationAppAnswersKey";
+import { encodeCompletionPdfForDb } from "@/lib/admin/submissionPdf";
 import { mergeAnswersForDatabase } from "@/lib/submission/persistAnswers";
 import type { Answers, AutosavePayload, LoadSubmissionResponse, SubmissionResponse } from "@/lib/types";
 
@@ -125,7 +126,7 @@ export async function POST(request: Request) {
 
     const updatePayload: Record<string, unknown> = { ...row };
     if (completed && pdfBuffer) {
-      updatePayload.completion_pdf = `\\x${pdfBuffer.toString("hex")}`;
+      updatePayload.completion_pdf = encodeCompletionPdfForDb(pdfBuffer);
       updatePayload.completion_pdf_filename = pdfFilename;
     }
 
@@ -151,7 +152,7 @@ export async function POST(request: Request) {
     const enriched = await enrichStoredAnswersOnCompletion(appAnswers, data.id, storedAnswers, row.email);
     const patch: Record<string, unknown> = { answers: enriched.storedAnswers };
     if (enriched.pdfBuffer) {
-      patch.completion_pdf = `\\x${enriched.pdfBuffer.toString("hex")}`;
+      patch.completion_pdf = encodeCompletionPdfForDb(enriched.pdfBuffer);
       patch.completion_pdf_filename = enriched.pdfFilename;
     }
     await supabase.from(SUBMISSIONS_TABLE).update(patch).eq("id", data.id);

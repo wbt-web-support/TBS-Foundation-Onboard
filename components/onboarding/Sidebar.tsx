@@ -1,7 +1,7 @@
 "use client";
 
 import { ONBOARDING_SCHEMA } from "@/lib/schema/questions";
-import { overallProgress, sectionProgress } from "@/lib/schema/progress";
+import { overallProgress, overallProgressCounts, sectionProgress } from "@/lib/schema/progress";
 import { Icon } from "@/components/ui/Icon";
 import { useOnboarding } from "./OnboardingContext";
 import { SidebarSectionItem } from "./SidebarSectionItem";
@@ -38,6 +38,9 @@ export function Sidebar() {
     completed,
   } = useOnboarding();
   const overall = overallProgress(answers, currentSectionIndex);
+  const counts = overallProgressCounts(answers);
+  const remaining = counts.total - counts.completed;
+  const estMinutes = Math.ceil(remaining * 0.5);
 
   return (
     <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
@@ -70,6 +73,14 @@ export function Sidebar() {
           <span className="font-semibold text-brand-600">{overall}%</span>
         </div>
         <ProgressBar percent={overall} />
+        {!completed && remaining > 0 && (
+          <p className="mt-1.5 text-[11px] text-slate-400">
+            ~{estMinutes} min remaining · {remaining} question{remaining !== 1 ? "s" : ""} left
+          </p>
+        )}
+        {!completed && remaining === 0 && (
+          <p className="mt-1.5 text-[11px] text-emerald-600 font-medium">All questions answered!</p>
+        )}
       </div>
 
       <div className="border-t border-slate-100 px-5 py-4">

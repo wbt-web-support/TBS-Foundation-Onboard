@@ -15,6 +15,7 @@ import { LOCAL_RESUME_SESSION_PREFIX, readLocalResumeSession } from "@/lib/saveP
 import { extractAppAnswersFromDatabase, normalizeCompanyAnswers } from "@/lib/submission/persistAnswers";
 import {
   firstIncompleteSectionBefore,
+  overallProgress,
   sectionMissingRequired,
   sectionVisibleQuestionCompletion,
 } from "@/lib/schema/progress";
@@ -761,6 +762,7 @@ export default function OnboardingApp() {
       <div className="flex min-h-[calc(100vh-3.5rem)]">
         <Sidebar />
         <main className="flex min-h-0 flex-1 flex-col overflow-x-clip">
+          <MobileProgressHeader />
           <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-5 py-10 sm:px-8">
             {state.completed ? (
               <div className="flex flex-1 flex-col justify-center">
@@ -773,6 +775,54 @@ export default function OnboardingApp() {
         </main>
       </div>
     </OnboardingContext.Provider>
+  );
+}
+
+function MobileProgressHeader() {
+  const { answers, currentSectionIndex, completed, goToSection } = useOnboarding();
+  const section = ONBOARDING_SCHEMA.sections[currentSectionIndex];
+  const overall = overallProgress(answers, currentSectionIndex);
+  if (completed || !section) return null;
+  return (
+    <div className="sticky top-14 z-10 border-b border-slate-200 bg-white px-4 py-3 md:hidden">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+            Step {section.number} of {ONBOARDING_SCHEMA.sections.length}
+          </p>
+          <p className="truncate text-sm font-semibold text-slate-800">{section.title}</p>
+        </div>
+        <span className="shrink-0 text-sm font-bold text-brand-600">{overall}%</span>
+      </div>
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div
+          className={`h-full rounded-full transition-all ${overall >= 100 ? "bg-emerald-500" : "bg-brand-500"}`}
+          style={{ width: `${overall}%` }}
+        />
+      </div>
+      <div className="mt-2 flex gap-1.5 overflow-x-auto pb-0.5">
+        {ONBOARDING_SCHEMA.sections.map((s, i) => {
+          const isActive = i === currentSectionIndex;
+          const isDone = i < currentSectionIndex;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => goToSection(i)}
+              className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
+                isActive
+                  ? "bg-brand-600 text-white"
+                  : isDone
+                    ? "bg-emerald-100 text-emerald-700"
+                    : "bg-slate-100 text-slate-500"
+              }`}
+            >
+              {s.number}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 

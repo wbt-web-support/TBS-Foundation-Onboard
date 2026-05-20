@@ -86,6 +86,7 @@ export function invalidUrlMessageForQuestion(question: Question): string {
 }
 
 function fieldGroupComplete(question: Question, value: unknown, answers: Answers): boolean {
+  if (value == null) return false;
   const scope = (value && typeof value === "object" && !Array.isArray(value)
     ? value
     : {}) as FieldGroupAnswer;
@@ -242,6 +243,18 @@ export function overallProgress(answers: Answers, currentSectionIndex = 0): numb
     completed += p.completed;
   }
   return total === 0 ? 0 : Math.round((completed / total) * 100);
+}
+
+export function overallProgressCounts(answers: Answers): { total: number; completed: number } {
+  let total = 0;
+  let completed = 0;
+  for (let i = 0; i < ONBOARDING_SCHEMA.sections.length; i++) {
+    const section = ONBOARDING_SCHEMA.sections[i];
+    const p = sectionProgress(section, answers);
+    total += p.total;
+    completed += p.completed;
+  }
+  return { total, completed };
 }
 
 /** Re-export for convenience. */

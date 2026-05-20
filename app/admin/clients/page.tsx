@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminGate, adminFetchHeaders } from "@/components/admin/AdminGate";
 import { ClientEditModal } from "@/components/admin/ClientEditModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { DownloadPdfButton } from "@/components/admin/DownloadPdfButton";
+import { SendReminderButton } from "@/components/admin/SendReminderButton";
 import { Icon } from "@/components/ui/Icon";
 import { isSubmissionId } from "@/lib/admin/submissionId";
 import type { AuthUser } from "@/lib/admin/auth";
@@ -26,7 +27,7 @@ function ProgressBar({ percent }: { percent: number }) {
     <div className="flex min-w-[120px] items-center gap-2">
       <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-100">
         <div
-          className="h-full rounded-full bg-brand-500 transition-all"
+          className={`h-full rounded-full transition-all ${percent >= 100 ? "bg-emerald-500" : "bg-brand-500"}`}
           style={{ width: `${Math.min(100, Math.max(0, percent))}%` }}
         />
       </div>
@@ -37,6 +38,35 @@ function ProgressBar({ percent }: { percent: number }) {
 
 type DashboardStats = { total: number; completed: number; inProgress: number };
 
+type SortKey = "companyName" | "percentComplete" | "filledQuestions" | "currentSectionIndex" | "createdAt" | "updatedAt";
+
+function exportToCsv(clients: ClientListItem[]) {
+  const headers = ["Name", "Email", "Phone", "Tax ID", "Progress %", "Questions", "Status", "Created", "Updated"];
+  const rows = clients.map((c) => [
+    c.companyName,
+    c.email ?? "",
+    c.phone ?? "",
+    c.taxId ?? "",
+    String(c.percentComplete),
+    `${c.filledQuestions}/${c.totalQuestions}`,
+    c.completed || c.percentComplete >= 100 ? "Completed" : "In progress",
+    c.createdAt,
+    c.updatedAt,
+  ]);
+  const csv = [headers, ...rows]
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `clients-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
 function ClientsPageContent({ user: _user }: { user: AuthUser }) {
   const [clients, setClients] = useState<ClientListItem[]>([]);
   const [stats, setStats] = useState<DashboardStats>({ total: 0, completed: 0, inProgress: 0 });
@@ -45,6 +75,8 @@ function ClientsPageContent({ user: _user }: { user: AuthUser }) {
   const [search, setSearch] = useState("");
   const [searchDebounced, setSearchDebounced] = useState("");
   const [filter, setFilter] = useState<"all" | "completed" | "in_progress">("all");
+  const [sortKey, setSortKey] = useState<SortKey>("createdAt");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     const t = setTimeout(() => setSearchDebounced(search.trim()), 300);
@@ -56,6 +88,21 @@ function ClientsPageContent({ user: _user }: { user: AuthUser }) {
 
   const [deleteClient, setDeleteClient] = useState<ClientListItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  };
+
+  const sortedClients = useMemo(() => {
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...clients].sort((a, b) => {
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (typeof av === "number" && typeof bv === "number") return (av - bv) * dir;
+      return String(av).localeCompare(String(bv)) * dir;
+    });
+  }, [clients, sortKey, sortDir]);
 
   const loadClients = useCallback(async () => {
     setLoading(true);
@@ -128,60 +175,73 @@ function ClientsPageContent({ user: _user }: { user: AuthUser }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="border-b border-slate-200 bg-white px-6 py-5">
-        <div className="mx-auto flex max-w-[1400px] flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="text-xl font-bold text-slate-800">Form progress dashboard</h1>
-            <p className="mt-0.5 text-sm text-slate-500">
-              All rows from <code className="rounded bg-slate-100 px-1 text-xs">onboarding_submissions</code>
-            </p>
+      <div className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6 sm:py-5">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-3">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <h1 className="text-lg font-bold text-slate-800 sm:text-xl">Form progress dashboard</h1>
+              <p className="mt-0.5 hidden text-sm text-slate-500 sm:block">
+                All rows from <code className="rounded bg-slate-100 px-1 text-xs">onboarding_submissions</code>
+              </p>
+            </div>
+            <div className="flex shrink-0 gap-2">
+              <button
+                type="button"
+                onClick={() => loadClients()}
+                disabled={loading}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                Refresh
+              </button>
+              <button
+                type="button"
+                onClick={() => exportToCsv(sortedClients)}
+                disabled={loading || clients.length === 0}
+                className="hidden rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 sm:inline-flex"
+              >
+                Export CSV
+              </button>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => loadClients()}
-              disabled={loading}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
-            >
-              Refresh
-            </button>
+          <div className="flex flex-wrap gap-2">
             {(["all", "completed", "in_progress"] as const).map((f) => (
               <button
                 key={f}
                 type="button"
                 onClick={() => setFilter(f)}
-                className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+                className={`rounded-full px-3 py-1 text-sm font-medium transition-colors ${
                   filter === f
                     ? "bg-brand-600 text-white"
                     : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
                 }`}
               >
-                {f === "all" ? "All" : f === "completed" ? "Completed" : "In progress"}
+                {f === "all" ? `All (${stats.total})` : f === "completed" ? `Completed (${stats.completed})` : `In progress (${stats.inProgress})`}
               </button>
             ))}
           </div>
         </div>
       </div>
 
-      <div className="mx-auto w-full max-w-[1400px] flex-1 px-6 py-8">
+      <div className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-5 sm:px-6 sm:py-8">
         {error && (
-          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
             {error}
           </div>
         )}
 
-        <div className="mb-6 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-slate-400">Total submissions</p>
-            <p className="mt-1 text-2xl font-bold text-slate-800">{stats.total}</p>
+        {/* Stats — 3-col on sm+, inline row on mobile */}
+        <div className="mb-5 grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm sm:px-5 sm:py-4">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 sm:text-xs">Total</p>
+            <p className="mt-0.5 text-xl font-bold text-slate-800 sm:mt-1 sm:text-2xl">{stats.total}</p>
           </div>
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 px-5 py-4 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-emerald-600">Completed</p>
-            <p className="mt-1 text-2xl font-bold text-emerald-800">{stats.completed}</p>
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/50 px-3 py-3 shadow-sm sm:px-5 sm:py-4">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-emerald-600 sm:text-xs">Completed</p>
+            <p className="mt-0.5 text-xl font-bold text-emerald-800 sm:mt-1 sm:text-2xl">{stats.completed}</p>
           </div>
-          <div className="rounded-xl border border-amber-100 bg-amber-50/50 px-5 py-4 shadow-sm">
-            <p className="text-xs font-medium uppercase tracking-wide text-amber-600">In progress</p>
-            <p className="mt-1 text-2xl font-bold text-amber-800">{stats.inProgress}</p>
+          <div className="rounded-xl border border-amber-100 bg-amber-50/50 px-3 py-3 shadow-sm sm:px-5 sm:py-4">
+            <p className="text-[10px] font-medium uppercase tracking-wide text-amber-600 sm:text-xs">In progress</p>
+            <p className="mt-0.5 text-xl font-bold text-amber-800 sm:mt-1 sm:text-2xl">{stats.inProgress}</p>
           </div>
         </div>
 
@@ -190,135 +250,180 @@ function ClientsPageContent({ user: _user }: { user: AuthUser }) {
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search email, phone, tax ID, company, submission id…"
-            className="w-full max-w-md rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+            placeholder="Search name, email, phone, tax ID…"
+            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 sm:max-w-md"
           />
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-          {loading ? (
-            <div className="flex h-48 items-center justify-center">
-              <div className="size-7 animate-spin rounded-full border-2 border-slate-200 border-t-brand-500" />
-            </div>
-          ) : clients.length === 0 ? (
-            <p className="py-16 text-center text-sm text-slate-400">No clients found.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[1400px] text-left text-sm">
-                <thead>
-                  <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-medium uppercase tracking-wide text-slate-500">
-                    <th className="px-4 py-3">Client</th>
-                    <th className="px-4 py-3">Phone</th>
-                    <th className="px-4 py-3">Tax ID</th>
-                    <th className="px-4 py-3">Progress</th>
-                    <th className="px-4 py-3">Questions</th>
-                    <th className="px-4 py-3">Section #</th>
-                    <th className="px-4 py-3">Stuck at</th>
-                    <th className="px-4 py-3">Rating</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">PDF</th>
-                    <th className="px-4 py-3">Images</th>
-                    <th className="px-4 py-3">Files</th>
-                    <th className="px-4 py-3">Created</th>
-                    <th className="px-4 py-3">Updated</th>
-                    <th className="px-4 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {clients.map((client) => (
-                    <tr key={client.id} className="border-b border-slate-50 hover:bg-slate-50/50">
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-slate-800">{client.companyName}</p>
-                        <p className="text-xs text-slate-500">{client.email ?? "—"}</p>
-                        <p className="mt-0.5 font-mono text-[10px] text-slate-400" title={client.id}>
-                          {client.id.slice(0, 8)}…
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">{client.phone ?? "—"}</td>
-                      <td className="px-4 py-3 text-slate-600">{client.taxId ?? "—"}</td>
-                      <td className="px-4 py-3">
-                        <ProgressBar percent={client.percentComplete} />
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {client.filledQuestions} / {client.totalQuestions}
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {client.currentSectionIndex + 1}
-                        {!client.completed && client.currentSectionName && (
-                          <p className="truncate text-xs text-slate-400" title={client.currentSectionName}>
-                            {client.currentSectionName}
-                          </p>
-                        )}
-                      </td>
-                      <td className="max-w-[180px] px-4 py-3 text-slate-600">
-                        <p className="truncate" title={client.currentQuestionTitle ?? undefined}>
-                          {client.completed ? "—" : (client.currentQuestionTitle ?? "—")}
-                        </p>
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">
-                        {client.satisfactionRating != null ? `${client.satisfactionRating}/10` : "—"}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                            client.completed
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-amber-50 text-amber-700"
-                          }`}
+        {loading ? (
+          <div className="flex h-48 items-center justify-center">
+            <div className="size-7 animate-spin rounded-full border-2 border-slate-200 border-t-brand-500" />
+          </div>
+        ) : sortedClients.length === 0 ? (
+          <p className="py-16 text-center text-sm text-slate-400">No clients found.</p>
+        ) : (
+          <>
+            {/* Mobile cards — hidden on lg+ */}
+            <div className="space-y-3 lg:hidden">
+              {sortedClients.map((client) => {
+                const isDone = client.completed || client.percentComplete >= 100;
+                return (
+                  <div key={client.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-800 truncate">{client.companyName}</p>
+                        <p className="text-xs text-slate-500 truncate">{client.email ?? "—"}</p>
+                        {client.phone && <p className="text-xs text-slate-400">{client.phone}</p>}
+                      </div>
+                      <span className={`shrink-0 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${isDone ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                        {isDone ? "Completed" : "In progress"}
+                      </span>
+                    </div>
+
+                    <div className="mt-3">
+                      <ProgressBar percent={client.percentComplete} />
+                      <p className="mt-1 text-xs text-slate-500">
+                        {client.filledQuestions}/{client.totalQuestions} questions
+                        {!isDone && client.currentSectionName && ` · ${client.currentSectionName}`}
+                      </p>
+                    </div>
+
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      {client.canDownloadPdf && isSubmissionId(client.id) && (
+                        <DownloadPdfButton submissionId={client.id} label="PDF" showPreview={false} />
+                      )}
+                      {!isDone && client.email && isSubmissionId(client.id) && (
+                        <SendReminderButton submissionId={client.id} />
+                      )}
+                      {isSubmissionId(client.id) && (
+                        <Link
+                          href={`/admin/clients/${client.id}`}
+                          className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
                         >
-                          {client.completed ? "Completed" : "In progress"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {client.canDownloadPdf && isSubmissionId(client.id) ? (
-                          <DownloadPdfButton
-                            submissionId={client.id}
-                            label={client.pdfUrl ? "Email PDF" : "PDF"}
-                            showPreview={false}
-                          />
-                        ) : (
-                          <span className="text-slate-300">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-slate-600">{client.imageCount}</td>
-                      <td className="px-4 py-3 text-slate-600">{client.documentCount}</td>
-                      <td className="px-4 py-3 text-slate-500">{fmtDateTime(client.createdAt)}</td>
-                      <td className="px-4 py-3 text-slate-500">{fmtDateTime(client.updatedAt)}</td>
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-1">
-                          {isSubmissionId(client.id) ? (
-                            <Link
-                              href={`/admin/clients/${client.id}`}
-                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-white"
-                            >
-                              <Icon name="search" className="size-3.5" />
-                              View
-                            </Link>
-                          ) : null}
-                          <button
-                            type="button"
-                            onClick={() => setEditClient(client)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-white"
-                          >
-                            <Icon name="sheet" className="size-3.5" />
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setDeleteClient(client)}
-                            className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                          <Icon name="search" className="size-3.5" />
+                          View
+                        </Link>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setEditClient(client)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                      >
+                        <Icon name="sheet" className="size-3.5" />
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteClient(client)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          )}
-        </div>
+
+            {/* Desktop table — hidden below lg */}
+            <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm lg:block">
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[1200px] text-left text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-medium uppercase tracking-wide text-slate-500">
+                      {(
+                        [
+                          ["Client", "companyName"],
+                          ["Phone", null],
+                          ["Tax ID", null],
+                          ["Progress", "percentComplete"],
+                          ["Questions", "filledQuestions"],
+                          ["Section #", "currentSectionIndex"],
+                          ["Stuck at", null],
+                          ["Rating", null],
+                          ["Status", null],
+                          ["PDF", null],
+                          ["Created", "createdAt"],
+                          ["Updated", "updatedAt"],
+                        ] as [string, SortKey | null][]
+                      ).map(([label, key]) =>
+                        key ? (
+                          <th key={label} className="cursor-pointer select-none px-4 py-3 hover:text-slate-800" onClick={() => handleSort(key)}>
+                            {label}{sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
+                          </th>
+                        ) : (
+                          <th key={label} className="px-4 py-3">{label}</th>
+                        )
+                      )}
+                      <th className="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {sortedClients.map((client) => (
+                      <tr key={client.id} className="border-b border-slate-50 hover:bg-slate-50/50">
+                        <td className="px-4 py-3">
+                          <p className="font-medium text-slate-800">{client.companyName}</p>
+                          <p className="text-xs text-slate-500">{client.email ?? "—"}</p>
+                          <p className="mt-0.5 font-mono text-[10px] text-slate-400" title={client.id}>{client.id.slice(0, 8)}…</p>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">{client.phone ?? "—"}</td>
+                        <td className="px-4 py-3 text-slate-600">{client.taxId ?? "—"}</td>
+                        <td className="px-4 py-3"><ProgressBar percent={client.percentComplete} /></td>
+                        <td className="px-4 py-3 text-slate-600">{client.filledQuestions} / {client.totalQuestions}</td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {client.currentSectionIndex + 1}
+                          {!client.completed && client.currentSectionName && (
+                            <p className="truncate text-xs text-slate-400" title={client.currentSectionName}>{client.currentSectionName}</p>
+                          )}
+                        </td>
+                        <td className="max-w-[160px] px-4 py-3 text-slate-600">
+                          <p className="truncate" title={client.currentQuestionTitle ?? undefined}>
+                            {client.completed ? "—" : (client.currentQuestionTitle ?? "—")}
+                          </p>
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {client.satisfactionRating != null ? `${client.satisfactionRating}/10` : "—"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${client.completed || client.percentComplete >= 100 ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                            {client.completed || client.percentComplete >= 100 ? "Completed" : "In progress"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {client.canDownloadPdf && isSubmissionId(client.id) ? (
+                            <DownloadPdfButton submissionId={client.id} label={client.pdfUrl ? "Email PDF" : "PDF"} showPreview={false} />
+                          ) : <span className="text-slate-300">—</span>}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">{fmtDateTime(client.createdAt)}</td>
+                        <td className="px-4 py-3 text-slate-500">{fmtDateTime(client.updatedAt)}</td>
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-1 flex-wrap">
+                            {!client.completed && client.percentComplete < 100 && client.email && isSubmissionId(client.id) && (
+                              <SendReminderButton submissionId={client.id} />
+                            )}
+                            {isSubmissionId(client.id) && (
+                              <Link href={`/admin/clients/${client.id}`} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-white">
+                                <Icon name="search" className="size-3.5" />
+                                View
+                              </Link>
+                            )}
+                            <button type="button" onClick={() => setEditClient(client)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-white">
+                              <Icon name="sheet" className="size-3.5" />
+                              Edit
+                            </button>
+                            <button type="button" onClick={() => setDeleteClient(client)} className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50">
+                              Delete
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
       </div>
 
       <ClientEditModal

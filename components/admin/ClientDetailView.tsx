@@ -1,6 +1,10 @@
 import Link from "next/link";
+import { AdminNotesPanel } from "@/components/admin/AdminNotesPanel";
 import { ClientUploadsGallery } from "@/components/admin/ClientUploadsGallery";
 import { DownloadPdfButton } from "@/components/admin/DownloadPdfButton";
+import { ResendEmailButton } from "@/components/admin/ResendEmailButton";
+import { SendReminderButton } from "@/components/admin/SendReminderButton";
+import { SubmissionPdfPreview } from "@/components/admin/SubmissionPdfPreview";
 import { SubmissionRecordPanel } from "@/components/admin/SubmissionRecordPanel";
 import { Icon } from "@/components/ui/Icon";
 import { isSubmissionId } from "@/lib/admin/submissionId";
@@ -13,14 +17,15 @@ function fmtDate(iso: string) {
   });
 }
 
-function StatusBadge({ completed }: { completed: boolean }) {
+function StatusBadge({ completed, percentComplete }: { completed: boolean; percentComplete: number }) {
+  const done = completed || percentComplete >= 100;
   return (
     <span
       className={`inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium ${
-        completed ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+        done ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
       }`}
     >
-      {completed ? "Completed" : "In progress"}
+      {done ? "Completed" : "In progress"}
     </span>
   );
 }
@@ -34,7 +39,7 @@ export function ClientDetailView({ client }: { client: ClientDetail }) {
             <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Client</p>
             <h1 className="mt-1 text-2xl font-bold text-slate-800">{client.companyName}</h1>
             <div className="mt-3">
-              <StatusBadge completed={client.completed} />
+              <StatusBadge completed={client.completed} percentComplete={client.percentComplete} />
             </div>
           </div>
           <div className="text-right text-sm text-slate-500">
@@ -95,7 +100,7 @@ export function ClientDetailView({ client }: { client: ClientDetail }) {
         </dl>
 
         <div className="mt-6 flex flex-wrap items-start gap-4">
-          {client.canDownloadPdf && isSubmissionId(client.id) && (
+          {(client.completed || client.percentComplete >= 100) && client.canDownloadPdf && isSubmissionId(client.id) && (
             <DownloadPdfButton
               submissionId={client.id}
               variant="card"
@@ -105,11 +110,11 @@ export function ClientDetailView({ client }: { client: ClientDetail }) {
                   ? "Same file as the PDF link in the completion email (Bunny)"
                   : client.hasStoredPdf
                     ? "Saved when the form was submitted"
-                    : "Generated from saved form answers"
+                    : "Generated from form answers"
               }
             />
           )}
-          {client.pdfUrl && (
+          {(client.completed || client.percentComplete >= 100) && client.pdfUrl && (
             <a
               href={client.pdfUrl}
               target="_blank"
@@ -118,9 +123,9 @@ export function ClientDetailView({ client }: { client: ClientDetail }) {
             >
               <Icon name="link" className="size-5 text-brand-600" />
               <span>
-                Open email PDF link
+                Open Bunny PDF link
                 <span className="mt-0.5 block text-xs font-normal text-slate-500">
-                  Direct Bunny URL from submission
+                  Direct Bunny CDN URL
                 </span>
               </span>
             </a>
@@ -133,22 +138,46 @@ export function ClientDetailView({ client }: { client: ClientDetail }) {
             <Icon name="link" className="size-4" />
             Open form (resume link)
           </Link>
+          {client.completed && client.email && isSubmissionId(client.id) && (
+            <ResendEmailButton submissionId={client.id} />
+          )}
+          {!client.completed && client.percentComplete < 100 && client.email && isSubmissionId(client.id) && (
+            <SendReminderButton submissionId={client.id} />
+          )}
         </div>
       </section>
 
       <SubmissionRecordPanel record={client.record} />
 
+      {client.completed && isSubmissionId(client.id) && (
+        <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 px-6 py-4">
+            <h2 className="text-sm font-semibold text-slate-700">Submission PDF</h2>
+            <p className="mt-0.5 text-xs text-slate-500">
+              Preview of the completed questionnaire PDF (same as emailed to admin)
+            </p>
+          </div>
+          <div className="p-6">
+            <SubmissionPdfPreview submissionId={client.id} />
+          </div>
+        </section>
+      )}
+
       <section className="rounded-xl border border-slate-200 bg-white shadow-sm">
         <div className="border-b border-slate-100 px-6 py-4">
           <h2 className="text-sm font-semibold text-slate-700">Uploaded images & documents</h2>
           <p className="mt-0.5 text-xs text-slate-500">
-            Bunny / storage files · {client.imageCount} image(s), {client.documentCount} total
+            Bunny / storage files · {client.imageCount} image(s)
           </p>
         </div>
         <div className="p-6">
-          <ClientUploadsGallery documents={client.documents} />
+          <ClientUploadsGallery documents={client.documents} submissionId={client.id} />
         </div>
       </section>
+
+      {isSubmissionId(client.id) && (
+        <AdminNotesPanel submissionId={client.id} initialNotes={client.adminNotes} />
+      )}
 
       <section className="space-y-4">
         <h2 className="text-sm font-semibold text-slate-700">Questionnaire responses</h2>

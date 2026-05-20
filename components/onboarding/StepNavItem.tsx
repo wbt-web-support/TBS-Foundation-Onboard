@@ -6,7 +6,7 @@ export type StepNavState = "active" | "complete" | "todo";
 
 const SHELL: Record<StepNavState, string> = {
   active: "border-brand-200 bg-brand-50/80",
-  complete: "border-slate-200 bg-slate-50",
+  complete: "border-emerald-200 bg-emerald-50/60",
   todo: "border-transparent bg-transparent hover:border-slate-200 hover:bg-slate-50",
 };
 
@@ -18,7 +18,7 @@ const BADGE: Record<StepNavState, string> = {
 
 const TITLE: Record<StepNavState, string> = {
   active: "text-brand-700",
-  complete: "text-slate-800",
+  complete: "text-emerald-800",
   todo: "text-slate-800",
 };
 

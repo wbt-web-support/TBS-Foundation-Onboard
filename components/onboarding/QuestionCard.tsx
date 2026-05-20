@@ -240,16 +240,16 @@ export function QuestionCard({
   return (
     <div
       id={`q-${question.id}`}
-      className={`scroll-mt-8 rounded-card border bg-white p-6 shadow-sm transition ${
+      className={`scroll-mt-8 rounded-card border bg-white p-4 shadow-sm transition sm:p-6 ${
         invalid ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200"
       }`}
     >
-      <div className="flex items-start gap-3">
-        <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600">
+      <div className="flex items-start gap-2 sm:gap-3">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 sm:size-9">
           <Icon name={question.icon ?? "image"} />
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="text-base font-semibold leading-snug text-ink">
+          <h3 className="text-sm font-semibold leading-snug text-ink sm:text-base">
             {question.titleRich?.length ? <RichTitle segments={question.titleRich} /> : question.title}
           </h3>
           {question.helperRich?.length ? (

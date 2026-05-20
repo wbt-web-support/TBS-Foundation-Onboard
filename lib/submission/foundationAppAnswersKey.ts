@@ -6,3 +6,6 @@ export const FOUNDATION_SECTION_PROGRESS_KEY = "_foundationSectionQuestionProgre
 
 /** Public URL of the completion PDF on Bunny CDN (set on submit). */
 export const FOUNDATION_COMPLETION_PDF_URL_KEY = "_foundationCompletionPdfUrl";
+
+/** Admin-only notes stored alongside submission answers (never shown to the client). */
+export const ADMIN_NOTES_KEY = "_adminNotes";

@@ -26,9 +26,6 @@ export async function GET(request: Request) {
     .order("updated_at", { ascending: false })
     .limit(limit);
 
-  if (completedParam === "true") query = query.eq("completed", true);
-  if (completedParam === "false") query = query.eq("completed", false);
-
   if (search) {
     const pattern = `%${search}%`;
     query = query.or(
@@ -51,6 +48,12 @@ export async function GET(request: Request) {
 
   let clients = (data ?? []).map((row) => mapRowToListItem(row));
 
+  if (completedParam === "true") {
+    clients = clients.filter((c) => c.completed || c.percentComplete >= 100);
+  } else if (completedParam === "false") {
+    clients = clients.filter((c) => !c.completed && c.percentComplete < 100);
+  }
+
   if (search) {
     clients = clients.filter((c) => {
       const hay = [
@@ -72,8 +75,8 @@ export async function GET(request: Request) {
 
   const stats = {
     total: clients.length,
-    completed: clients.filter((c) => c.completed).length,
-    inProgress: clients.filter((c) => !c.completed).length,
+    completed: clients.filter((c) => c.completed || c.percentComplete >= 100).length,
+    inProgress: clients.filter((c) => !c.completed && c.percentComplete < 100).length,
   };
 
   return Response.json({ clients, total: clients.length, stats });

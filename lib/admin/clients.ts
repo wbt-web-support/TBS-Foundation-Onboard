@@ -1,4 +1,5 @@
 import { asStringOrNull, getByPath, isProvideLaterSentinel } from "@/lib/answers";
+import { ADMIN_NOTES_KEY } from "@/lib/submission/foundationAppAnswersKey";
 import { getBunnyCompletionPdfUrl } from "@/lib/admin/completionPdf";
 import { collectUploadDocuments, fileKindFromUrl, looksLikeUploadedFile } from "@/lib/admin/collectUploads";
 import { computeClientFormProgress } from "@/lib/admin/progress";
@@ -58,6 +59,7 @@ export type ClientListItem = {
   lastActivityAt: string;
   createdAt: string;
   updatedAt: string;
+  adminNotes: string | null;
   record: ClientSubmissionRecord;
 };
 
@@ -151,6 +153,7 @@ function collectDocuments(
   appAnswers: Answers,
   submissionId: string,
   hasStoredPdf: boolean,
+  completed: boolean,
 ): ClientDocument[] {
   const bunnyPdfUrl = getBunnyCompletionPdfUrl(stored);
   const extra: ClientDocument[] = [];
@@ -165,15 +168,17 @@ function collectDocuments(
       questionId: null,
       questionLabel: "Same PDF as in the completion email",
     });
-  } else if (hasStoredPdf) {
+  } else if (hasStoredPdf || completed) {
     extra.push({
-      id: "completion-pdf-db",
+      id: "completion-pdf-api",
       label: "Submission PDF",
       url: `/api/admin/clients/${submissionId}/pdf`,
       kind: "pdf",
       sectionName: "After submission",
       questionId: null,
-      questionLabel: "Saved when the form was submitted",
+      questionLabel: hasStoredPdf
+        ? "Saved when the form was submitted"
+        : "Generated from saved form answers",
     });
   }
 
@@ -278,7 +283,7 @@ export function mapRowToListItem(row: DbRow): ClientListItem {
   const appAnswers = extractAppAnswersFromDatabase(stored);
   const pdfUrl = getBunnyCompletionPdfUrl(stored);
   const storedPdf = hasDbPdf(row);
-  const documents = collectDocuments(stored, appAnswers, row.id, storedPdf);
+  const documents = collectDocuments(stored, appAnswers, row.id, storedPdf, Boolean(row.completed));
   const progress = computeClientFormProgress(
     appAnswers,
     row.current_section_index ?? 0,
@@ -312,7 +317,7 @@ export function mapRowToListItem(row: DbRow): ClientListItem {
     completed: Boolean(row.completed),
     pdfUrl,
     hasStoredPdf: storedPdf,
-    canDownloadPdf: Boolean(pdfUrl) || storedPdf || Boolean(row.completed),
+    canDownloadPdf: Boolean(row.completed) || progress.percentComplete >= 100,
     completionPdfFilename: record.completionPdfFilename,
     documentCount: documents.length,
     imageCount: documents.filter((d) => d.kind === "image").length,
@@ -327,6 +332,7 @@ export function mapRowToListItem(row: DbRow): ClientListItem {
     lastActivityAt: row.updated_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
+    adminNotes: typeof stored[ADMIN_NOTES_KEY] === "string" ? (stored[ADMIN_NOTES_KEY] as string) || null : null,
     record,
   };
 }
@@ -340,7 +346,7 @@ export function mapRowToDetail(row: DbRow): ClientDetail {
     ...list,
     resumeToken: row.resume_token,
     satisfactionRating: row.satisfaction_rating,
-    documents: collectDocuments(stored, appAnswers, row.id, hasDbPdf(row)),
+    documents: collectDocuments(stored, appAnswers, row.id, hasDbPdf(row), Boolean(row.completed)),
     sections: buildDetailSections(appAnswers),
     record: buildSubmissionRecord(row),
   };

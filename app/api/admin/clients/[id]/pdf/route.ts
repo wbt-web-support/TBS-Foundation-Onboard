@@ -1,24 +1,10 @@
 import { getBunnyCompletionPdfUrl } from "@/lib/admin/completionPdf";
 import { isSubmissionId } from "@/lib/admin/submissionId";
+import { bufferFromDbValue, isPdfBuffer } from "@/lib/admin/submissionPdf";
 import { getAdminSession, unauthorizedResponse } from "@/lib/analytics/adminAuth";
 import { buildOnboardingAnswersPdfBuffer, completionPdfFilename } from "@/lib/pdf/onboardingAnswersPdf";
 import { extractAppAnswersFromDatabase } from "@/lib/submission/persistAnswers";
 import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
-
-function bufferFromDbValue(raw: unknown): Buffer | null {
-  if (!raw) return null;
-  if (Buffer.isBuffer(raw)) return raw;
-  if (raw instanceof Uint8Array) return Buffer.from(raw);
-  if (typeof raw === "string") {
-    if (raw.startsWith("\\x")) return Buffer.from(raw.slice(2), "hex");
-    return Buffer.from(raw, "base64");
-  }
-  return null;
-}
-
-function isPdfBuffer(buf: Buffer): boolean {
-  return buf.length > 4 && buf.slice(0, 5).toString("ascii") === "%PDF-";
-}
 
 type RouteCtx = { params: Promise<{ id: string }> };
 

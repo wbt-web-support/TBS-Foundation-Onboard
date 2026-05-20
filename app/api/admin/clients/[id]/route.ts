@@ -2,6 +2,7 @@ import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
 import { isAdminAuthorized, unauthorizedResponse } from "@/lib/analytics/adminAuth";
 import { mapRowToDetail } from "@/lib/admin/clients";
 import { isSubmissionId } from "@/lib/admin/submissionId";
+import { ADMIN_NOTES_KEY } from "@/lib/submission/foundationAppAnswersKey";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function jsonError(message: string, status: number) {
@@ -78,11 +79,31 @@ export async function PATCH(request: Request, ctx: RouteCtx) {
 
   if (Object.keys(patch).length === 0) return jsonError("No fields to update", 400);
 
+  // Admin notes are stored inside the answers JSONB, not as a top-level column
+  const adminNotes = "admin_notes" in body
+    ? (typeof body.admin_notes === "string" ? body.admin_notes.trim() || null : null)
+    : undefined;
+
   let supabase;
   try {
     supabase = getServiceClient();
   } catch {
     return jsonError("Supabase not configured", 503);
+  }
+
+  if (adminNotes !== undefined) {
+    const { data: existing } = await supabase
+      .from(SUBMISSIONS_TABLE)
+      .select("answers")
+      .eq("id", id)
+      .maybeSingle();
+    const stored = ((existing?.answers ?? {}) as Record<string, unknown>);
+    if (adminNotes === null) {
+      delete stored[ADMIN_NOTES_KEY];
+    } else {
+      stored[ADMIN_NOTES_KEY] = adminNotes;
+    }
+    patch.answers = stored;
   }
 
   const { data, error } = await supabase

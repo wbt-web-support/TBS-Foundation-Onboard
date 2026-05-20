@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { adminFetchHeaders } from "@/components/admin/AdminGate";
 import { Icon } from "@/components/ui/Icon";
+import { fetchSubmissionPdfBlob } from "@/lib/admin/submissionPdf";
 import { isSubmissionId } from "@/lib/admin/submissionId";
 
 type Props = {
@@ -13,19 +14,6 @@ type Props = {
   className?: string;
   showPreview?: boolean;
 };
-
-async function fetchPdfBlob(submissionId: string): Promise<{ blob: Blob; filename: string }> {
-  const res = await fetch(`/api/admin/clients/${submissionId}/pdf`, adminFetchHeaders());
-  if (!res.ok) {
-    const data = await res.json().catch(() => ({}));
-    throw new Error((data as { error?: string }).error ?? "PDF download failed");
-  }
-  const blob = await res.blob();
-  const disposition = res.headers.get("content-disposition") ?? "";
-  const match = disposition.match(/filename="([^"]+)"/i);
-  const filename = match?.[1] ?? "onboarding-completion.pdf";
-  return { blob, filename };
-}
 
 /** Downloads submission PDF (Bunny/email copy first, then DB, then regenerated). */
 export function DownloadPdfButton({
@@ -42,7 +30,7 @@ export function DownloadPdfButton({
     if (!isSubmissionId(submissionId)) return;
     setLoading(mode);
     try {
-      const { blob, filename } = await fetchPdfBlob(submissionId);
+      const { blob, filename } = await fetchSubmissionPdfBlob(submissionId, adminFetchHeaders());
       const url = URL.createObjectURL(blob);
 
       if (mode === "preview") {

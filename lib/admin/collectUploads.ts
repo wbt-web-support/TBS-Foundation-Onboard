@@ -11,6 +11,7 @@ const UPLOAD_HOST_RE =
 const SKIP_ANSWER_KEYS = new Set([
   "_foundationSectionQuestionProgress",
   "_foundationCompletionPdfUrl",
+  "_adminNotes",
 ]);
 
 function isHttpUrl(s: string): boolean {

@@ -1,6 +1,7 @@
 import type { AnswerValue, Answers, SectionQuestionProgressSnapshot } from "@/lib/types";
 
 import {
+  ADMIN_NOTES_KEY,
   FOUNDATION_APP_ANSWERS_KEY,
   FOUNDATION_COMPLETION_PDF_URL_KEY,
   FOUNDATION_SECTION_PROGRESS_KEY,
@@ -54,6 +55,7 @@ export function extractAppAnswersFromDatabase(stored: unknown): Answers {
     if (k === FOUNDATION_APP_ANSWERS_KEY) continue;
     if (k === FOUNDATION_SECTION_PROGRESS_KEY) continue;
     if (k === FOUNDATION_COMPLETION_PDF_URL_KEY) continue;
+    if (k === ADMIN_NOTES_KEY) continue;
     if (LEGACY_EXPORT_KEYS.has(k)) continue;
     out[k] = v as AnswerValue;
   }
