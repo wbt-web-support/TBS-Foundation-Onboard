@@ -138,7 +138,7 @@ export function SectionView() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="sticky top-[calc(3.5rem+6.5rem)] z-20 -mx-5 mb-6 border-b border-slate-200/90 bg-[var(--color-page-bg)]/95 px-5 py-3 backdrop-blur-sm md:top-14 sm:-mx-8 sm:px-8 supports-[backdrop-filter]:bg-[var(--color-page-bg)]/90">
+      <div className="sticky top-[calc(3.5rem+6.5rem)] z-20 -mx-5 mb-6 border-b border-slate-200/90 bg-[var(--color-page-bg)]/95 px-5 py-3 backdrop-blur-sm dark:border-slate-700/90 md:top-14 sm:-mx-8 sm:px-8 supports-[backdrop-filter]:bg-[var(--color-page-bg)]/90">
         <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
           <div className="min-w-0 flex-1">
             {section.heading ? <h2 className="text-xl font-semibold text-ink">{section.heading}</h2> : null}

@@ -5,6 +5,7 @@ import { buildOnboardingAnswersPdfBuffer, completionPdfFilename } from "@/lib/pd
 import type { Answers } from "@/lib/types";
 import { buildCompletionPdfEmail } from "./completionPdfTemplate";
 import { buildProgressSavedEmail } from "./progressSavedTemplate";
+import { buildReminderEmail } from "./reminderTemplate";
 import { buildUserCompletionEmail } from "./userCompletionTemplate";
 import { isOutboundEmailConfigured, isSmtpConfigured, sendMailViaSmtp } from "./smtp";
 
@@ -64,27 +65,12 @@ async function sendOutbound(options: {
 }
 
 export async function sendResumeEmail(to: string, link: string, replyTo?: string): Promise<void> {
-  const html = `
-      <div style="font-family:Arial,Helvetica,sans-serif;max-width:520px;margin:0 auto;color:#0f172a">
-        <h2 style="margin:0 0 12px">Pick up where you left off</h2>
-        <p style="margin:0 0 16px;color:#475569;line-height:1.5">
-          Thanks for getting started on your onboarding questionnaire. Your answers are saved.
-          Use the button below any time to continue, no need to start over.
-        </p>
-        <p style="margin:0 0 24px">
-          <a href="${link}"
-             style="display:inline-block;background:#d94e15;color:#fff;text-decoration:none;
-                    padding:12px 22px;border-radius:8px;font-weight:600">
-            Continue onboarding
-          </a>
-        </p>
-        <p style="margin:0;color:#94a3b8;font-size:13px;word-break:break-all">${link}</p>
-      </div>
-    `;
+  const { html, text } = buildReminderEmail({ resumeUrl: link });
   await sendOutbound({
     to,
-    subject: "Continue your Foundation onboarding",
+    subject: "Complete your Foundation onboarding",
     html,
+    text,
     ...(replyTo && replyTo !== to ? { replyTo } : {}),
   });
 }

@@ -387,8 +387,13 @@ export function buildLegacyQuestionnaire(answers: Answers): Record<string, Legac
     out.Provide_Finance_Option = entry(" Do you provide finance options to your customers?", optionLabel("finance_options", fo));
   }
 
+  const fc = str(answers.finance_company);
   const fn = str(answers.finance_company_name);
-  if (fn) {
+  if (fc) {
+    const companyLabel = optionLabel("finance_company", fc);
+    const extra = fn ? ` (${fn})` : "";
+    out.Finance_Company_Name = entry(" Please select the finance company you use? ", htmlDiv(companyLabel + extra));
+  } else if (fn) {
     out.Finance_Company_Name = entry(" Please select the finance company you use? ", htmlDiv(fn));
   }
 

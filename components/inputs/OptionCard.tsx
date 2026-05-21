@@ -14,6 +14,7 @@ export function OptionCard({
   selected,
   onClick,
   control,
+  tile,
 }: {
   label: string;
   imageUrl?: string;
@@ -24,8 +25,10 @@ export function OptionCard({
   selected: boolean;
   onClick: () => void;
   control: "radio" | "checkbox";
+  /** Force large image-tile layout (works for both radio and checkbox). */
+  tile?: boolean;
 }) {
-  const tileMulti = control === "checkbox" && Boolean(imageUrl);
+  const tileMulti = (tile || control === "checkbox") && Boolean(imageUrl);
   const hasRichDetail = Boolean(description || example || warning);
 
   if (tileMulti) {
@@ -35,16 +38,16 @@ export function OptionCard({
         onClick={onClick}
         aria-label={label}
         data-selected={selected ? "true" : "false"}
-        role="checkbox"
+        role={control === "radio" ? "radio" : "checkbox"}
         aria-checked={selected}
         className={`group relative flex min-h-[8.5rem] w-full flex-col overflow-hidden rounded-lg border text-left text-sm transition sm:min-h-[9.25rem] ${
           selected
-            ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
-            : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50"
+            ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500 dark:bg-brand-900/20"
+            : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-600"
         }`}
       >
         <span className="absolute left-2.5 top-2.5 z-10">
-          <ChoiceControlVisual variant="checkbox" selected={selected} />
+          <ChoiceControlVisual variant={control === "radio" ? "radio" : "checkbox"} selected={selected} />
         </span>
         <div className="flex flex-1 items-center justify-center px-3 pb-1 pt-8">
           <Image
@@ -56,7 +59,7 @@ export function OptionCard({
             unoptimized
           />
         </div>
-        <div className="border-t border-slate-100 bg-white px-2 py-2 text-center text-[11px] font-medium leading-snug text-slate-700 sm:text-xs">
+        <div className="border-t border-slate-100 bg-white px-2 py-2 text-center text-[11px] font-medium leading-snug text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 sm:text-xs">
           {label}
         </div>
       </button>
@@ -73,12 +76,12 @@ export function OptionCard({
         imageUrl ? "flex-col gap-2" : hasRichDetail ? "flex-col items-stretch gap-0 py-3.5 sm:px-4 sm:py-4" : "items-center gap-3"
       } ${
         selected
-          ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
-          : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50"
+          ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500 dark:bg-brand-900/20"
+          : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:hover:border-slate-500 dark:hover:bg-slate-600"
       }`}
     >
       {imageUrl ? (
-        <div className="relative flex h-14 w-full shrink-0 items-center justify-center rounded-md bg-slate-50 ring-1 ring-slate-100">
+        <div className="relative flex h-14 w-full shrink-0 items-center justify-center rounded-md bg-slate-50 ring-1 ring-slate-100 dark:bg-slate-600 dark:ring-slate-500">
           <Image
             src={imageUrl}
             alt=""

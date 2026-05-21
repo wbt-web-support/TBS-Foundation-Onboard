@@ -1,6 +1,7 @@
 "use client";
 
 import type { Option } from "@/lib/schema/types";
+import { Icon } from "@/components/ui/Icon";
 import { FIELD_CLASS } from "./fieldStyles";
 
 const CHEVRON_BG =
@@ -18,6 +19,7 @@ export function DropdownSelect({
   onBlur,
   placeholder = "Select…",
   disabled,
+  leadingIcon,
 }: {
   id?: string;
   options: Option[];
@@ -26,12 +28,13 @@ export function DropdownSelect({
   onBlur?: () => void;
   placeholder?: string;
   disabled?: boolean;
+  leadingIcon?: string;
 }) {
-  return (
+  const selectEl = (
     <select
       id={id}
       disabled={disabled}
-      className={`${FIELD_CLASS} appearance-none bg-[length:1rem] bg-[right_0.75rem_center] bg-no-repeat pr-9`}
+      className={`${FIELD_CLASS} appearance-none bg-[length:1rem] bg-[right_0.75rem_center] bg-no-repeat pr-9${leadingIcon ? " pl-9" : ""}`}
       style={{ backgroundImage: CHEVRON_BG }}
       value={value}
       onChange={(e) => onChange(e.target.value)}
@@ -46,5 +49,16 @@ export function DropdownSelect({
         </option>
       ))}
     </select>
+  );
+
+  if (!leadingIcon) return selectEl;
+
+  return (
+    <div className="relative">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+        <Icon name={leadingIcon} className="size-[18px]" />
+      </span>
+      {selectEl}
+    </div>
   );
 }

@@ -35,6 +35,8 @@ type ChoiceGroupBase = {
   className?: string;
   /** Sets `id` on the grid for `aria-labelledby` / anchor links. */
   groupId?: string;
+  /** Force image-tile layout for all cards (works with single or multiple). */
+  tile?: boolean;
 };
 
 type ChoiceGroupSingle = ChoiceGroupBase & {
@@ -56,7 +58,7 @@ export type ChoiceGroupProps = ChoiceGroupSingle | ChoiceGroupMultiple;
  * Used by top-level questions, field-group sub-fields, and year lists.
  */
 export function ChoiceGroup(props: ChoiceGroupProps) {
-  const { options, columns, onBlur, className = "", groupId } = props;
+  const { options, columns, onBlur, className = "", groupId, tile } = props;
   const cols = columnCount(options, props.mode, columns);
   const gridClass = "grid gap-2.5";
   const gridStyle = { gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` } as const;
@@ -81,6 +83,7 @@ export function ChoiceGroup(props: ChoiceGroupProps) {
             example={o.example}
             warning={o.warning}
             control="radio"
+            tile={tile}
             selected={value === o.value}
             onClick={() => onChange(value === o.value ? "" : o.value)}
           />
@@ -105,6 +108,7 @@ export function ChoiceGroup(props: ChoiceGroupProps) {
           example={o.example}
           warning={o.warning}
           control="checkbox"
+          tile={tile}
           selected={value.includes(o.value)}
           onClick={() => toggle(o.value)}
         />

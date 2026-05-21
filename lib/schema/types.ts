@@ -133,6 +133,8 @@ export interface SubQuestion {
   rows?: number;
   /** Optional brand icon to the left of the sub-field label (URL under `public/`, e.g. `/image/image/facebook.svg`). */
   labelIconUrl?: string;
+  /** Icon key into components/ui/Icon shown inside the input on the left (e.g. `phone`, `building`). */
+  leadingIcon?: string;
 }
 
 /** Inline segments for a question title (plain text + external links). */
@@ -161,8 +163,10 @@ export interface Question {
    * Keep `title` as a readable plain-text fallback (exports, legacy payloads).
    */
   titleRich?: QuestionRichSegment[];
-  /** Icon key into components/ui/Icon. */
+  /** Icon key into components/ui/Icon (card header). */
   icon?: string;
+  /** Icon key into components/ui/Icon shown inside the input on the left (e.g. `phone`, `user`). */
+  leadingIcon?: string;
   required?: boolean;
   placeholder?: string;
   /** Optional image under the card header (`public/` URL, e.g. `/brand-img/logo-style-01.svg`). */
@@ -173,6 +177,8 @@ export interface Question {
   options?: Option[]; // select / single-choice / multi-choice
   /** `single-choice`: fixed column count for the option grid (default is auto from label length). */
   singleChoiceColumns?: 1 | 2 | 3;
+  /** `single-choice`: render options as large image tiles (requires `imageUrl` on each option). */
+  singleChoiceTileImages?: boolean;
   /** `multi-choice`: fixed column count for the checkbox grid (default is auto from labels / images). */
   multiChoiceColumns?: 1 | 2 | 3;
   galleryOptions?: GalleryOption[]; // image-gallery-pick
@@ -183,6 +189,8 @@ export interface Question {
   /** `image-gallery-pick`: answer id for custom upload when user picks “Upload my own”. */
   galleryUploadCompanionKey?: string;
   yearRange?: { from: number; to: number }; // year-select
+  /** `year-select`: label for a catch-all option after the earliest year (e.g. "Before 1970"). */
+  yearBeforeEarliestLabel?: string;
   group?: SubQuestion[]; // field-group / repeatable-group
   /** `field-group`: minimum number of sub-fields that must have a value (default: all visible). */
   fieldGroupMinFilled?: number;

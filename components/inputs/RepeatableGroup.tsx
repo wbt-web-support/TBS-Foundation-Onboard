@@ -37,13 +37,15 @@ export function RepeatableGroup({
   const setSub = (index: number, subId: string, v: AnswerPrimitive) =>
     updateItem(index, { ...(items[index] ?? {}), [subId]: v });
   const addItem = () => onChange([...items, {}]);
-  const removeItem = (index: number) => {
-    if (items.length <= floor) return;
-    onChange(items.filter((_, i) => i !== index));
-  };
+  const removeItem = (index: number) => onChange(items.filter((_, i) => i !== index));
 
   return (
     <div className="space-y-3">
+      {items.length === 0 && (
+        <p className="rounded-lg border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-400">
+          No entries yet. Click &ldquo;{addLabel}&rdquo; below to add one.
+        </p>
+      )}
       {items.map((item, index) => {
         const subs = (question.group ?? []).filter((s) => isSubQuestionVisible(s, answers, item ?? {}));
         return (
@@ -52,15 +54,16 @@ export function RepeatableGroup({
               <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">
                 {label} {index + 1}
               </span>
-              {items.length > floor ? (
+              {index > 0 && (
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-rose-600"
+                  className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
                 >
+                  <Icon name="x" className="size-3 shrink-0" />
                   Remove
                 </button>
-              ) : null}
+              )}
             </div>
             <div className="grid grid-cols-2 gap-x-4 gap-y-4">
               {subs.map((s) => (
@@ -79,7 +82,7 @@ export function RepeatableGroup({
           </div>
         );
       })}
-      {items.length < maxItems ? (
+      {(items.length === 0 || items.length < maxItems) ? (
         <button
           type="button"
           onClick={addItem}

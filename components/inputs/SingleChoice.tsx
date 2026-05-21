@@ -11,6 +11,7 @@ export function SingleChoice({
   onBlur,
   className,
   groupId,
+  tile,
 }: {
   options: Option[];
   value: string;
@@ -19,6 +20,7 @@ export function SingleChoice({
   onBlur?: () => void;
   className?: string;
   groupId?: string;
+  tile?: boolean;
 }) {
   return (
     <ChoiceGroup
@@ -30,6 +32,7 @@ export function SingleChoice({
       onBlur={onBlur}
       className={className}
       groupId={groupId}
+      tile={tile}
     />
   );
 }

@@ -45,7 +45,14 @@ export async function POST(request: Request, ctx: RouteCtx) {
   try {
     await sendResumeEmail(to, resumeUrl);
   } catch (err) {
-    return jsonError(err instanceof Error ? err.message : "Email send failed", 500);
+    const raw = err instanceof Error ? err.message : "";
+    const friendly =
+      /535|authentication failed|invalid login/i.test(raw)
+        ? "Email authentication failed. Please check SMTP credentials in server settings."
+        : /ECONNREFUSED|ETIMEDOUT|network/i.test(raw)
+          ? "Could not connect to the mail server. Please check SMTP host and port."
+          : "Failed to send reminder email. Please try again.";
+    return jsonError(friendly, 500);
   }
 
   return Response.json({ ok: true });

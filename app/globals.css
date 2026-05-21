@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-brand-50: #fff4ee;
   --color-brand-100: #ffe6d8;
@@ -36,4 +38,13 @@ body {
   background: var(--color-page-bg);
   color: var(--color-ink);
   font-family: var(--font-sans);
+}
+
+/* Dark mode overrides */
+html.dark {
+  --color-page-bg: #0f172a;
+  --color-ink: #f1f5f9;
+  --color-muted: #94a3b8;
+  --color-intro-backdrop: #0f172a;
+  color-scheme: dark;
 }

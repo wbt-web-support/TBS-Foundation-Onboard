@@ -54,6 +54,14 @@ export function SubFieldInput({
                 : sub.type === "url"
                   ? "url"
                   : "text";
+      const autoIcon =
+        sub.type === "email" ? "mail" :
+        sub.type === "url" ? "globe" :
+        sub.type === "tel" ? "phone" :
+        sub.type === "password" ? "lock" :
+        undefined;
+      const resolvedIcon = sub.leadingIcon ?? autoIcon;
+
       if (sub.inputPrefix) {
         control = (
           <div className={INPUT_PREFIX_WRAP}>
@@ -88,7 +96,7 @@ export function SubFieldInput({
             onChange={setStr}
             onBlur={onBlur}
             placeholder={ph}
-            leadingIcon={sub.type === "email" ? "mail" : sub.type === "url" ? "globe" : undefined}
+            leadingIcon={resolvedIcon}
           />
         );
       }
@@ -114,6 +122,7 @@ export function SubFieldInput({
           onChange={setStr}
           onBlur={onBlur}
           placeholder={placeholder ?? sub.placeholder ?? "Select…"}
+          leadingIcon={sub.leadingIcon}
         />
       );
       break;
@@ -132,7 +141,7 @@ export function SubFieldInput({
       control = (
         <YearSelect
           id={choiceGroupId}
-          from={sub.yearRange?.from ?? 1999}
+          from={sub.yearRange?.from ?? 1970}
           to={sub.yearRange?.to ?? new Date().getFullYear()}
           value={str}
           onChange={setStr}

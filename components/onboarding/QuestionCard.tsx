@@ -141,8 +141,8 @@ function GoogleSheetDarkCard({
       className={`-mx-5 scroll-mt-8 px-5 sm:-mx-8 sm:px-8 ${invalid ? "rounded-card ring-2 ring-rose-400/80 ring-offset-2 ring-offset-slate-50" : ""}`}
     >
       <div
-        className={`rounded-card border bg-white p-6 shadow-sm transition sm:p-8 ${
-          invalid ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200"
+        className={`rounded-card border bg-white p-6 shadow-sm transition dark:bg-slate-800 sm:p-8 ${
+          invalid ? "border-rose-300 ring-1 ring-rose-200 dark:border-rose-500/60" : "border-slate-200 dark:border-slate-700"
         }`}
       >
         <div className="flex flex-col gap-5">
@@ -152,7 +152,7 @@ function GoogleSheetDarkCard({
             </h3>
             <span
               className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
-                required ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"
+                required ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
               }`}
             >
               {required ? "Required" : "Optional"}
@@ -240,12 +240,12 @@ export function QuestionCard({
   return (
     <div
       id={`q-${question.id}`}
-      className={`scroll-mt-8 rounded-card border bg-white p-4 shadow-sm transition sm:p-6 ${
-        invalid ? "border-rose-300 ring-1 ring-rose-200" : "border-slate-200"
+      className={`scroll-mt-8 rounded-card border bg-white p-4 shadow-sm transition dark:bg-slate-800 sm:p-6 ${
+        invalid ? "border-rose-300 ring-1 ring-rose-200 dark:border-rose-500/60" : "border-slate-200 dark:border-slate-700"
       }`}
     >
       <div className="flex items-start gap-2 sm:gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 sm:size-9">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 sm:size-9">
           <Icon name={question.icon ?? "image"} />
         </span>
         <div className="min-w-0 flex-1">
@@ -262,7 +262,7 @@ export function QuestionCard({
         </div>
         <span
           className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-            required ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-500"
+            required ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
           }`}
         >
           {required ? "Required" : "Optional"}

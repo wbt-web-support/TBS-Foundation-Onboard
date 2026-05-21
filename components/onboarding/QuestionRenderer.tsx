@@ -51,6 +51,12 @@ export function QuestionRenderer({ question }: { question: Question }) {
     case "password": {
       const raw = asString(value);
       const inputValue = isProvideLaterSentinel(value) ? "" : raw;
+      const autoIcon =
+        question.type === "email" ? "mail" :
+        question.type === "url" ? "globe" :
+        question.type === "tel" ? "phone" :
+        question.type === "password" ? "lock" :
+        undefined;
       return (
         <TextInput
           id={id}
@@ -59,9 +65,7 @@ export function QuestionRenderer({ question }: { question: Question }) {
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
           placeholder={question.placeholder}
-          leadingIcon={
-            question.type === "email" ? "mail" : question.type === "url" ? "globe" : undefined
-          }
+          leadingIcon={question.leadingIcon ?? autoIcon}
         />
       );
     }
@@ -87,6 +91,7 @@ export function QuestionRenderer({ question }: { question: Question }) {
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
           placeholder={question.placeholder ?? "Select…"}
+          leadingIcon={question.leadingIcon}
         />
       );
     case "single-choice": {
@@ -102,6 +107,7 @@ export function QuestionRenderer({ question }: { question: Question }) {
             value={asString(value)}
             onChange={(v) => setAnswer(question.id, v)}
             columns={question.singleChoiceColumns}
+            tile={question.singleChoiceTileImages}
           />
           {showOther && otherId ? (
             <div className="mt-4">
@@ -135,11 +141,12 @@ export function QuestionRenderer({ question }: { question: Question }) {
       return (
         <YearSelect
           id={id}
-          from={question.yearRange?.from ?? 1999}
+          from={question.yearRange?.from ?? 1970}
           to={question.yearRange?.to ?? new Date().getFullYear()}
           value={asString(value)}
           onChange={(v) => setAnswer(question.id, v)}
           onBlur={onBlur}
+          beforeEarliestLabel={question.yearBeforeEarliestLabel}
         />
       );
     case "time-range":

@@ -35,6 +35,7 @@ import {
   type OnboardingContextValue,
   type SaveStatus,
 } from "./OnboardingContext";
+import { isQuestionVisible } from "@/lib/schema/visibility";
 import { Sidebar } from "./Sidebar";
 import { SectionView } from "./SectionView";
 import { ResumeRestoreModal } from "./ResumeRestoreModal";
@@ -69,6 +70,7 @@ interface State {
 type Action =
   | { type: "HYDRATE"; payload: Partial<State> }
   | { type: "SET_ANSWER"; questionId: string; value: AnswerValue }
+  | { type: "CLEAR_ANSWERS"; questionIds: string[] }
   | { type: "GOTO_SECTION"; index: number }
   | { type: "SET_SAVE_STATUS"; status: SaveStatus }
   | { type: "SET_IDS"; submissionId: string; resumeToken: string }
@@ -93,6 +95,11 @@ function reducer(state: State, action: Action): State {
       return { ...state, ...action.payload, hydrated: true };
     case "SET_ANSWER":
       return { ...state, answers: { ...state.answers, [action.questionId]: action.value } };
+    case "CLEAR_ANSWERS": {
+      const next = { ...state.answers };
+      for (const id of action.questionIds) delete next[id];
+      return { ...state, answers: next };
+    }
     case "GOTO_SECTION":
       return { ...state, currentSectionIndex: clampSection(action.index) };
     case "SET_SAVE_STATUS":
@@ -554,6 +561,31 @@ export default function OnboardingApp() {
 
   const setAnswer = useCallback((questionId: string, value: AnswerValue) => {
     dispatch({ type: "SET_ANSWER", questionId, value });
+
+    // Cascade-clear answers for questions that become hidden after this change.
+    // Loop until stable so that clearing one answer doesn't leave dependents dirty.
+    const working = { ...stateRef.current.answers, [questionId]: value };
+    const toClear: string[] = [];
+    let changed = true;
+    while (changed) {
+      changed = false;
+      for (const section of ONBOARDING_SCHEMA.sections) {
+        for (const question of section.questions) {
+          if (
+            question.visibleIf &&
+            !isQuestionVisible(question, working) &&
+            working[question.id] !== undefined &&
+            !toClear.includes(question.id)
+          ) {
+            toClear.push(question.id);
+            delete working[question.id];
+            changed = true;
+          }
+        }
+      }
+    }
+    if (toClear.length > 0) dispatch({ type: "CLEAR_ANSWERS", questionIds: toClear });
+
     setValidationErrors((prev) => {
       if (!prev.has(questionId)) return prev;
       const next = new Set(prev);

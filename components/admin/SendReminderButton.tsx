@@ -38,7 +38,7 @@ export function SendReminderButton({ submissionId }: { submissionId: string }) {
   }
 
   return (
-    <span className="flex flex-col gap-0.5">
+    <span className="flex flex-col gap-1">
       <button
         type="button"
         onClick={handleSend}
@@ -48,7 +48,12 @@ export function SendReminderButton({ submissionId }: { submissionId: string }) {
         <Icon name="mail" className="size-3.5 shrink-0" />
         {loading ? "Sending…" : "Remind"}
       </button>
-      {error && <span className="text-[10px] text-red-600">{error}</span>}
+      {error && (
+        <span className="inline-flex items-start gap-1 text-[11px] leading-tight text-red-600">
+          <Icon name="alert-circle" className="mt-px size-3 shrink-0" />
+          {error}
+        </span>
+      )}
     </span>
   );
 }
