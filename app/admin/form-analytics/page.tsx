@@ -104,7 +104,9 @@ function DateRangeFilter({
           key={r}
           onClick={() => onChange(r)}
           className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-            range === r ? "bg-teal-600 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+            range === r
+              ? "bg-teal-600 text-white"
+              : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
           }`}
         >
           {r === "1d" ? "Today" : r === "7d" ? "Last 7 days" : "Last 30 days"}
@@ -113,7 +115,9 @@ function DateRangeFilter({
       <button
         onClick={() => onChange("custom")}
         className={`rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
-          range === "custom" ? "bg-teal-600 text-white" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"
+          range === "custom"
+            ? "bg-teal-600 text-white"
+            : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
         }`}
       >
         Custom
@@ -124,14 +128,14 @@ function DateRangeFilter({
             type="date"
             value={from}
             onChange={(e) => onChange("custom", e.target.value, to)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
           />
-          <span className="text-slate-400">→</span>
+          <span className="text-slate-400 dark:text-slate-500">→</span>
           <input
             type="date"
             value={to}
             onChange={(e) => onChange("custom", from, e.target.value)}
-            className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm"
+            className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm text-slate-700 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200"
           />
         </>
       )}
@@ -143,10 +147,10 @@ function DateRangeFilter({
 
 function StatCard({ label, value, sub }: { label: string; value: string | number; sub?: string }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
-      <p className="mt-1 text-3xl font-bold text-slate-800">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-slate-400">{sub}</p>}
+    <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">{label}</p>
+      <p className="mt-1 text-3xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">{sub}</p>}
     </div>
   );
 }
@@ -155,9 +159,9 @@ function StatCard({ label, value, sub }: { label: string; value: string | number
 
 function Card({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>
-      <div className="border-b border-slate-100 px-6 py-4">
-        <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
+    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 ${className}`}>
+      <div className="border-b border-slate-100 px-6 py-4 dark:border-slate-700">
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">{title}</h2>
       </div>
       <div className="p-6">{children}</div>
     </div>
@@ -205,7 +209,7 @@ function FunnelSection({ data }: { data: FunnelStep[] }) {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-100 text-left text-xs font-medium text-slate-500">
+            <tr className="border-b border-slate-100 text-left text-xs font-medium text-slate-500 dark:border-slate-700 dark:text-slate-400">
               <th className="pb-2 pr-4">Step</th>
               <th className="pb-2 pr-4 text-right">Entered</th>
               <th className="pb-2 pr-4 text-right">Completed</th>
@@ -218,27 +222,27 @@ function FunnelSection({ data }: { data: FunnelStep[] }) {
           </thead>
           <tbody>
             {sorted.map((row) => (
-              <tr key={row.step} className="border-b border-slate-50 hover:bg-slate-50">
-                <td className="py-2 pr-4 font-medium text-slate-700">{row.step}</td>
-                <td className="py-2 pr-4 text-right text-slate-600">{row.entered}</td>
-                <td className="py-2 pr-4 text-right text-slate-600">{row.completed}</td>
-                <td className="py-2 pr-4 text-right text-slate-600">{row.dropOff}</td>
+              <tr key={row.step} className="border-b border-slate-50 hover:bg-slate-50 dark:border-slate-700/50 dark:hover:bg-slate-700/30">
+                <td className="py-2 pr-4 font-medium text-slate-700 dark:text-slate-300">{row.step}</td>
+                <td className="py-2 pr-4 text-right text-slate-600 dark:text-slate-400">{row.entered}</td>
+                <td className="py-2 pr-4 text-right text-slate-600 dark:text-slate-400">{row.completed}</td>
+                <td className="py-2 pr-4 text-right text-slate-600 dark:text-slate-400">{row.dropOff}</td>
                 <td className="py-2 pr-4 text-right">
                   <span
                     className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
                       row.dropOffPct >= 50
-                        ? "bg-red-50 text-red-600"
+                        ? "bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400"
                         : row.dropOffPct >= 25
-                          ? "bg-orange-50 text-orange-600"
-                          : "bg-emerald-50 text-emerald-600"
+                          ? "bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400"
+                          : "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400"
                     }`}
                   >
                     {row.dropOffPct}%
                   </span>
                 </td>
-                <td className="py-2 pr-4 text-right text-slate-600">{row.completionRate}%</td>
-                <td className="py-2 pr-4 text-right text-slate-500">{fmtMs(row.avgTimeMs)}</td>
-                <td className="py-2 text-right text-slate-500">{row.backNavigations}</td>
+                <td className="py-2 pr-4 text-right text-slate-600 dark:text-slate-400">{row.completionRate}%</td>
+                <td className="py-2 pr-4 text-right text-slate-500 dark:text-slate-500">{fmtMs(row.avgTimeMs)}</td>
+                <td className="py-2 text-right text-slate-500 dark:text-slate-500">{row.backNavigations}</td>
               </tr>
             ))}
           </tbody>
@@ -293,15 +297,15 @@ function SessionSection({ data }: { data: SessionData }) {
                 className="inline-block size-2.5 rounded-full"
                 style={{ background: SESSION_COLORS[key] ?? "#94a3b8" }}
               />
-              <span className="text-sm text-slate-600">{SESSION_LABELS[key] ?? key}</span>
+              <span className="text-sm text-slate-600 dark:text-slate-400">{SESSION_LABELS[key] ?? key}</span>
             </div>
-            <span className="text-sm font-semibold text-slate-700">{count}</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{count}</span>
           </div>
         ))}
-        <div className="mt-3 border-t border-slate-100 pt-3">
+        <div className="mt-3 border-t border-slate-100 pt-3 dark:border-slate-700">
           <div className="flex items-center justify-between gap-4">
-            <span className="text-sm text-slate-500">Re-engaged sessions</span>
-            <span className="text-sm font-semibold text-slate-700">{data.reEngagedCount}</span>
+            <span className="text-sm text-slate-500 dark:text-slate-400">Re-engaged sessions</span>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{data.reEngagedCount}</span>
           </div>
         </div>
       </div>
@@ -355,7 +359,7 @@ function DeviceSection({ data }: { data: DeviceData }) {
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
       <div>
-        <p className="mb-3 text-xs font-medium text-slate-500">By Device</p>
+        <p className="mb-3 text-xs font-medium text-slate-500 dark:text-slate-400">By Device</p>
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie data={devicePie} cx="50%" cy="50%" outerRadius={80} dataKey="value" paddingAngle={2}>
@@ -370,8 +374,8 @@ function DeviceSection({ data }: { data: DeviceData }) {
         <div className="mt-3 space-y-1">
           {data.devices.map((d) => (
             <div key={d.device} className="flex justify-between text-sm">
-              <span className="capitalize text-slate-600">{d.device}</span>
-              <span className="text-slate-500">
+              <span className="capitalize text-slate-600 dark:text-slate-400">{d.device}</span>
+              <span className="text-slate-500 dark:text-slate-500">
                 {d.total} total · {d.completed} completed
               </span>
             </div>
@@ -379,7 +383,7 @@ function DeviceSection({ data }: { data: DeviceData }) {
         </div>
       </div>
       <div>
-        <p className="mb-3 text-xs font-medium text-slate-500">By Browser</p>
+        <p className="mb-3 text-xs font-medium text-slate-500 dark:text-slate-400">By Browser</p>
         <ResponsiveContainer width="100%" height={220}>
           <PieChart>
             <Pie data={browserPie} cx="50%" cy="50%" outerRadius={80} dataKey="value" paddingAngle={2}>
@@ -394,8 +398,8 @@ function DeviceSection({ data }: { data: DeviceData }) {
         <div className="mt-3 space-y-1">
           {data.browsers.map((b) => (
             <div key={b.browser} className="flex justify-between text-sm">
-              <span className="text-slate-600">{b.browser}</span>
-              <span className="text-slate-500">
+              <span className="text-slate-600 dark:text-slate-400">{b.browser}</span>
+              <span className="text-slate-500 dark:text-slate-500">
                 {b.total} total · {b.completed} completed
               </span>
             </div>
@@ -519,18 +523,18 @@ function FormAnalyticsContent() {
   return (
     <div className="flex flex-1 flex-col pb-16">
       {/* header */}
-      <div className="border-b border-slate-200 bg-white px-6 py-5">
+      <div className="border-b border-slate-200 bg-white px-6 py-5 dark:border-slate-700 dark:bg-slate-800">
         <div className="mx-auto flex max-w-7xl flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-xl font-bold text-slate-800">Form Analytics</h1>
-            <p className="mt-0.5 text-sm text-slate-500">Funnel behaviour, drop-offs &amp; field errors</p>
+            <h1 className="text-xl font-bold text-slate-800 dark:text-slate-100">Form Analytics</h1>
+            <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Funnel behaviour, drop-offs &amp; field errors</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
             <DateRangeFilter range={range} from={customFrom} to={customTo} onChange={handleRangeChange} />
             <button
               type="button"
               onClick={handleExport}
-              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
             >
               Export CSV
             </button>
@@ -570,27 +574,27 @@ function FormAnalyticsContent() {
           <Card title="Time Metrics">
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
               <div>
-                <p className="text-xs font-medium text-slate-500">Avg completion</p>
-                <p className="mt-1 text-2xl font-bold text-slate-800">{fmtMs(timeData.avgCompletionMs)}</p>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Avg completion</p>
+                <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">{fmtMs(timeData.avgCompletionMs)}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">75th percentile</p>
-                <p className="mt-1 text-2xl font-bold text-slate-800">{fmtMs(timeData.p75Ms)}</p>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">75th percentile</p>
+                <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">{fmtMs(timeData.p75Ms)}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">90th percentile</p>
-                <p className="mt-1 text-2xl font-bold text-slate-800">{fmtMs(timeData.p90Ms)}</p>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">90th percentile</p>
+                <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">{fmtMs(timeData.p90Ms)}</p>
               </div>
               <div>
-                <p className="text-xs font-medium text-slate-500">Outlier sessions</p>
-                <p className="mt-1 text-2xl font-bold text-slate-800">{timeData.outlierCount}</p>
-                <p className="mt-0.5 text-xs text-slate-400">above 90th pct</p>
+                <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Outlier sessions</p>
+                <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">{timeData.outlierCount}</p>
+                <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">above 90th pct</p>
               </div>
             </div>
 
             {timeData.stepAvgTimes.length > 0 && (
               <div className="mt-6">
-                <p className="mb-3 text-xs font-medium text-slate-500">Avg time per step</p>
+                <p className="mb-3 text-xs font-medium text-slate-500 dark:text-slate-400">Avg time per step</p>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={timeData.stepAvgTimes} margin={{ left: 0, right: 20, top: 5, bottom: 40 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />

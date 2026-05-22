@@ -245,7 +245,7 @@ export function QuestionCard({
       }`}
     >
       <div className="flex items-start gap-2 sm:gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-900/30 sm:size-9">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-800/40 dark:text-brand-400 sm:size-9">
           <Icon name={question.icon ?? "image"} />
         </span>
         <div className="min-w-0 flex-1">

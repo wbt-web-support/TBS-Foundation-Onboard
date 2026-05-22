@@ -78,6 +78,7 @@ const INLINE_OTHER_TEXT_IDS = (): Set<string> => {
     for (const q of sec.questions) {
       if (q.type === "single-choice" && q.otherTextAnswerId) s.add(q.otherTextAnswerId);
       if (q.galleryUploadCompanionKey) s.add(q.galleryUploadCompanionKey);
+      if (q.galleryDescriptionAnswerId) s.add(q.galleryDescriptionAnswerId);
     }
   }
   return s;

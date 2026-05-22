@@ -14,7 +14,9 @@ export function ThemeToggle() {
   const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
-    setTheme(getInitialTheme());
+    const initial = getInitialTheme();
+    setTheme(initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
   }, []);
 
   const toggle = () => {

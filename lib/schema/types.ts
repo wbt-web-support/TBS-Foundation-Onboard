@@ -188,6 +188,10 @@ export interface Question {
   galleryLayout?: "grid" | "row";
   /** `image-gallery-pick`: answer id for custom upload when user picks “Upload my own”. */
   galleryUploadCompanionKey?: string;
+  /** `image-gallery-pick`: answer id for a description textarea rendered below the gallery in the same card. */
+  galleryDescriptionAnswerId?: string;
+  /** Placeholder text for the inline gallery description textarea. */
+  galleryDescriptionPlaceholder?: string;
   yearRange?: { from: number; to: number }; // year-select
   /** `year-select`: label for a catch-all option after the earliest year (e.g. "Before 1970"). */
   yearBeforeEarliestLabel?: string;

@@ -207,6 +207,8 @@ export function QuestionRenderer({ question }: { question: Question }) {
       const pick = question.galleryMulti ? asStringArray(value) : asString(value);
       const companionKey = question.galleryUploadCompanionKey;
       const uploadMeta = companionKey ? questionById(companionKey) : undefined;
+      const descKey = question.galleryDescriptionAnswerId;
+      const descMeta = descKey ? questionById(descKey) : undefined;
 
       return (
         <>
@@ -232,6 +234,23 @@ export function QuestionRenderer({ question }: { question: Question }) {
                 : undefined
             }
           />
+          {descKey ? (
+            <div className="mt-5">
+              {descMeta?.title ? (
+                <label htmlFor={`field-${descKey}`} className={LABEL_CLASS}>
+                  {descMeta.title}
+                </label>
+              ) : null}
+              <TextareaInput
+                id={`field-${descKey}`}
+                value={asString(answers[descKey])}
+                onChange={(v) => setAnswer(descKey, v)}
+                onBlur={onBlur}
+                placeholder={question.galleryDescriptionPlaceholder ?? descMeta?.placeholder ?? "Write Here"}
+                rows={descMeta?.rows ?? 4}
+              />
+            </div>
+          ) : null}
         </>
       );
     }

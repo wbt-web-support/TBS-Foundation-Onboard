@@ -43,8 +43,8 @@ export function Sidebar() {
   const estMinutes = Math.ceil(remaining * 0.5);
 
   return (
-    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white md:flex">
-      <div className="border-b border-slate-100 px-5 py-5">
+    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 md:flex">
+      <div className="border-b border-slate-100 px-5 py-5 dark:border-slate-700/80">
         <h1 className="text-base font-semibold text-ink">Setup Progress</h1>
         <p className="mt-0.5 text-xs text-muted">Complete all sections to continue</p>
       </div>
@@ -67,9 +67,9 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-slate-100 px-5 py-4">
+      <div className="border-t border-slate-100 px-5 py-4 dark:border-slate-700/80">
         <div className="mb-1 flex items-center justify-between text-xs">
-          <span className="font-medium text-slate-600">Overall Progress</span>
+          <span className="font-medium text-slate-600 dark:text-slate-400">Overall Progress</span>
           <span className="font-semibold text-brand-600">{overall}%</span>
         </div>
         <ProgressBar percent={overall} />
@@ -83,9 +83,9 @@ export function Sidebar() {
         )}
       </div>
 
-      <div className="border-t border-slate-100 px-5 py-4">
+      <div className="border-t border-slate-100 px-5 py-4 dark:border-slate-700/80">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <span className="truncate text-sm text-slate-600" title={email ?? undefined}>
+          <span className="truncate text-sm text-slate-600 dark:text-slate-400" title={email ?? undefined}>
             {email ?? "Not signed in"}
           </span>
           <button

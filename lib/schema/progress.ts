@@ -18,11 +18,12 @@ export function isQuestionRequired(question: Question): boolean {
 }
 
 /**
- * Visible questions always block Next / later steps until satisfied.
- * The only skip path is an explicit “I will provide later” on that question (`provideLater`).
+ * A question is required unless explicitly marked `required: false`.
+ * Optional questions never block Next. Required questions can be skipped
+ * only via an explicit “I will provide later” (`provideLater`).
  */
-function isRequired(_question: Question): boolean {
-  return true;
+function isRequired(question: Question): boolean {
+  return question.required !== false;
 }
 
 function isSubUrlValueValid(parentQuestionId: string | undefined, value: unknown): boolean {

@@ -5,21 +5,21 @@ import { Icon } from "@/components/ui/Icon";
 export type StepNavState = "active" | "complete" | "todo";
 
 const SHELL: Record<StepNavState, string> = {
-  active: "border-brand-200 bg-brand-50/80",
-  complete: "border-emerald-200 bg-emerald-50/60",
-  todo: "border-transparent bg-transparent hover:border-slate-200 hover:bg-slate-50",
+  active: "border-brand-200 bg-brand-50/80 dark:border-brand-800/60 dark:bg-brand-900/30",
+  complete: "border-emerald-200 bg-emerald-50/60 dark:border-emerald-800/50 dark:bg-emerald-900/20",
+  todo: "border-transparent bg-transparent hover:border-slate-200 hover:bg-slate-50 dark:hover:border-slate-700 dark:hover:bg-slate-800/60",
 };
 
 const BADGE: Record<StepNavState, string> = {
   complete: "bg-emerald-500 text-white",
   active: "bg-brand-500 text-white",
-  todo: "bg-slate-200 text-slate-600",
+  todo: "bg-slate-200 text-slate-600 dark:bg-slate-700 dark:text-slate-300",
 };
 
 const TITLE: Record<StepNavState, string> = {
-  active: "text-brand-700",
-  complete: "text-emerald-800",
-  todo: "text-slate-800",
+  active: "text-brand-700 dark:text-brand-400",
+  complete: "text-emerald-800 dark:text-emerald-400",
+  todo: "text-slate-800 dark:text-slate-300",
 };
 
 export function StepNavItem({

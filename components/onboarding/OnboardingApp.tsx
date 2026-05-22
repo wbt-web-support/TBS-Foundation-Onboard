@@ -816,17 +816,17 @@ function MobileProgressHeader() {
   const overall = overallProgress(answers, currentSectionIndex);
   if (completed || !section) return null;
   return (
-    <div className="sticky top-14 z-10 border-b border-slate-200 bg-white px-4 py-3 md:hidden">
+    <div className="sticky top-14 z-10 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900 md:hidden">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
             Step {section.number} of {ONBOARDING_SCHEMA.sections.length}
           </p>
-          <p className="truncate text-sm font-semibold text-slate-800">{section.title}</p>
+          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">{section.title}</p>
         </div>
         <span className="shrink-0 text-sm font-bold text-brand-600">{overall}%</span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
         <div
           className={`h-full rounded-full transition-all ${overall >= 100 ? "bg-emerald-500" : "bg-brand-500"}`}
           style={{ width: `${overall}%` }}
@@ -845,8 +845,8 @@ function MobileProgressHeader() {
                 isActive
                   ? "bg-brand-600 text-white"
                   : isDone
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-slate-100 text-slate-500"
+                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
+                    : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
               }`}
             >
               {s.number}
@@ -861,12 +861,12 @@ function MobileProgressHeader() {
 function CompletedScreen() {
   const { goToSection } = useOnboarding();
   return (
-    <div className="rounded-card border border-slate-200 bg-white p-8 text-center shadow-sm">
-      <div className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-600">
+    <div className="rounded-card border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800">
+      <div className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30">
         <Icon name="check" className="size-6" />
       </div>
       <h2 className="mt-4 text-2xl font-semibold text-ink">Thank you — your onboarding is complete</h2>
-      <p className="mt-2 text-[15px] leading-relaxed text-slate-600">
+      <p className="mt-2 text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
         We&apos;ve got everything we need to get started. We&apos;ll be in touch shortly. You can still revisit and
         update any section using the menu.
       </p>
