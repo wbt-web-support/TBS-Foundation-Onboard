@@ -1,9 +1,8 @@
 /**
- * Diagnose admin login: Supabase app_users table + password hash.
+ * Diagnose admin login: Supabase Auth + app_users table.
  * Run: node scripts/check-auth.mjs
  */
 import { createClient } from "@supabase/supabase-js";
-import bcrypt from "bcryptjs";
 import { readFileSync } from "fs";
 import { resolve, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -35,11 +34,11 @@ if (!url || !key) {
 
 const supabase = createClient(url, key, { auth: { persistSession: false } });
 
+// Check app_users table
 const { data, error } = await supabase
   .from("app_users")
-  .select("id, email, role, password_hash")
-  .eq("email", "example@gmail.com")
-  .maybeSingle();
+  .select("id, email, role")
+  .eq("role", "admin");
 
 if (error) {
   console.error("\nDatabase error:", error.message);
@@ -50,22 +49,26 @@ if (error) {
   process.exit(1);
 }
 
-if (!data) {
-  console.error("\n>>> No user found for example@gmail.com");
-  console.error(">>> Run supabase/migrations/0003_app_users.sql in Supabase SQL Editor.\n");
+if (!data || data.length === 0) {
+  console.error("\n>>> No admin users found in app_users table.");
+  console.error(">>> Insert a row with role='admin' matching the email in Supabase Auth.\n");
   process.exit(1);
 }
 
-console.log("\nUser found:", { id: data.id, email: data.email, role: data.role });
+console.log(`\nAdmin users in app_users (${data.length}):`);
+for (const u of data) {
+  console.log(`  - ${u.email} (id: ${u.id})`);
+}
 
-const testPassword = "Rainbow12345*";
-const ok = await bcrypt.compare(testPassword, data.password_hash);
-console.log(`Password "${testPassword}" matches hash:`, ok);
-
-if (!ok) {
-  console.log("\n>>> Hash in DB does not match Rainbow12345*");
-  console.log(">>> Will generate new hash for fix SQL below.\n");
-  const hash = await bcrypt.hash(testPassword, 12);
-  console.log("-- Run in Supabase SQL Editor:");
-  console.log(`UPDATE public.app_users SET password_hash = '${hash}' WHERE email = 'example@gmail.com';`);
+// Check Supabase Auth users
+const { data: authList, error: authErr } = await supabase.auth.admin.listUsers();
+if (authErr) {
+  console.error("\nCould not list Supabase Auth users:", authErr.message);
+} else {
+  const authEmails = new Set(authList.users.map((u) => u.email?.toLowerCase()));
+  console.log("\nSupabase Auth check:");
+  for (const u of data) {
+    const inAuth = authEmails.has(u.email.toLowerCase());
+    console.log(`  ${u.email}: ${inAuth ? "EXISTS in Supabase Auth" : "MISSING from Supabase Auth — create via Authentication > Users > Add user"}`);
+  }
 }

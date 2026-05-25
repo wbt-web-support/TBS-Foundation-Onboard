@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
-import { authenticateUser } from "@/lib/auth/users";
+import { findUserByEmail } from "@/lib/auth/users";
 import { createSessionCookie, sessionCookieOptions } from "@/lib/auth/session";
+import { getServiceClient } from "@/lib/supabase/server";
 import type { SessionPayload } from "@/lib/auth/constants";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -22,25 +23,31 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = await authenticateUser(email, password);
-    if (!user) {
+    const supabase = getServiceClient();
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+    if (authError || !authData.user) {
+      return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+    }
+
+    const appUser = await findUserByEmail(email);
+    if (!appUser) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
     const payload: SessionPayload = {
-      sub: user.id,
-      email: user.email,
-      role: user.role,
-      submissionId: user.submission_id ?? undefined,
+      sub: authData.user.id,
+      email: authData.user.email!,
+      role: appUser.role,
+      submissionId: appUser.submission_id ?? undefined,
     };
 
     const token = await createSessionCookie(payload);
     const res = NextResponse.json({
       user: {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        submissionId: user.submission_id,
+        id: authData.user.id,
+        email: authData.user.email,
+        role: appUser.role,
+        submissionId: appUser.submission_id,
       },
     });
     res.cookies.set(sessionCookieOptions(token));
