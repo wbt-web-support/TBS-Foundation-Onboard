@@ -75,7 +75,7 @@ export function Sidebar() {
         <ProgressBar percent={overall} />
         {!completed && remaining > 0 && (
           <p className="mt-1.5 text-[11px] text-slate-400">
-            ~{estMinutes} min remaining · {remaining} question{remaining !== 1 ? "s" : ""} left
+           
           </p>
         )}
         {!completed && remaining === 0 && (
