@@ -73,47 +73,36 @@ export function WelcomeScreen({
   }, [closeVideo]);
 
   return (
-    <div
-      className="min-h-[calc(100vh-3.5rem)] px-5 py-10 sm:px-8"
-      style={{ background: "#0d0e10", color: "#f4f5f6" }}
-    >
+    <div className="min-h-[calc(100vh-3.5rem)] bg-slate-50 px-5 py-10 text-slate-900 dark:bg-[#0d0e10] dark:text-[#f4f5f6] sm:px-8">
       <div className="mx-auto w-full max-w-5xl">
-        <div
-          className="rounded-2xl border p-7 sm:p-10"
-          style={{ background: "#181a1d", borderColor: "#2a2c31" }}
-        >
+        <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm dark:border-[#2a2c31] dark:bg-[#181a1d] dark:shadow-none sm:p-10">
+
           {/* Heading */}
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight text-slate-900 dark:text-[#f4f5f6] sm:text-5xl">
             Welcome{displayName ? (
-              <>, <span style={{ color: "#14b8a6" }}>{displayName}</span>
-              </>
+              <>, <span className="text-teal-500">{displayName}</span></>
             ) : null}
           </h1>
-          <p className="mt-2 text-lg font-medium tracking-wide" style={{ color: "#14b8a6" }}>
-          </p>
 
           <div className="mt-4 flex items-center gap-2">
             <span className="size-2 shrink-0 rounded-full bg-emerald-400" />
-            <span className="text-sm" style={{ color: "#9aa0a8" }}>Ready to get started</span>
+            <span className="text-sm text-slate-500 dark:text-[#9aa0a8]">Ready to get started</span>
           </div>
 
           {/* Lead text */}
-          <p className="mt-5 max-w-3xl text-[15px] leading-relaxed" style={{ color: "#9aa0a8" }}>
+          <p className="mt-5 max-w-3xl text-[15px] leading-relaxed text-slate-600 dark:text-[#9aa0a8]">
             Let&apos;s set up your personalised workspace inside Command HQ. This is where your
             company&apos;s Digital Brain will live, and it&apos;s designed to become one of the most
             valuable tools in your business.
           </p>
-          <p className="mt-3 max-w-3xl text-[15px] leading-relaxed" style={{ color: "#9aa0a8" }}>
+          <p className="mt-3 max-w-3xl text-[15px] leading-relaxed text-slate-600 dark:text-[#9aa0a8]">
             Before you dive in, watch the short videos below — they explain how onboarding works and
             how to get the most out of it. The information you share in this questionnaire will be
             used to train your AI.
           </p>
 
           {/* Watch these first */}
-          <p
-            className="mt-8 text-xs font-bold uppercase tracking-widest"
-            style={{ color: "#14b8a6" }}
-          >
+          <p className="mt-8 text-xs font-bold uppercase tracking-widest text-teal-500">
             ▶ Watch these first
           </p>
 
@@ -123,8 +112,7 @@ export function WelcomeScreen({
               <button
                 key={i}
                 onClick={() => setOpenVideo(i)}
-                className="group overflow-hidden rounded-xl border text-left transition-transform hover:-translate-y-1"
-                style={{ background: "#1f2125", borderColor: "#2a2c31" }}
+                className="group overflow-hidden rounded-xl border border-slate-200 bg-slate-100 text-left transition-transform hover:-translate-y-1 dark:border-[#2a2c31] dark:bg-[#1f2125]"
               >
                 <div
                   className="relative flex aspect-video items-center justify-center"
@@ -147,8 +135,8 @@ export function WelcomeScreen({
                   </span>
                 </div>
                 <div className="p-3 pb-4">
-                  <p className="text-sm font-semibold leading-snug text-white">{v.title}</p>
-                  <p className="mt-1.5 text-xs leading-relaxed" style={{ color: "#9aa0a8" }}>{v.description}</p>
+                  <p className="text-sm font-semibold leading-snug text-slate-800 dark:text-white">{v.title}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-slate-500 dark:text-[#9aa0a8]">{v.description}</p>
                 </div>
               </button>
             ))}
@@ -159,20 +147,14 @@ export function WelcomeScreen({
             {FEATURES.map((f) => (
               <div
                 key={f.title}
-                className="flex items-start gap-3 rounded-xl border p-4"
-                style={{ background: "#1f2125", borderColor: "#2a2c31" }}
+                className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-100 p-4 dark:border-[#2a2c31] dark:bg-[#1f2125]"
               >
-                <span
-                  className="grid size-10 shrink-0 place-items-center rounded-lg text-lg"
-                  style={{ background: "#14b8a6" }}
-                >
+                <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-teal-500 text-lg">
                   {f.emoji}
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-white">{f.title}</p>
-                  <p className="mt-1 text-xs leading-relaxed" style={{ color: "#9aa0a8" }}>
-                    {f.desc}
-                  </p>
+                  <p className="text-sm font-semibold text-slate-800 dark:text-white">{f.title}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-[#9aa0a8]">{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -183,27 +165,25 @@ export function WelcomeScreen({
             <div>
               <button
                 onClick={onStart}
-                className="rounded-xl px-7 py-3.5 text-[15px] font-semibold text-white transition-[filter] hover:brightness-110 active:scale-[.98]"
-                style={{ background: "#14b8a6", border: "none" }}
+                className="rounded-xl bg-teal-500 px-7 py-3.5 text-[15px] font-semibold text-white transition-[filter] hover:brightness-110 active:scale-[.98]"
               >
                 Start Setup →
               </button>
-              <p className="mt-3 flex items-center gap-1.5 text-xs" style={{ color: "#9aa0a8" }}>
+              <p className="mt-3 flex items-center gap-1.5 text-xs text-slate-500 dark:text-[#9aa0a8]">
                 🕐 Estimated time: 30–60 minutes
               </p>
             </div>
 
             {/* Step dots */}
             <div className="text-right">
-              <p className="text-xs" style={{ color: "#9aa0a8" }}>
+              <p className="text-xs text-slate-500 dark:text-[#9aa0a8]">
                 Step 0 of {totalSteps}
               </p>
               <div className="mt-2 flex justify-end gap-1.5">
                 {Array.from({ length: totalSteps + 1 }).map((_, i) => (
                   <span
                     key={i}
-                    className="h-1 w-7 rounded-full"
-                    style={{ background: i === 0 ? "#14b8a6" : "#2a2c31" }}
+                    className={`h-1 w-7 rounded-full ${i === 0 ? "bg-teal-500" : "bg-slate-200 dark:bg-[#2a2c31]"}`}
                   />
                 ))}
               </div>
@@ -220,15 +200,17 @@ export function WelcomeScreen({
           onClick={closeVideo}
         >
           <div
-            className="w-full max-w-3xl overflow-hidden rounded-2xl border"
-            style={{ background: "#181a1d", borderColor: "#2a2c31" }}
+            className="w-full max-w-3xl overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-[#2a2c31] dark:bg-[#181a1d]"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b px-5 py-4" style={{ borderColor: "#2a2c31" }}>
-              <span className="font-semibold text-white">
+            <div className="flex items-center justify-between border-b border-slate-200 px-5 py-4 dark:border-[#2a2c31]">
+              <span className="font-semibold text-slate-800 dark:text-white">
                 {openVideo + 1}. {videos[openVideo].title}
               </span>
-              <button onClick={closeVideo} className="grid size-8 place-items-center rounded-lg border text-white hover:opacity-80" style={{ background: "#1f2125", borderColor: "#2a2c31" }}>
+              <button
+                onClick={closeVideo}
+                className="grid size-8 place-items-center rounded-lg border border-slate-200 bg-slate-100 text-slate-600 hover:opacity-80 dark:border-[#2a2c31] dark:bg-[#1f2125] dark:text-white"
+              >
                 ✕
               </button>
             </div>
@@ -244,17 +226,20 @@ export function WelcomeScreen({
                 />
               </div>
             ) : (
-              <div className="flex aspect-video flex-col items-center justify-center gap-5 p-8 text-center" style={{ background: "linear-gradient(135deg,#241712 0%,#14161b 100%)" }}>
+              <div
+                className="flex aspect-video flex-col items-center justify-center gap-5 p-8 text-center"
+                style={{ background: "linear-gradient(135deg,#241712 0%,#14161b 100%)" }}
+              >
                 <span className="grid size-16 place-items-center rounded-full" style={{ background: "rgba(20,184,166,.92)" }}>
                   <span className="ml-1.5 inline-block" style={{ borderTop: "12px solid transparent", borderBottom: "12px solid transparent", borderLeft: "20px solid #fff" }} />
                 </span>
-                <p className="max-w-sm text-sm leading-relaxed" style={{ color: "#9aa0a8" }}>
+                <p className="max-w-sm text-sm leading-relaxed text-slate-400">
                   Video coming soon — when a URL is added (Vimeo / YouTube / Loom), it will play here automatically.
                 </p>
               </div>
             )}
 
-            <div className="border-t px-5 py-3.5 text-xs" style={{ borderColor: "#2a2c31", color: "#9aa0a8" }}>
+            <div className="border-t border-slate-200 px-5 py-3.5 text-xs text-slate-500 dark:border-[#2a2c31] dark:text-[#9aa0a8]">
               {videos[openVideo].description}
             </div>
           </div>
