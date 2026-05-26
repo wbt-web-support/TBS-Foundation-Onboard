@@ -258,7 +258,7 @@ export function ChatWidget() {
             maxHeight: "calc(100vh - 130px)",
           }}
         >
-          {/* Header */}
+          {/* Header — home: logo + close | chat: back + title + close */}
           <div style={{
             background: "#c4f4f1",
             padding: "12px 18px",
@@ -266,32 +266,58 @@ export function ChatWidget() {
             alignItems: "center",
             justifyContent: "space-between",
             flexShrink: 0,
+            minHeight: 60,
           }}>
-            <Image src={LOGO} alt="We Build Trades" width={180} height={40} style={{ objectFit: "contain", height: 36, width: "auto" }} unoptimized />
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              {/* Back arrow — only shown in chat view */}
-              {view === "chat" && (
+            {view === "home" ? (
+              /* HOME header */
+              <>
+                <Image src={LOGO} alt="We Build Trades" width={180} height={40} style={{ objectFit: "contain", height: 36, width: "auto" }} unoptimized />
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                  style={{
+                    background: "#235764", border: "none", cursor: "pointer",
+                    color: "#fff", borderRadius: "50%", width: 30, height: 30,
+                    display: "flex", alignItems: "center", justifyContent: "center", padding: 0, flexShrink: 0,
+                  }}
+                >
+                  <IconClose size={15} />
+                </button>
+              </>
+            ) : (
+              /* CHAT header */
+              <>
                 <button
                   onClick={() => setView("home")}
                   aria-label="Back"
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "#235764", padding: 0, display: "flex" }}
+                  style={{
+                    background: "#104757", border: "none", cursor: "pointer",
+                    color: "#fff", borderRadius: 8, height: 34,
+                    display: "flex", alignItems: "center", gap: 6,
+                    padding: "0 12px 0 8px", flexShrink: 0,
+                    fontSize: 13, fontWeight: 600, letterSpacing: 0.2,
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                  }}
                 >
                   <IconArrowLeft />
+                  Back
                 </button>
-              )}
-              {/* Close */}
-              <button
-                onClick={() => setOpen(false)}
-                aria-label="Close"
-                style={{
-                  background: "#235764", border: "none", cursor: "pointer",
-                  color: "#fff", borderRadius: "50%", width: 28, height: 28,
-                  display: "flex", alignItems: "center", justifyContent: "center", padding: 0,
-                }}
-              >
-                <IconClose size={16} />
-              </button>
-            </div>
+                <span style={{ fontWeight: 600, fontSize: 13, color: "#104757", textAlign: "center", flex: 1, padding: "0 8px" }}>
+                  AI Assistant
+                </span>
+                <button
+                  onClick={() => setOpen(false)}
+                  aria-label="Close"
+                  style={{
+                    background: "#235764", border: "none", cursor: "pointer",
+                    color: "#fff", borderRadius: "50%", width: 30, height: 30,
+                    display: "flex", alignItems: "center", justifyContent: "center", padding: 0, flexShrink: 0,
+                  }}
+                >
+                  <IconClose size={15} />
+                </button>
+              </>
+            )}
           </div>
 
           {/* ── HOME VIEW ── */}

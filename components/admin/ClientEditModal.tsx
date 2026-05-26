@@ -41,9 +41,9 @@ export function ClientEditModal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <button type="button" aria-label="Close" className="absolute inset-0 bg-slate-900/50" onClick={onClose} />
-      <div className="relative w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl">
-        <h2 className="text-lg font-semibold text-slate-800">Edit client</h2>
-        <p className="mt-1 text-sm text-slate-500">{client.companyName}</p>
+      <div className="relative w-full max-w-lg rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-700 dark:bg-slate-800">
+        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Edit client</h2>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{client.companyName}</p>
 
         <form
           className="mt-5 space-y-4"
@@ -58,30 +58,30 @@ export function ClientEditModal({
           }}
         >
           <label className="block">
-            <span className="text-xs font-medium text-slate-500">Email</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Email</span>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-brand-400 dark:focus:ring-brand-900/30"
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-slate-500">Phone</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Phone</span>
             <input
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-brand-400 dark:focus:ring-brand-900/30"
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-slate-500">Tax ID</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Tax ID</span>
             <input
               type="text"
               value={taxId}
               onChange={(e) => setTaxId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+              className="mt-1 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder-slate-400 dark:focus:border-brand-400 dark:focus:ring-brand-900/30"
             />
           </label>
           <label className="flex items-center gap-2">
@@ -89,9 +89,9 @@ export function ClientEditModal({
               type="checkbox"
               checked={completed}
               onChange={(e) => setCompleted(e.target.checked)}
-              className="size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500"
+              className="size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500 dark:border-slate-500"
             />
-            <span className="text-sm text-slate-700">Mark as completed</span>
+            <span className="text-sm text-slate-700 dark:text-slate-300">Mark as completed</span>
           </label>
 
           <div className="flex justify-end gap-3 pt-2">
@@ -99,7 +99,7 @@ export function ClientEditModal({
               type="button"
               onClick={onClose}
               disabled={loading}
-              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
             >
               Cancel
             </button>

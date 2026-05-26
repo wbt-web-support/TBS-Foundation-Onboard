@@ -267,37 +267,32 @@ function ClientsPageContent({ user: _user }: { user: AuthUser }) {
         ) : sortedClients.length === 0 ? (
           <p className="py-16 text-center text-sm text-slate-400 dark:text-slate-500">No clients found.</p>
         ) : (
-          <>
-            {/* Mobile cards */}
-            <div className="space-y-3 lg:hidden">
-              {sortedClients.map((client) => {
-                const isDone = client.completed || client.percentComplete >= 100;
-                return (
-                  <div key={client.id} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-slate-800 dark:text-slate-100">{client.companyName}</p>
-                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">{client.email ?? "—"}</p>
-                        {client.phone && <p className="text-xs text-slate-400 dark:text-slate-500">{client.phone}</p>}
+          <div className="space-y-3">
+            {sortedClients.map((client) => {
+              const isDone = client.completed || client.percentComplete >= 100;
+              return (
+                <div key={client.id} className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  {/* Card header */}
+                  <div className="flex items-start justify-between gap-3 px-4 pt-4 pb-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="font-semibold text-slate-800 dark:text-slate-100">{client.companyName}</p>
+                        <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
+                          isDone
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                        }`}>
+                          {isDone ? "Completed" : "In progress"}
+                        </span>
                       </div>
-                      <span className={`shrink-0 inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                        isDone
-                          ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                      }`}>
-                        {isDone ? "Completed" : "In progress"}
-                      </span>
+                      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        {client.email && <span>{client.email}</span>}
+                        {client.phone && <span>{client.phone}</span>}
+                        {client.taxId && <span>Tax: {client.taxId}</span>}
+                      </div>
                     </div>
-
-                    <div className="mt-3">
-                      <ProgressBar percent={client.percentComplete} />
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        {client.filledQuestions}/{client.totalQuestions} questions
-                        {!isDone && client.currentSectionName && ` · ${client.currentSectionName}`}
-                      </p>
-                    </div>
-
-                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                    {/* Actions */}
+                    <div className="flex shrink-0 flex-wrap items-center gap-1">
                       {client.canDownloadPdf && isSubmissionId(client.id) && (
                         <DownloadPdfButton submissionId={client.id} label="PDF" showPreview={false} />
                       )}
@@ -330,123 +325,44 @@ function ClientsPageContent({ user: _user }: { user: AuthUser }) {
                       </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
 
-            {/* Desktop table */}
-            <div className="hidden overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800 lg:block">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[1200px] text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-100 bg-slate-50/80 text-xs font-medium uppercase tracking-wide text-slate-500 dark:border-slate-700 dark:bg-slate-700/50 dark:text-slate-400">
-                      {(
-                        [
-                          ["Client", "companyName"],
-                          ["Phone", null],
-                          ["Tax ID", null],
-                          ["Progress", "percentComplete"],
-                          ["Questions", "filledQuestions"],
-                          ["Section #", "currentSectionIndex"],
-                          ["Stuck at", null],
-                          ["Rating", null],
-                          ["Status", null],
-                          ["PDF", null],
-                          ["Created", "createdAt"],
-                          ["Updated", "updatedAt"],
-                        ] as [string, SortKey | null][]
-                      ).map(([label, key]) =>
-                        key ? (
-                          <th key={label} className="cursor-pointer select-none px-4 py-3 hover:text-slate-800 dark:hover:text-slate-200" onClick={() => handleSort(key)}>
-                            {label}{sortKey === key ? (sortDir === "asc" ? " ↑" : " ↓") : ""}
-                          </th>
-                        ) : (
-                          <th key={label} className="px-4 py-3">{label}</th>
-                        )
-                      )}
-                      <th className="px-4 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedClients.map((client) => (
-                      <tr key={client.id} className="border-b border-slate-50 hover:bg-slate-50/50 dark:border-slate-700/50 dark:hover:bg-slate-700/30">
-                        <td className="px-4 py-3">
-                          <p className="font-medium text-slate-800 dark:text-slate-100">{client.companyName}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{client.email ?? "—"}</p>
-                          <p className="mt-0.5 font-mono text-[10px] text-slate-400 dark:text-slate-500" title={client.id}>{client.id.slice(0, 8)}…</p>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{client.phone ?? "—"}</td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{client.taxId ?? "—"}</td>
-                        <td className="px-4 py-3"><ProgressBar percent={client.percentComplete} /></td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{client.filledQuestions} / {client.totalQuestions}</td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          {client.currentSectionIndex + 1}
-                          {!client.completed && client.currentSectionName && (
-                            <p className="truncate text-xs text-slate-400 dark:text-slate-500" title={client.currentSectionName}>{client.currentSectionName}</p>
-                          )}
-                        </td>
-                        <td className="max-w-[160px] px-4 py-3 text-slate-600 dark:text-slate-400">
-                          <p className="truncate" title={client.currentQuestionTitle ?? undefined}>
-                            {client.completed ? "—" : (client.currentQuestionTitle ?? "—")}
-                          </p>
-                        </td>
-                        <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
-                          {client.satisfactionRating != null ? `${client.satisfactionRating}/10` : "—"}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${
-                            client.completed || client.percentComplete >= 100
-                              ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                              : "bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                          }`}>
-                            {client.completed || client.percentComplete >= 100 ? "Completed" : "In progress"}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          {client.canDownloadPdf && isSubmissionId(client.id) ? (
-                            <DownloadPdfButton submissionId={client.id} label={client.pdfUrl ? "Email PDF" : "PDF"} showPreview={false} />
-                          ) : <span className="text-slate-300 dark:text-slate-600">—</span>}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{fmtDateTime(client.createdAt)}</td>
-                        <td className="px-4 py-3 text-slate-500 dark:text-slate-400">{fmtDateTime(client.updatedAt)}</td>
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap justify-end gap-1">
-                            {!client.completed && client.percentComplete < 100 && client.email && isSubmissionId(client.id) && (
-                              <SendReminderButton submissionId={client.id} />
-                            )}
-                            {isSubmissionId(client.id) && (
-                              <Link
-                                href={`/admin/clients/${client.id}`}
-                                className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
-                              >
-                                <Icon name="search" className="size-3.5" />
-                                View
-                              </Link>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => setEditClient(client)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
-                            >
-                              <Icon name="sheet" className="size-3.5" />
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setDeleteClient(client)}
-                              className="inline-flex items-center gap-1 rounded-lg border border-red-200 px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:border-red-800/50 dark:text-red-400 dark:hover:bg-red-900/20"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </>
+                  {/* Progress bar */}
+                  <div className="px-4 pb-3">
+                    <ProgressBar percent={client.percentComplete} />
+                  </div>
+
+                  {/* Detail grid */}
+                  <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-100 px-4 py-3 dark:border-slate-700 sm:grid-cols-3 lg:grid-cols-5">
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Questions</p>
+                      <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">{client.filledQuestions} / {client.totalQuestions}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Section</p>
+                      <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">
+                        {client.currentSectionIndex + 1}
+                        {client.currentSectionName && <span className="text-slate-400"> · {client.currentSectionName}</span>}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Stuck at</p>
+                      <p className="mt-0.5 truncate text-sm text-slate-700 dark:text-slate-300" title={client.currentQuestionTitle ?? undefined}>
+                        {isDone ? "—" : (client.currentQuestionTitle ?? "—")}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Created</p>
+                      <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">{fmtDateTime(client.createdAt)}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">Updated</p>
+                      <p className="mt-0.5 text-sm text-slate-700 dark:text-slate-300">{fmtDateTime(client.updatedAt)}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
 

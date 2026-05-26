@@ -119,11 +119,11 @@ function ClientDetailPageContent({ user: _user }: { user: AuthUser }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="border-b border-slate-200 bg-white px-6 py-4">
+      <div className="border-b border-slate-200 bg-white px-6 py-4 dark:border-slate-700 dark:bg-slate-800">
         <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3">
           <Link
             href="/admin/clients"
-            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-brand-600"
+            className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 hover:text-brand-600 dark:text-slate-300 dark:hover:text-brand-400"
           >
             <Icon name="chevron-left" className="size-4" />
             Back to client list
@@ -133,14 +133,14 @@ function ClientDetailPageContent({ user: _user }: { user: AuthUser }) {
               <button
                 type="button"
                 onClick={() => setEditOpen(true)}
-                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
               >
                 Edit
               </button>
               <button
                 type="button"
                 onClick={() => setDeleteOpen(true)}
-                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                className="rounded-lg border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:border-red-800/50 dark:text-red-400 dark:hover:bg-red-900/20"
               >
                 Delete
               </button>

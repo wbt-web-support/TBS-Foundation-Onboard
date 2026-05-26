@@ -27,7 +27,7 @@ function SaveDot({ status }: { status: SaveStatus }) {
   return <span className={`size-2 shrink-0 rounded-full ${color}`} />;
 }
 
-export function Sidebar() {
+export function Sidebar({ onBackToWelcome }: { onBackToWelcome?: () => void }) {
   const {
     answers,
     currentSectionIndex,
@@ -44,6 +44,18 @@ export function Sidebar() {
 
   return (
     <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 md:flex">
+      {onBackToWelcome && !completed && (
+        <button
+          type="button"
+          onClick={onBackToWelcome}
+          className="flex w-full items-center gap-1.5 border-b border-slate-100 px-5 py-3 text-sm font-medium text-teal-600 transition-colors hover:bg-slate-50 dark:border-slate-700/80 dark:text-teal-400 dark:hover:bg-slate-800/50"
+        >
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="size-4">
+            <path d="M19 12H5M12 5l-7 7 7 7" />
+          </svg>
+          Back to Welcome
+        </button>
+      )}
       <div className="border-b border-slate-100 px-5 py-5 dark:border-slate-700/80">
         <h1 className="text-base font-semibold text-ink">Setup Progress</h1>
         <p className="mt-0.5 text-xs text-muted">Complete all sections to continue</p>
