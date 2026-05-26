@@ -223,6 +223,12 @@ export function QuestionRenderer({ question }: { question: Question }) {
             layout={isTemplateGallery ? "template" : "compact"}
             enableZoom={isTemplateGallery}
             allowUploadOwn={isTemplateGallery}
+            galleryType={
+              question.galleryKey === "templates-real" ? "real"
+              : question.galleryKey === "templates-animated" ? "animated"
+              : question.galleryKey === "templates-mixed" ? "mixed"
+              : undefined
+            }
             uploadOwn={
               isTemplateGallery && companionKey && uploadMeta
                 ? {

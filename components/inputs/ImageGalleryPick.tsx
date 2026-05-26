@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import type { GalleryOption } from "@/lib/schema/types";
 import { TEMPLATE_UPLOAD_OWN_ID } from "@/lib/schema/templateGalleries";
 import { ImagePreviewModal } from "./ImagePreviewModal";
@@ -197,6 +198,7 @@ export function ImageGalleryPick({
   enableZoom = false,
   allowUploadOwn = false,
   uploadOwn,
+  galleryType,
 }: {
   options: GalleryOption[];
   value: string | string[];
@@ -205,12 +207,14 @@ export function ImageGalleryPick({
   /** `light` for white question cards; `dark` for intro / dark panels. */
   surface?: GallerySurface;
   /** `template` — full mockup thumbnails (Real / Animated / Mixed pickers). */
-  layout?: "compact" | "template";
+  layout?: “compact” | “template”;
   enableZoom?: boolean;
   /** Adds “Upload my own” tile + action (template galleries). */
   allowUploadOwn?: boolean;
   /** When set, the upload control is rendered inside the “Upload my own” card. */
   uploadOwn?: GalleryUploadOwnConfig;
+  /** Template gallery type — enables the Customize button on template tiles. */
+  galleryType?: “real” | “animated” | “mixed”;
 }) {
   const selectedValues = Array.isArray(value) ? value : value ? [value] : [];
   const isButtonStyleGallery = options.some((o) => Boolean(o.buttonShape));
@@ -317,19 +321,32 @@ export function ImageGalleryPick({
                 enableZoom={enableZoom}
                 onZoom={(src, alt) => setPreview({ src, alt })}
               />
-              <button
-                type="button"
-                onClick={toggle}
-                role="radio"
-                aria-checked={selected}
-                aria-label={`Select ${o.label}`}
-                className="flex w-full items-center justify-between gap-2 border-t border-slate-700 bg-slate-900 px-2.5 py-2 text-left transition hover:bg-slate-800"
-              >
-                <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
-                <span className="text-[10px] font-semibold uppercase tracking-wide text-white sm:text-xs">
-                  Select
-                </span>
-              </button>
+              <div className="flex border-t border-slate-700">
+                <button
+                  type="button"
+                  onClick={toggle}
+                  role="radio"
+                  aria-checked={selected}
+                  aria-label={`Select ${o.label}`}
+                  className="flex flex-1 items-center justify-between gap-2 bg-slate-900 px-2.5 py-2 text-left transition hover:bg-slate-800"
+                >
+                  <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
+                  <span className="text-[10px] font-semibold uppercase tracking-wide text-white sm:text-xs">
+                    Select
+                  </span>
+                </button>
+                {galleryType && (
+                  <Link
+                    href={`/builder?template=${encodeURIComponent(o.id)}&type=${galleryType}&name=${encodeURIComponent(o.label)}&thumb=${encodeURIComponent(o.imageUrl ?? "")}`}
+                    target="_blank"
+                    onClick={(e) => e.stopPropagation()}
+                    className="flex items-center gap-1 border-l border-slate-700 bg-teal-600 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-white transition hover:bg-teal-500 sm:text-xs"
+                    title={`Customise ${o.label} template`}
+                  >
+                    🎨
+                  </Link>
+                )}
+              </div>
             </div>
           );
         }
