@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { findPredefinedAnswer, predefinedQA } from "@/lib/chat/predefinedQA";
+import { buildFormQuestionsContext } from "@/lib/chat/formQuestionsContext";
 
 // Simple in-memory conversation store (per-process, resets on restart)
 const sessions = new Map<string, { role: "user" | "assistant"; content: string }[]>();
@@ -23,12 +24,18 @@ const knowledgeBase = Object.entries(predefinedQA)
   .map(([q, a]) => `Q: ${q}\nA: ${a}`)
   .join("\n\n");
 
+const formQuestionsContext = buildFormQuestionsContext();
+
 const SYSTEM_PROMPT = `You are a helpful onboarding assistant for We Build Trades (https://webuildtrades.com), a digital marketing agency specialising in the trades industry.
 
 You help clients complete their onboarding questionnaire by answering questions about the process, explaining what information is needed, and providing guidance.
 
+When a user asks about any question in the form (e.g. "what is tax identification number?", "why do you need my logo?", "what is company registration number?"), use the form questions reference below to explain clearly what the question is asking for and why it is needed.
+
 Knowledge base:
 ${knowledgeBase}
+
+${formQuestionsContext}
 
 Formatting rules:
 - Use HTML for formatting: <strong>, <ul>, <li>, <ol>, <p>, <a href="..." target="_blank">, <br/>
