@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 240" fill="none" role="img" aria-labelledby="a">
+  <title id="a">Secure account access</title>
+  <ellipse cx="120" cy="200" rx="90" ry="28" fill="#e0f2f1" opacity=".5"/>
+  <ellipse cx="160" cy="48" rx="72" ry="36" fill="#ccfbf1" opacity=".4"/>
+  <!-- padlock -->
+  <path stroke="#94a3b8" stroke-width="9" stroke-linecap="round" fill="none" d="M52 86V62a28 28 0 0 1 56 0v24"/>
+  <rect x="28" y="86" width="104" height="92" rx="14" fill="#14b8a6"/>
+  <circle cx="80" cy="132" r="9" fill="#0f766e"/>
+  <rect x="75" y="132" width="10" height="18" rx="2" fill="#f8fafc"/>
+  <!-- phone -->
+  <rect x="118" y="40" width="86" height="168" rx="16" fill="#0f172a"/>
+  <rect x="128" y="56" width="66" height="118" rx="6" fill="#f1f5f9"/>
+  <circle cx="161" cy="192" r="5" fill="#475569"/>
+  <!-- accent dots -->
+  <circle cx="132" cy="78" r="8" fill="#14b8a6"/>
+  <circle cx="198" cy="100" r="7" fill="#64748b"/>
+  <circle cx="108" cy="128" r="7" fill="#0ea5e9" opacity=".85"/>
+</svg>

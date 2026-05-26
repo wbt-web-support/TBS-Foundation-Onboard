@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg153"
+   xml:space="preserve"
+   width="682.66669"
+   height="682.66669"
+   viewBox="0 0 682.66669 682.66669"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs157"><clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath167"><path
+         d="M 0,512 H 512 V 0 H 0 Z"
+         id="path165" /></clipPath></defs><g
+     id="g159"
+     transform="matrix(1.3333333,0,0,-1.3333333,0,682.66667)"><g
+       id="g161"><g
+         id="g163"
+         clip-path="url(#clipPath167)"><g
+           id="g169"
+           transform="translate(437.6914,196.6733)"><path
+             d="m 0,0 c 0,-100.346 -81.346,-181.673 -181.691,-181.673 -100.346,0 -181.692,81.327 -181.692,181.673 0,34.514 9.62,66.782 26.344,94.259 0,0 23.133,-49.376 62.883,-33.417 15.626,6.274 33.421,23.884 16.643,52.927 -18.095,31.322 -7.441,73.263 31.385,92.491 45.312,22.442 44.196,81.355 44.196,81.355 0,0 71.286,-44.479 46.324,-102.563 -14.407,-33.523 -16.125,-74.157 13.832,-83.144 35.863,-10.759 54.793,38.991 54.793,38.991 C -26.113,107.594 0,56.845 0,0 Z"
+             style="fill:none;stroke:#000000;stroke-width:30;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+             id="path171" /></g><g
+           id="g173"
+           transform="translate(332.5225,91.4937)"><path
+             d="m 0,0 c 0,-21.131 -8.569,-40.251 -22.415,-54.097 -13.845,-13.844 -32.981,-22.397 -54.111,-22.397 -42.246,0 -76.497,34.233 -76.512,76.479 v 0.03 c -0.196,15.931 3.249,34.764 12.832,56.62 l 31.289,-9.144 c 1.148,60.49 57.391,81.787 57.391,81.787 2.025,-19.906 7.165,-39.163 17.82,-56.575 7.754,-12.652 15.085,-23.489 23.564,-35.626 C -2.796,26.542 0.061,12.636 0,0 Z"
+             style="fill:none;stroke:#000000;stroke-width:30;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:10;stroke-dasharray:none;stroke-opacity:1"
+             id="path175" /></g></g></g></g></svg>

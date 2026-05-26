@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:is(.dark *), &.dark);
+
+@theme {
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-200: #99f6e4;
+  --color-brand-500: #14b8a6;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
+
+  --color-ink: #0f172a;
+  --color-muted: #64748b;
+
+  --color-page-bg: #ffffff;
+
+  /* Intro / transition outer area */
+  --color-intro-backdrop: #ffffff;
+  /* Dark panels (e.g. image gallery chips only — not main intro card) */
+  --color-intro-card: #0f172a;
+  --color-intro-badge: #e85d6f;
+  --color-intro-cta: #14b8a6;
+  --color-intro-cta-hover: #0d9488;
+
+  --radius-card: 1rem;
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-page-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+/* Dark mode overrides */
+html.dark {
+  --color-page-bg: #0f172a;
+  --color-ink: #f1f5f9;
+  --color-muted: #94a3b8;
+  --color-intro-backdrop: #0f172a;
+  color-scheme: dark;
+}
