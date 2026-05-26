@@ -207,14 +207,14 @@ export function ImageGalleryPick({
   /** `light` for white question cards; `dark` for intro / dark panels. */
   surface?: GallerySurface;
   /** `template` — full mockup thumbnails (Real / Animated / Mixed pickers). */
-  layout?: “compact” | “template”;
+  layout?: "compact" | "template";
   enableZoom?: boolean;
-  /** Adds “Upload my own” tile + action (template galleries). */
+  /** Adds "Upload my own" tile + action (template galleries). */
   allowUploadOwn?: boolean;
-  /** When set, the upload control is rendered inside the “Upload my own” card. */
+  /** When set, the upload control is rendered inside the "Upload my own" card. */
   uploadOwn?: GalleryUploadOwnConfig;
   /** Template gallery type — enables the Customize button on template tiles. */
-  galleryType?: “real” | “animated” | “mixed”;
+  galleryType?: "real" | "animated" | "mixed";
 }) {
   const selectedValues = Array.isArray(value) ? value : value ? [value] : [];
   const isButtonStyleGallery = options.some((o) => Boolean(o.buttonShape));
