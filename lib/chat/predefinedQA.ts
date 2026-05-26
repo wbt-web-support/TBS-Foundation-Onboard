@@ -73,6 +73,39 @@ export const predefinedQA: Record<string, string> = {
     </div>
   `,
 
+  "stop form": `
+    <p><strong>No worries — your progress is saved automatically!</strong></p>
+    <p>Every answer you enter is saved in real time, so if you stop, close the tab, or lose connection, nothing is lost.</p>
+    <p>To make it easy to <strong>come back later</strong>:</p>
+    <ul>
+      <li>Click the <strong>"Save Progress"</strong> button (bottom-right of the screen) — we'll email you a personal resume link.</li>
+      <li>Or simply use the same browser on the same device — your answers will still be there.</li>
+    </ul>
+    <p>When you return, you'll pick up <strong>exactly where you left off</strong>. There's no need to start over.</p>
+  `,
+
+  "stop filling": `
+    <p><strong>No worries — your progress is saved automatically!</strong></p>
+    <p>Every answer you enter is saved in real time, so if you stop, close the tab, or lose connection, nothing is lost.</p>
+    <p>To make it easy to <strong>come back later</strong>:</p>
+    <ul>
+      <li>Click the <strong>"Save Progress"</strong> button (bottom-right of the screen) — we'll email you a personal resume link.</li>
+      <li>Or simply use the same browser on the same device — your answers will still be there.</li>
+    </ul>
+    <p>When you return, you'll pick up <strong>exactly where you left off</strong>. There's no need to start over.</p>
+  `,
+
+  "leave form": `
+    <p><strong>No worries — your progress is saved automatically!</strong></p>
+    <p>Every answer you enter is saved in real time, so if you stop, close the tab, or lose connection, nothing is lost.</p>
+    <p>To make it easy to <strong>come back later</strong>:</p>
+    <ul>
+      <li>Click the <strong>"Save Progress"</strong> button (bottom-right of the screen) — we'll email you a personal resume link.</li>
+      <li>Or simply use the same browser on the same device — your answers will still be there.</li>
+    </ul>
+    <p>When you return, you'll pick up <strong>exactly where you left off</strong>. There's no need to start over.</p>
+  `,
+
   "how long": `
     <p>This onboarding form typically takes <strong>30 to 60 minutes</strong> to complete.</p>
     <p>You can <strong>save your progress</strong> at any time and return later — your answers are automatically stored.</p>
