@@ -1,15 +1,25 @@
 import Link from "next/link";
-import { WbtLogo } from "./WbtLogo";
-import { ThemeToggle } from "./ThemeToggle";
+import Image from "next/image";
 
 export function SiteHeader() {
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 w-full border-b border-slate-200 bg-white/95 backdrop-blur-sm dark:border-slate-700 dark:bg-slate-900/95 supports-[backdrop-filter]:bg-white/90 dark:supports-[backdrop-filter]:bg-slate-900/90">
-      <div className="flex h-14 w-full items-center justify-between px-5 sm:px-8">
-        <Link href="/" className="flex items-center outline-none ring-brand-500/40 focus-visible:ring-2">
-          <WbtLogo className="h-8 w-[200px] shrink-0" />
+    <header className="fixed top-0 left-0 right-0 z-50 h-14 w-full bg-rail">
+      <div className="flex h-full w-full items-center justify-between px-5 sm:px-8">
+        <Link href="/" className="flex items-center outline-none">
+          <Image
+            src="/logo.png"
+            alt="We Build Trades"
+            width={160}
+            height={32}
+            className="h-8 w-auto object-contain"
+            style={{ width: "auto", height: "2rem" }}
+            priority
+            unoptimized
+          />
         </Link>
-        <ThemeToggle />
+        <span className="text-xs font-semibold uppercase tracking-widest text-rail-muted">
+          Client Onboarding
+        </span>
       </div>
     </header>
   );

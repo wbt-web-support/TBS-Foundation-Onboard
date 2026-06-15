@@ -118,8 +118,8 @@ export function ImageUpload({
         <div
           className={
             isCompact
-              ? "flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-2 py-2 text-center"
-              : "flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm"
+              ? "flex min-h-0 flex-1 flex-col items-center justify-center gap-2 rounded-lg border border-b1 bg-panel px-2 py-2 text-center"
+              : "flex items-center justify-between gap-3 rounded-lg border border-b1 bg-surface px-3.5 py-3 text-sm"
           }
         >
           {isCompact ? (
@@ -127,12 +127,12 @@ export function ImageUpload({
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="min-h-0 w-full flex-1 overflow-hidden rounded-md border border-slate-200 bg-slate-50"
+                className="min-h-0 w-full flex-1 overflow-hidden rounded-md border border-b1 bg-surface"
                 aria-label="Preview uploaded image"
               >
                 <img src={previewSrc} alt={fileName(value)} className="mx-auto h-full max-h-36 w-full object-contain" />
               </button>
-              <p className="line-clamp-2 w-full text-[10px] font-medium text-slate-600">
+              <p className="line-clamp-2 w-full text-[10px] font-medium text-mid">
                 {fileName(value || "selected-image")}
               </p>
               <div className="flex w-full flex-wrap items-center justify-center gap-2">
@@ -148,7 +148,7 @@ export function ImageUpload({
                   type="button"
                   onClick={removeFile}
                   disabled={uploading}
-                  className="text-[10px] font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                  className="text-[10px] font-medium text-mid hover:text-ink disabled:opacity-50"
                 >
                   Remove
                 </button>
@@ -156,15 +156,15 @@ export function ImageUpload({
             </>
           ) : (
             <>
-              <span className="flex min-w-0 items-center gap-2 text-slate-700">
+              <span className="flex min-w-0 items-center gap-2 text-ink">
                 <Icon
                   name={value ? "check" : "upload"}
-                  className={`size-4 shrink-0 ${value ? "text-emerald-600" : "text-slate-500"}`}
+                  className={`size-4 shrink-0 ${value ? "text-green" : "text-mid"}`}
                 />
                 <button
                   type="button"
                   onClick={() => setPreviewOpen(true)}
-                  className="shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white"
+                  className="shrink-0 overflow-hidden rounded-md border border-b1 bg-panel"
                   aria-label="Preview uploaded image"
                 >
                   <img src={previewSrc} alt={fileName(value)} className="size-10 object-cover" />
@@ -190,7 +190,7 @@ export function ImageUpload({
                   type="button"
                   onClick={removeFile}
                   disabled={uploading}
-                  className="shrink-0 text-xs font-medium text-slate-500 hover:text-slate-700 disabled:opacity-50"
+                  className="shrink-0 text-xs font-medium text-mid hover:text-ink disabled:opacity-50"
                 >
                   Remove
                 </button>
@@ -226,7 +226,7 @@ export function ImageUpload({
           } ${
             dragging
               ? "border-brand-500 bg-brand-50 text-brand-700"
-              : "border-slate-300 text-slate-500 hover:border-brand-400 hover:text-brand-600"
+              : "border-b2 text-mid hover:border-brand-400 hover:text-brand-600"
           }`}
         >
           <Icon name="upload" className="size-5" />
@@ -238,12 +238,12 @@ export function ImageUpload({
       )}
 
       {error ? (
-        <p className={`text-rose-600 ${isCompact ? "mt-1 text-center text-[10px]" : "mt-1.5 text-xs"}`}>{error}</p>
+        <p className={`text-red ${isCompact ? "mt-1 text-center text-[10px]" : "mt-1.5 text-xs"}`}>{error}</p>
       ) : null}
 
       {previewOpen && previewSrc ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-rail/80 p-4"
           onClick={() => setPreviewOpen(false)}
           role="dialog"
           aria-modal="true"
@@ -259,7 +259,7 @@ export function ImageUpload({
           <img
             src={previewSrc}
             alt={fileName(value || "image")}
-            className="max-h-[85vh] max-w-[90vw] rounded-lg border border-white/20 bg-white object-contain shadow-2xl"
+            className="max-h-[85vh] max-w-[90vw] rounded-lg border border-white/20 bg-panel object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

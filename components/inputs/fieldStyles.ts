@@ -1,12 +1,12 @@
 export const FIELD_CLASS =
-  "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-ink placeholder:text-slate-400 outline-none transition focus:border-brand-500 focus:ring-2 focus:ring-brand-500/25 dark:border-slate-600 dark:bg-slate-700 dark:placeholder:text-slate-500";
+  "w-full rounded-md border border-b2 bg-panel px-3 py-2 text-sm text-ink placeholder:text-dim outline-none transition focus:border-orange focus:ring-[3px] focus:ring-orange/10";
 
-export const LABEL_CLASS = "mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-300";
+export const LABEL_CLASS = "mb-1.5 block text-[13px] font-medium text-mid";
 
 /** Wrapper + inner field for inputs with a leading prefix text or icon (shared focus ring). */
 export const INPUT_PREFIX_WRAP =
-  "flex w-full overflow-hidden rounded-lg border border-slate-300 bg-white transition outline-none focus-within:border-brand-500 focus-within:ring-2 focus-within:ring-brand-500/25 dark:border-slate-600 dark:bg-slate-700";
+  "flex w-full overflow-hidden rounded-md border border-b2 bg-panel transition outline-none focus-within:border-orange focus-within:ring-[3px] focus-within:ring-orange/10";
 export const INPUT_PREFIX_LEAD =
-  "flex shrink-0 items-center border-r border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500 dark:border-slate-600 dark:bg-slate-600 dark:text-slate-400";
+  "flex shrink-0 items-center border-r border-b1 bg-surface px-3 py-2 text-sm text-mid";
 export const INPUT_PREFIX_FIELD =
-  "min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-ink outline-none ring-0 placeholder:text-slate-400 dark:placeholder:text-slate-500";
+  "min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-sm text-ink outline-none ring-0 placeholder:text-dim";

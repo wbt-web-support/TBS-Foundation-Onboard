@@ -85,7 +85,7 @@ export function SectionView() {
   ) {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center">
-        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-[var(--color-page-bg)] px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
+        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-canvas px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
           <IntroScreen
             heading={section.welcomeIntro.heading}
             body={section.welcomeIntro.body}
@@ -111,7 +111,7 @@ export function SectionView() {
   if (section.transitionIntro && !dismissedPanels.has(section.id)) {
     return (
       <div className="flex min-h-0 flex-1 flex-col justify-center">
-        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-[var(--color-intro-backdrop)] px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
+        <div className="-mx-5 flex min-h-0 flex-1 flex-col justify-center bg-canvas px-5 py-10 sm:-mx-8 sm:px-8 sm:py-12">
           <div className="mx-auto w-full max-w-3xl">
             <TransitionIntroScreen
               title={section.transitionIntro.title}
@@ -138,23 +138,23 @@ export function SectionView() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="sticky top-[calc(3.5rem+6.5rem)] z-20 -mx-5 mb-6 border-b border-slate-200/90 bg-[var(--color-page-bg)]/95 px-5 py-3 backdrop-blur-sm dark:border-slate-700/90 md:top-14 sm:-mx-8 sm:px-8 supports-[backdrop-filter]:bg-[var(--color-page-bg)]/90">
+      <div className="sticky top-[calc(3.5rem+6.5rem)] z-20 -mx-5 mb-6 border-b border-b1 bg-canvas/95 px-5 py-3 backdrop-blur-sm md:top-14 sm:-mx-8 sm:px-8 supports-[backdrop-filter]:bg-canvas/90">
         <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-2">
           <div className="min-w-0 flex-1">
-            {section.heading ? <h2 className="text-xl font-semibold text-ink">{section.heading}</h2> : null}
+            {section.heading ? <h2 className="font-display text-xl font-semibold text-ink">{section.heading}</h2> : null}
             {section.introBody ? (
-              <p className={`text-sm text-muted ${section.heading ? "mt-1.5" : ""}`}>{section.introBody}</p>
+              <p className={`text-sm text-mid ${section.heading ? "mt-1.5" : ""}`}>{section.introBody}</p>
             ) : null}
           </div>
           {completion.total > 0 ? (
             <p
-              className="shrink-0 text-sm tabular-nums text-muted"
+              className="shrink-0 text-sm tabular-nums text-mid"
               aria-live="polite"
               aria-atomic="true"
               aria-label={`${completion.completed} of ${completion.total} questions completed in this section`}
             >
               <span className="font-semibold text-ink">{completion.completed}</span>
-              <span className="text-muted" aria-hidden="true">
+              <span className="text-mid" aria-hidden="true">
                 {" "}
                 /{" "}
               </span>

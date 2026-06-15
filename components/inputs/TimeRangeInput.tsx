@@ -80,7 +80,7 @@ export function TimeRangeInput({
 
   return (
     <div className="space-y-4">
-      <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Monday to Friday</p>
+      <p className="text-sm font-semibold text-ink">Monday to Friday</p>
       <div className="grid grid-cols-2 gap-4">
         <TimeSelectGroup
           label="Opens"
@@ -99,8 +99,8 @@ export function TimeRangeInput({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3 sm:items-center">
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Saturday</p>
-        <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+        <p className="text-sm font-semibold text-ink">Saturday</p>
+        <label className="inline-flex items-center gap-2 text-sm text-ink">
           <input
             type="radio"
             name="opening-saturday"
@@ -111,7 +111,7 @@ export function TimeRangeInput({
           />
           We are closed
         </label>
-        <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+        <label className="inline-flex items-center gap-2 text-sm text-ink">
           <input
             type="radio"
             name="opening-saturday"
@@ -125,8 +125,8 @@ export function TimeRangeInput({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3 sm:items-center">
-        <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Sunday</p>
-        <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+        <p className="text-sm font-semibold text-ink">Sunday</p>
+        <label className="inline-flex items-center gap-2 text-sm text-ink">
           <input
             type="radio"
             name="opening-sunday"
@@ -137,7 +137,7 @@ export function TimeRangeInput({
           />
           We are closed
         </label>
-        <label className="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
+        <label className="inline-flex items-center gap-2 text-sm text-ink">
           <input
             type="radio"
             name="opening-sunday"
@@ -150,7 +150,7 @@ export function TimeRangeInput({
         </label>
       </div>
 
-      <label className="inline-flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+      <label className="inline-flex items-center gap-2 text-sm font-medium text-ink">
         <input type="checkbox" checked={Boolean(v.alwaysOpen)} onChange={(e) => applyAlwaysOpen(e.target.checked)} onBlur={onBlur} />
         24 X 7 Open
       </label>

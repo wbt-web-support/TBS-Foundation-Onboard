@@ -22,7 +22,7 @@ function loomShareToEmbedUrl(shareUrl: string): string | null {
 }
 
 const LINK_CLASS =
-  "font-medium text-brand-600 underline decoration-brand-600/80 underline-offset-2 hover:text-brand-700";
+  "font-medium text-teal underline decoration-teal/80 underline-offset-2 hover:text-[#178f8b]";
 
 function RichTitle({ segments }: { segments: QuestionRichSegment[] }) {
   const [loomEmbedUrl, setLoomEmbedUrl] = useState<string | null>(null);
@@ -138,11 +138,11 @@ function GoogleSheetDarkCard({
   return (
     <div
       id={`q-${question.id}`}
-      className={`-mx-5 scroll-mt-8 px-5 sm:-mx-8 sm:px-8 ${invalid ? "rounded-card ring-2 ring-rose-400/80 ring-offset-2 ring-offset-slate-50" : ""}`}
+      className={`-mx-5 scroll-mt-8 px-5 sm:-mx-8 sm:px-8 ${invalid ? "rounded-lg ring-2 ring-red/40 ring-offset-2 ring-offset-canvas" : ""}`}
     >
       <div
-        className={`rounded-card border bg-white p-6 shadow-sm transition dark:bg-slate-800 sm:p-8 ${
-          invalid ? "border-rose-300 ring-1 ring-rose-200 dark:border-rose-500/60" : "border-slate-200 dark:border-slate-700"
+        className={`rounded-lg border bg-panel p-6 shadow-card transition sm:p-8 ${
+          invalid ? "border-red/40" : "border-b1"
         }`}
       >
         <div className="flex flex-col gap-5">
@@ -152,21 +152,21 @@ function GoogleSheetDarkCard({
             </h3>
             <span
               className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-medium ${
-                required ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+                required ? "bg-amber-tint text-yellow" : "bg-surface text-mid"
               }`}
             >
               {required ? "Required" : "Optional"}
             </span>
           </div>
           {question.helper ? (
-            <p className="text-sm leading-relaxed text-muted whitespace-pre-line sm:text-[15px]">{question.helper}</p>
+            <p className="text-sm leading-relaxed text-mid whitespace-pre-line sm:text-[15px]">{question.helper}</p>
           ) : null}
           <div className="flex flex-col items-center gap-3">
             <a
               href={r.tutorialVideoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="max-w-xl text-center text-sm font-medium text-[var(--color-intro-cta)] underline decoration-[var(--color-intro-cta)] underline-offset-2 transition hover:text-[var(--color-intro-cta-hover)]"
+              className="max-w-xl text-center text-sm font-medium text-teal underline decoration-teal/80 underline-offset-2 transition hover:text-[#178f8b]"
             >
               {r.tutorialLinkLabel ??
                 "Click here to watch a video tutorial on how to add a product to the sheet."}
@@ -175,9 +175,9 @@ function GoogleSheetDarkCard({
               href={r.templateUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:border-slate-400 hover:bg-slate-50"
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-b2 bg-panel px-5 py-2.5 text-sm font-medium text-ink transition hover:border-b3 hover:bg-surface"
             >
-              <Icon name="sheet" className="size-4 shrink-0 text-brand-600" />
+              <Icon name="sheet" className="size-4 shrink-0 text-teal" />
               {r.productSheetButtonLabel ?? "Product Sheet"}
             </a>
           </div>
@@ -186,19 +186,19 @@ function GoogleSheetDarkCard({
             <button
               type="button"
               onClick={() => void onProvideLater()}
-              className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+              className="inline-flex items-center justify-center gap-2 rounded-md border border-b2 bg-panel px-5 py-2.5 text-sm font-medium text-mid transition hover:border-b3 hover:text-ink"
             >
-              <Icon name="clock" className="size-4 shrink-0 text-slate-500" />
+              <Icon name="clock" className="size-4 shrink-0 text-dim" />
               I will provide later
               <Icon name="chevron-right" className="size-4" />
             </button>
           </div>
-          <div className="flex items-center gap-1.5 border-t border-slate-200 pt-4 text-xs">
-            <Icon name="check" className={`size-3.5 ${complete ? "text-emerald-600" : "text-slate-300"}`} />
-            <span className={complete ? "font-medium text-emerald-600" : "text-slate-400"}>
+          <div className="flex items-center gap-1.5 border-t border-b1 pt-4 text-xs">
+            <Icon name="check" className={`size-3.5 ${complete ? "text-green" : "text-b3"}`} />
+            <span className={complete ? "font-medium text-green" : "text-dim"}>
               {complete ? "Completed" : required ? "Required" : "Optional"}
             </span>
-            {invalid ? <span className="ml-2 text-rose-600">This field is required.</span> : null}
+            {invalid ? <span className="ml-2 text-red">This field is required.</span> : null}
           </div>
         </div>
       </div>
@@ -240,12 +240,12 @@ export function QuestionCard({
   return (
     <div
       id={`q-${question.id}`}
-      className={`scroll-mt-8 rounded-card border bg-white p-4 shadow-sm transition dark:bg-slate-800 sm:p-6 ${
-        invalid ? "border-rose-300 ring-1 ring-rose-200 dark:border-rose-500/60" : "border-slate-200 dark:border-slate-700"
+      className={`scroll-mt-8 rounded-lg border bg-panel p-4 shadow-card transition sm:p-6 ${
+        invalid ? "border-red/40 ring-1 ring-red/20" : "border-b1"
       }`}
     >
       <div className="flex items-start gap-2 sm:gap-3">
-        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-brand-50 text-brand-600 dark:bg-brand-800/40 dark:text-brand-400 sm:size-9">
+        <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-teal-tint text-teal sm:size-9">
           <Icon name={question.icon ?? "image"} />
         </span>
         <div className="min-w-0 flex-1">
@@ -253,16 +253,16 @@ export function QuestionCard({
             {question.titleRich?.length ? <RichTitle segments={question.titleRich} /> : question.title}
           </h3>
           {question.helperRich?.length ? (
-            <div className="mt-1 text-sm leading-relaxed text-muted">
+            <div className="mt-1 text-sm leading-relaxed text-mid">
               <RichTitle segments={question.helperRich} />
             </div>
           ) : question.helper ? (
-            <p className="mt-1 text-sm text-muted whitespace-pre-line">{question.helper}</p>
+            <p className="mt-1 text-sm text-mid whitespace-pre-line">{question.helper}</p>
           ) : null}
         </div>
         <span
           className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium ${
-            required ? "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400" : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+            required ? "bg-amber-tint text-yellow" : "bg-surface text-mid"
           }`}
         >
           {required ? "Required" : "Optional"}
@@ -270,7 +270,7 @@ export function QuestionCard({
       </div>
 
       {question.cardImageUrl ? (
-        <div className="mt-4 flex justify-center rounded-lg border border-slate-200 bg-slate-50/80 px-4 py-3">
+        <div className="mt-4 flex justify-center rounded-lg border border-b1 bg-surface px-4 py-3">
           <Image
             src={question.cardImageUrl}
             alt={question.cardImageAlt ?? ""}
@@ -291,29 +291,26 @@ export function QuestionCard({
             onClick={() => void onProvideLaterSkip()}
             className={
               question.provideLater.variant === "dark"
-                ? "inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800"
-                : "inline-flex items-center justify-center gap-2 rounded-2xl border-2 border-white bg-[var(--color-intro-cta)] px-6 py-2.5 text-sm font-semibold text-white shadow-md transition hover:bg-[var(--color-intro-cta-hover)]"
+                ? "inline-flex items-center justify-center gap-2 rounded-md border border-b2 bg-rail px-6 py-2.5 text-sm font-semibold text-rail-text shadow-card transition hover:bg-rail-2"
+                : "inline-flex items-center justify-center gap-2 rounded-md bg-orange px-6 py-2.5 text-sm font-semibold text-white shadow-card transition hover:bg-[#e25608]"
             }
           >
             {question.provideLater.variant !== "dark" ? (
               <Icon name="clock" className="size-4 shrink-0 opacity-90" />
             ) : null}
             {question.provideLater.label ?? "I will provide later"}
-            <Icon
-              name="chevron-right"
-              className={`size-4 shrink-0 ${question.provideLater.variant === "dark" ? "text-white" : ""}`}
-            />
+            <Icon name="chevron-right" className="size-4 shrink-0" />
           </button>
         </div>
       ) : null}
 
       <div className="mt-4 flex items-center gap-1.5 text-xs">
-        <Icon name="check" className={`size-3.5 ${complete ? "text-emerald-600" : "text-slate-300"}`} />
-        <span className={complete ? "font-medium text-emerald-600" : "text-slate-400"}>
+        <Icon name="check" className={`size-3.5 ${complete ? "text-green" : "text-b3"}`} />
+        <span className={complete ? "font-medium text-green" : "text-dim"}>
           {complete ? "Completed" : required ? "Required" : "Optional"}
         </span>
         {invalid ? (
-          <span className="ml-2 text-rose-600">{invalidMessage ?? "This field is required."}</span>
+          <span className="ml-2 text-red">{invalidMessage ?? "This field is required."}</span>
         ) : null}
       </div>
     </div>

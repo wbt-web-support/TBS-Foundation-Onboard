@@ -1,5 +1,7 @@
+import { after } from "next/server";
 import { getServiceClient, SUBMISSIONS_TABLE } from "@/lib/supabase/server";
 import { sendCompletionReportWithPdf } from "@/lib/email/resend";
+import { notifyCommandHqOnCompletion } from "@/lib/webhook/commandHq";
 import { buildAndUploadCompletionPdf } from "@/lib/pdf/saveCompletionPdf";
 import { FOUNDATION_COMPLETION_PDF_URL_KEY } from "@/lib/submission/foundationAppAnswersKey";
 import { encodeCompletionPdfForDb } from "@/lib/admin/submissionPdf";
@@ -117,6 +119,18 @@ export async function POST(request: Request) {
     let pdfBuffer: Buffer | null = null;
     let pdfFilename: string | null = null;
 
+    // Detect the not-completed → completed transition so the Command HQ webhook
+    // fires exactly once per submission (not on every post-completion autosave).
+    let previouslyCompleted = false;
+    if (completed) {
+      const { data: prior } = await supabase
+        .from(SUBMISSIONS_TABLE)
+        .select("completed")
+        .eq("id", body.submissionId)
+        .maybeSingle();
+      previouslyCompleted = Boolean(prior?.completed);
+    }
+
     if (completed) {
       const enriched = await enrichStoredAnswersOnCompletion(
         appAnswers,
@@ -144,6 +158,12 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (error) return jsonError(error.message, 500);
     if (!data) return jsonError("Submission not found", 404);
+
+    if (completed && !previouslyCompleted) {
+      const idForHook = data.id;
+      after(() => notifyCommandHqOnCompletion({ submissionId: idForHook, appAnswers }));
+    }
+
     return Response.json({ id: data.id, resumeToken: data.resume_token, refId: data.ref_id ?? null } satisfies SubmissionResponse);
   }
 
@@ -162,6 +182,9 @@ export async function POST(request: Request) {
       patch.completion_pdf_filename = enriched.pdfFilename;
     }
     await supabase.from(SUBMISSIONS_TABLE).update(patch).eq("id", data.id);
+
+    const idForHook = data.id;
+    after(() => notifyCommandHqOnCompletion({ submissionId: idForHook, appAnswers }));
   }
 
   return Response.json({ id: data.id, resumeToken: data.resume_token, refId: data.ref_id ?? null } satisfies SubmissionResponse);

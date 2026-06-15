@@ -271,7 +271,7 @@ export default function OnboardingApp() {
         return null;
       }
     },
-    [router, triggerResumeEmail],
+    [router],
   );
 
   const flushSave = useCallback(async () => {
@@ -394,6 +394,9 @@ export default function OnboardingApp() {
             emailSent: Boolean(emailValue && EMAIL_RE.test(emailValue)),
           },
         });
+        // Magic-link arrival: drop straight into the questionnaire (resume where
+        // they left off) rather than the hub. Batched with HYDRATE → no hub flash.
+        if (tokenWasInUrl) setShowWelcome(false);
         if (showRestoreModal) setResumeRestoreModalOpen(true);
       } else {
         restoreSourceRef.current = sourceKey;
@@ -681,6 +684,7 @@ export default function OnboardingApp() {
       await save({ completed: true }, { force: true });
       trackFormCompleted();
       dispatch({ type: "MARK_COMPLETED" });
+      setShowWelcome(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       await goToSection(s.currentSectionIndex + 1);
@@ -788,20 +792,26 @@ export default function OnboardingApp() {
   if (!state.hydrated) {
     return (
       <div className="flex min-h-[calc(100vh-3.5rem)] items-center justify-center">
-        <div className="size-8 animate-spin rounded-full border-2 border-slate-200 border-t-brand-500" />
+        <div className="size-8 animate-spin rounded-full border-2 border-b1 border-t-orange" />
       </div>
     );
   }
 
-  const hasReturningSession = captureInitialUrlToken(initialUrlTokenRef) != null;
   const displayName = getApplicantDisplayName(state.answers);
+  const questionnaireProgress = overallProgress(state.answers, state.currentSectionIndex);
 
-  if (showWelcome && !hasReturningSession && !state.completed) {
+  // The "Get set up" hub is the home screen. A magic-link arrival (?id=) skips
+  // straight to the questionnaire — handled at hydrate time via setShowWelcome(false),
+  // not here — so the guard keys only on showWelcome and every "Back to Welcome"
+  // / "Back to overview" control works for all users.
+  if (showWelcome) {
     return (
       <WelcomeScreen
         onStart={() => setShowWelcome(false)}
         displayName={displayName}
         totalSteps={ONBOARDING_SCHEMA.sections.length}
+        questionnaireProgress={questionnaireProgress}
+        questionnaireComplete={state.completed}
       />
     );
   }
@@ -822,11 +832,11 @@ export default function OnboardingApp() {
           <MobileProgressHeader />
           {/* Mobile-only back bar — sidebar handles desktop */}
           {!state.completed && (
-            <div className="border-b border-slate-200 bg-white px-5 py-2.5 dark:border-slate-700 dark:bg-slate-900 md:hidden sm:px-8">
+            <div className="border-b border-b1 bg-panel px-5 py-2.5 md:hidden sm:px-8">
               <button
                 type="button"
                 onClick={() => setShowWelcome(true)}
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 transition-colors hover:text-teal-800 dark:text-teal-400 dark:hover:text-teal-300"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-teal transition-colors hover:text-[#178f8b]"
               >
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="size-4">
                   <path d="M19 12H5M12 5l-7 7 7 7" />
@@ -836,13 +846,8 @@ export default function OnboardingApp() {
             </div>
           )}
           <div className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-5 py-10 sm:px-8">
-            {state.completed ? (
-              <div className="flex flex-1 flex-col justify-center">
-                <CompletedScreen />
-              </div>
-            ) : (
-              <SectionView />
-            )}
+            {state.completed ? <CompletedBanner onBackToHub={() => setShowWelcome(true)} /> : null}
+            <SectionView />
           </div>
         </main>
       </div>
@@ -856,19 +861,19 @@ function MobileProgressHeader() {
   const overall = overallProgress(answers, currentSectionIndex);
   if (completed || !section) return null;
   return (
-    <div className="sticky top-14 z-10 border-b border-slate-200 bg-white px-4 py-3 dark:border-slate-700 dark:bg-slate-900 md:hidden">
+    <div className="sticky top-14 z-10 border-b border-b1 bg-panel px-4 py-3 md:hidden">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+          <p className="text-[11px] font-medium uppercase tracking-wide text-mid">
             Step {section.number} of {ONBOARDING_SCHEMA.sections.length}
           </p>
-          <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">{section.title}</p>
+          <p className="truncate text-sm font-semibold text-ink">{section.title}</p>
         </div>
-        <span className="shrink-0 text-sm font-bold text-brand-600">{overall}%</span>
+        <span className="shrink-0 text-sm font-bold text-orange">{overall}%</span>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-700">
+      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-b1">
         <div
-          className={`h-full rounded-full transition-all ${overall >= 100 ? "bg-emerald-500" : "bg-brand-500"}`}
+          className={`h-full rounded-full transition-all ${overall >= 100 ? "bg-green" : "bg-orange"}`}
           style={{ width: `${overall}%` }}
         />
       </div>
@@ -883,10 +888,10 @@ function MobileProgressHeader() {
               onClick={() => goToSection(i)}
               className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium transition-colors ${
                 isActive
-                  ? "bg-brand-600 text-white"
+                  ? "bg-orange text-white"
                   : isDone
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400"
-                    : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+                    ? "bg-green-tint text-green"
+                    : "bg-surface text-mid"
               }`}
             >
               {s.number}
@@ -898,24 +903,22 @@ function MobileProgressHeader() {
   );
 }
 
-function CompletedScreen() {
-  const { goToSection } = useOnboarding();
+function CompletedBanner({ onBackToHub }: { onBackToHub: () => void }) {
   return (
-    <div className="rounded-card border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-700 dark:bg-slate-800">
-      <div className="mx-auto grid size-12 place-items-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30">
-        <Icon name="check" className="size-6" />
+    <div className="mb-6 flex flex-wrap items-center gap-3 rounded-lg border border-green/30 bg-green-tint px-4 py-3">
+      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-green text-white">
+        <Icon name="check" className="size-4" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-ink">Your onboarding is complete</p>
+        <p className="text-xs text-mid">You can still review or edit any answer below — changes save automatically.</p>
       </div>
-      <h2 className="mt-4 text-2xl font-semibold text-ink">Thank you — your onboarding is complete</h2>
-      <p className="mt-2 text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">
-        We&apos;ve got everything we need to get started. We&apos;ll be in touch shortly. You can still revisit and
-        update any section using the menu.
-      </p>
       <button
         type="button"
-        onClick={() => goToSection(0)}
-        className="mt-5 text-sm font-medium text-brand-600 hover:underline"
+        onClick={onBackToHub}
+        className="shrink-0 rounded-md border border-green/40 bg-panel px-3 py-1.5 text-xs font-semibold text-green transition hover:bg-green-tint"
       >
-        Review my answers
+        Back to overview
       </button>
     </div>
   );

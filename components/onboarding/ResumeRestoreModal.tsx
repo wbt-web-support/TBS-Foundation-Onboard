@@ -22,7 +22,7 @@ export function ResumeRestoreModal({ open, onClose, onContinue, onStartOver }: R
         role="dialog"
         aria-modal="true"
         aria-labelledby="resume-restore-title"
-        className="relative w-full max-w-lg rounded-2xl border border-slate-200 bg-white px-8 pb-8 pt-10 shadow-2xl"
+        className="relative w-full max-w-lg rounded-2xl border border-b1 bg-panel px-8 pb-8 pt-10 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -35,10 +35,10 @@ export function ResumeRestoreModal({ open, onClose, onContinue, onStartOver }: R
             ×
           </span>
         </button>
-        <h2 id="resume-restore-title" className="pr-10 text-center text-xl font-semibold text-slate-900">
+        <h2 id="resume-restore-title" className="pr-10 text-center text-xl font-semibold text-ink">
           Form successfully restored
         </h2>
-        <p className="mt-4 text-center text-[15px] leading-relaxed text-slate-600">
+        <p className="mt-4 text-center text-[15px] leading-relaxed text-mid">
           The form has been recovered from your most recent changes. If you&apos;d like to resume, simply close the
           popup. And, if you wish to start again, click the button below.
         </p>

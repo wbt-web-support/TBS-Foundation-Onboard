@@ -76,14 +76,14 @@ export function FileUpload({
         }}
       />
       {value ? (
-        <div className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3.5 py-3 text-sm">
-          <span className="flex min-w-0 flex-1 items-center gap-2 text-slate-700">
-            <Icon name="check" className="size-4 shrink-0 text-emerald-600" />
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-b1 bg-surface px-3.5 py-3 text-sm">
+          <span className="flex min-w-0 flex-1 items-center gap-2 text-ink">
+            <Icon name="check" className="size-4 shrink-0 text-green" />
             {canImagePreview ? (
               <button
                 type="button"
                 onClick={() => setPreviewOpen(true)}
-                className="shrink-0 overflow-hidden rounded-md border border-slate-200 bg-white ring-brand-500/40 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2"
+                className="shrink-0 overflow-hidden rounded-md border border-b1 bg-panel ring-brand-500/40 transition hover:opacity-90 focus-visible:outline-none focus-visible:ring-2"
                 aria-label="Preview uploaded image"
               >
                 <img
@@ -129,17 +129,17 @@ export function FileUpload({
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-slate-300 px-4 py-6 text-sm text-slate-500 transition hover:border-brand-400 hover:text-brand-600 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-lg border border-dashed border-b2 px-4 py-6 text-sm text-mid transition hover:border-brand-400 hover:text-brand-600 disabled:opacity-50"
         >
           <Icon name="upload" className="size-5" />
           {uploading ? "Uploading…" : "Choose a file to upload"}
         </button>
       )}
-      {error ? <p className="mt-1.5 text-xs text-rose-600">{error}</p> : null}
+      {error ? <p className="mt-1.5 text-xs text-red">{error}</p> : null}
 
       {previewOpen && canImagePreview && value ? (
         <div
-          className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/80 p-4"
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-rail/80 p-4"
           onClick={() => setPreviewOpen(false)}
           role="dialog"
           aria-modal="true"
@@ -155,7 +155,7 @@ export function FileUpload({
           <img
             src={value}
             alt={fileName(value)}
-            className="max-h-[85vh] max-w-[90vw] rounded-lg border border-white/20 bg-white object-contain shadow-2xl"
+            className="max-h-[85vh] max-w-[90vw] rounded-lg border border-white/20 bg-panel object-contain shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           />
         </div>

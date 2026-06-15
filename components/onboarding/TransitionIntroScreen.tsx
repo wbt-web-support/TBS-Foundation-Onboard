@@ -17,18 +17,18 @@ export function TransitionIntroScreen({
   imageAlt?: string;
 }) {
   return (
-    <div className="rounded-card border border-slate-200 bg-white p-6 shadow-lg dark:border-slate-700 dark:bg-slate-800 sm:p-7 lg:p-8">
+    <div className="rounded-card border border-b1 bg-panel p-6 shadow-lg sm:p-7 lg:p-8">
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div className="min-w-0 flex-1">
-          <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-slate-900 dark:text-slate-100">{title}</h2>
-          <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">{description}</p>
+          <h2 className="text-balance text-3xl font-bold leading-tight tracking-tight text-ink">{title}</h2>
+          <p className="mt-4 whitespace-pre-line text-[15px] leading-relaxed text-mid">{description}</p>
           <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
             {checklist.map((item) => (
               <span
                 key={item}
-                className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-transparent px-3 py-1.5 text-sm font-medium text-slate-800 dark:border-slate-600 dark:text-slate-200"
+                className="inline-flex items-center gap-2 rounded-md border border-b1 bg-transparent px-3 py-1.5 text-sm font-medium text-ink"
               >
-                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-emerald-500 text-white">
+                <span className="grid size-5 shrink-0 place-items-center rounded-full bg-green text-white">
                   <Icon name="check" className="size-3.5" />
                 </span>
                 {item}
@@ -36,7 +36,7 @@ export function TransitionIntroScreen({
             ))}
           </div>
           {closingText ? (
-            <p className="mt-5 text-[15px] leading-relaxed text-slate-600 dark:text-slate-400">{closingText}</p>
+            <p className="mt-5 text-[15px] leading-relaxed text-mid">{closingText}</p>
           ) : null}
         </div>
         {imageSrc ? (

@@ -25,7 +25,7 @@ export function ChoiceControlVisual({
   const checkIcon = size === "compact" ? "size-3 sm:size-3.5" : "size-3.5";
   const radioDot = size === "compact" ? "size-1.5 rounded-full sm:size-2" : "size-2 rounded-full";
   const inactiveRing =
-    surface === "inverse" ? "border-white/70 bg-white/5 text-transparent" : "border-slate-300 bg-white text-transparent dark:border-slate-500 dark:bg-slate-600";
+    surface === "inverse" ? "border-white/70 bg-white/5 text-transparent" : "border-b2 bg-panel text-transparent";
   const activeRing = "border-brand-600 bg-brand-600 text-white";
   return (
     <span

@@ -1,0 +1,120 @@
+/* ==========================================================================
+   WeBuildTrades brand theme — DROP-IN for the separate onboarding app.
+   Copy this whole file to the TOP of the onboarding app's globals.css
+   (above your own styles). It is byte-identical to Command HQ's theme, so
+   the onboarding form matches Dan's portal exactly.
+
+   Requirements in the onboarding app:
+   - Tailwind CSS v4 (this uses the v4 @theme block → utilities like
+     bg-canvas, text-ink, bg-rail, border-b1, text-orange, font-display).
+   - Nothing else — fonts load via the @import below (no next/font needed).
+
+   After dropping this in, the design tokens are available as Tailwind
+   utilities. Examples (see the snippets at the bottom).
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Content surfaces */
+  --color-canvas: #f5f5f4;   /* Warm Stone — app background */
+  --color-surface: #fbfbfa;  /* soft panels / table zebra */
+  --color-panel: #ffffff;    /* cards / panels */
+  --color-raised: #ffffff;
+
+  /* Command rail (sidebar + topbar / hero) */
+  --color-rail: #042c37;     /* Deep Teal */
+  --color-rail-2: #063946;
+  --color-rail-text: #e7f4f4;
+  --color-rail-muted: #8fb6bc;
+  --color-rail-line: rgba(255, 255, 255, 0.1);
+
+  /* Borders (warm light greys, low → high contrast) */
+  --color-b1: #eceae6;
+  --color-b2: #e0ddd8;
+  --color-b3: #cfcbc4;
+
+  /* Accent + status */
+  --color-orange: #f7630c;       /* WBT Orange — CTAs / alerts */
+  --color-orange-2: #ff8a3d;     /* lighter orange (gradients / on-teal) */
+  --color-teal: #1ca6a2;         /* WBT Teal — active / data */
+  --color-teal-bright: #2fd7d2;
+  --color-blue: #2f77c4;
+  --color-green: #1f9d57;
+  --color-red: #d8443c;
+  --color-yellow: #e0890f;
+
+  /* Soft tints (chips, icon plates, banners) */
+  --color-teal-tint: #e7eef0;
+  --color-cyan-tint: #e1f3f2;
+  --color-orange-tint: #fdeede;
+  --color-green-tint: #e7f6ed;
+  --color-amber-tint: #fbf1de;
+  --color-red-tint: #fbe9ea;
+
+  /* Text (tuned for AA legibility on the white surface) */
+  --color-ink: #313131;  /* primary content */
+  --color-mid: #5f6b70;  /* labels */
+  --color-dim: #6e747a;  /* hints */
+
+  /* Fonts */
+  --font-display: 'Poppins', sans-serif;
+  --font-body: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Radius — slightly larger reads more premium on light */
+  --radius-wbt: 8px;
+
+  /* Soft warm-ink elevation (cards lift off the Warm Stone bg) */
+  --shadow-card: 0 1px 2px rgba(4, 44, 55, 0.06);
+  --shadow-lift: 0 6px 20px rgba(4, 44, 55, 0.08);
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+/* Poppins headings want tight tracking, not the wide default. */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* ==========================================================================
+   COPY-PASTE COMPONENT SNIPPETS — the look of the portal, as Tailwind classes.
+   (These are JSX/HTML class strings; adapt to your framework.)
+
+   Primary button (WBT orange CTA — the "Continue" / "Submit" button):
+     class="rounded-md bg-orange px-4 py-2.5 text-[14px] font-semibold text-white
+            transition hover:bg-[#e25608] disabled:opacity-50"
+
+   Secondary button:
+     class="rounded-md border border-b2 bg-surface px-4 py-2.5 text-[14px]
+            font-semibold text-ink transition hover:border-b3"
+
+   Text input / select:
+     class="w-full rounded-md border border-b2 bg-panel px-3 py-2 text-[14px]
+            text-ink focus:border-orange focus:outline-none
+            focus:ring-[3px] focus:ring-orange/10"
+
+   Field label:
+     class="mb-1 block text-[13px] font-medium text-mid"
+
+   Card / form section:
+     class="rounded-lg border border-b1 bg-panel p-5 shadow-card"
+
+   Teal hero band (the welcome header — matches the Customer Hub get-set-up hero):
+     class="rounded-lg bg-rail px-6 py-8 text-rail-text"
+
+   Step heading:
+     class="font-display text-2xl font-bold text-ink"
+
+   Progress ring/bar fill colour: var(--color-orange) on a var(--color-b1) track.
+   ========================================================================== */

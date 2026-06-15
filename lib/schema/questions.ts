@@ -607,10 +607,10 @@ const branding: Section = {
       id: "google_sheet_url",
       type: "textarea",
       icon: "sheet",
-      title: "Copy the Google sheet, Add Your Products, and Submit the URL Here.",
+      title: "Copy the Google sheet, add your products, and submit the URL here.",
       helper:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
-      placeholder: "Lorem ipsum dolor sit amet...",
+        "Make a copy of our product sheet, fill in your products/services with prices and descriptions, then set sharing to “Anyone with the link can view” and paste the shareable URL below. You can also add it later if you don't have it to hand.",
+      placeholder: "https://docs.google.com/spreadsheets/d/...",
       required: false,
     },
     {
@@ -1077,7 +1077,9 @@ const ads: Section = {
       id: "sales_process_facebook",
       type: "textarea",
       icon: "flow",
-      title: "Describe and map out your sales process (again), including the names of the people involvedDo your best to describe & map out your sales process, including the names of the people involved. In other words once you get a new lead/enquiry please describe the process in which you turn that lead into a customer. The more details we have here the better.",
+      title: "Describe and map out your sales process, including the names of the people involved",
+      helper:
+        "Once you get a new lead/enquiry, please describe the process by which you turn that lead into a customer. The more detail you give here, the better.",
       rows: 6,
       visibleIf: { all: [{ questionId: "tried_facebook_ads", equals: "no" }] },
     },

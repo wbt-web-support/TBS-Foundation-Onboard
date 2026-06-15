@@ -42,23 +42,23 @@ export function RepeatableGroup({
   return (
     <div className="space-y-3">
       {items.length === 0 && (
-        <p className="rounded-lg border border-dashed border-slate-200 px-4 py-3 text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
+        <p className="rounded-lg border border-dashed border-b1 px-4 py-3 text-sm text-dim">
           No entries yet. Click &ldquo;{addLabel}&rdquo; below to add one.
         </p>
       )}
       {items.map((item, index) => {
         const subs = (question.group ?? []).filter((s) => isSubQuestionVisible(s, answers, item ?? {}));
         return (
-          <div key={index} className="rounded-lg border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-700 dark:bg-slate-800/60">
+          <div key={index} className="rounded-lg border border-b1 bg-surface/60 p-4">
             <div className="mb-3 flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+              <span className="text-xs font-semibold uppercase tracking-wide text-mid">
                 {label} {index + 1}
               </span>
               {index > 0 && (
                 <button
                   type="button"
                   onClick={() => removeItem(index)}
-                  className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:text-slate-500 dark:hover:bg-rose-900/30 dark:hover:text-rose-400"
+                  className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium text-dim transition hover:bg-red-tint hover:text-red"
                 >
                   <Icon name="x" className="size-3 shrink-0" />
                   Remove
@@ -86,7 +86,7 @@ export function RepeatableGroup({
         <button
           type="button"
           onClick={addItem}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-slate-300 px-3.5 py-2 text-sm font-medium text-slate-600 hover:border-brand-400 hover:text-brand-600 dark:border-slate-600 dark:text-slate-400 dark:hover:border-brand-500 dark:hover:text-brand-400"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-b2 px-3.5 py-2 text-sm font-medium text-mid hover:border-brand-400 hover:text-brand-600"
         >
           <Icon name="sparkles" className="size-4" />
           {addLabel}

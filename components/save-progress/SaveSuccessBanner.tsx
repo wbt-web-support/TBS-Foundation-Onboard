@@ -26,7 +26,7 @@ export function SaveSuccessBanner({ open, emailSent = true, onDismiss }: SaveSuc
     <div
       role="status"
       aria-live="polite"
-      className={`fixed inset-x-0 top-14 z-[1100] flex justify-center border-b border-slate-200 bg-white px-4 py-3 shadow-md transition-[transform,opacity] duration-300 ease-out ${
+      className={`fixed inset-x-0 top-14 z-[1100] flex justify-center border-b border-b1 bg-panel px-4 py-3 shadow-md transition-[transform,opacity] duration-300 ease-out ${
         open ? "translate-y-0 opacity-100" : "pointer-events-none -translate-y-full opacity-0"
       }`}
     >
@@ -35,7 +35,7 @@ export function SaveSuccessBanner({ open, emailSent = true, onDismiss }: SaveSuc
         <button
           type="button"
           onClick={onDismiss}
-          className="shrink-0 rounded-md px-2 py-0.5 text-lg leading-none text-slate-500 hover:bg-slate-100 hover:text-ink"
+          className="shrink-0 rounded-md px-2 py-0.5 text-lg leading-none text-mid hover:bg-surface hover:text-ink"
           aria-label="Dismiss"
         >
           ×

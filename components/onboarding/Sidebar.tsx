@@ -18,12 +18,12 @@ const SAVE_LABEL: Record<SaveStatus, string> = {
 function SaveDot({ status }: { status: SaveStatus }) {
   const color =
     status === "saved"
-      ? "bg-emerald-500"
+      ? "bg-green"
       : status === "saving"
-        ? "bg-amber-400"
+        ? "bg-yellow"
         : status === "error"
-          ? "bg-rose-500"
-          : "bg-slate-300";
+          ? "bg-red"
+          : "bg-rail-line";
   return <span className={`size-2 shrink-0 rounded-full ${color}`} />;
 }
 
@@ -40,25 +40,25 @@ export function Sidebar({ onBackToWelcome }: { onBackToWelcome?: () => void }) {
   const overall = overallProgress(answers, currentSectionIndex);
   const counts = overallProgressCounts(answers);
   const remaining = counts.total - counts.completed;
-  const estMinutes = Math.ceil(remaining * 0.5);
 
   return (
-    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[300px] shrink-0 flex-col border-r border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900 md:flex">
-      {onBackToWelcome && !completed && (
+    <aside className="sticky top-14 hidden h-[calc(100vh-3.5rem)] w-[280px] shrink-0 flex-col bg-rail md:flex">
+      {onBackToWelcome && (
         <button
           type="button"
           onClick={onBackToWelcome}
-          className="flex w-full items-center gap-1.5 border-b border-slate-100 px-5 py-3 text-sm font-medium text-teal-600 transition-colors hover:bg-slate-50 dark:border-slate-700/80 dark:text-teal-400 dark:hover:bg-slate-800/50"
+          className="flex w-full items-center gap-1.5 border-b border-rail-line px-5 py-3 text-sm font-medium text-rail-muted transition hover:text-rail-text"
         >
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="size-4">
             <path d="M19 12H5M12 5l-7 7 7 7" />
           </svg>
-          Back to Welcome
+          Back to overview
         </button>
       )}
-      <div className="border-b border-slate-100 px-5 py-5 dark:border-slate-700/80">
-        <h1 className="text-base font-semibold text-ink">Setup Progress</h1>
-        <p className="mt-0.5 text-xs text-muted">Complete all sections to continue</p>
+
+      <div className="border-b border-rail-line px-5 py-5">
+        <h2 className="font-display text-sm font-semibold text-rail-text">Setup Progress</h2>
+        <p className="mt-0.5 text-xs text-rail-muted">Complete all sections to continue</p>
       </div>
 
       <nav className="flex-1 overflow-y-auto px-2 py-3">
@@ -79,37 +79,32 @@ export function Sidebar({ onBackToWelcome }: { onBackToWelcome?: () => void }) {
         })}
       </nav>
 
-      <div className="border-t border-slate-100 px-5 py-4 dark:border-slate-700/80">
-        <div className="mb-1 flex items-center justify-between text-xs">
-          <span className="font-medium text-slate-600 dark:text-slate-400">Overall Progress</span>
-          <span className="font-semibold text-brand-600">{overall}%</span>
+      <div className="border-t border-rail-line px-5 py-4">
+        <div className="mb-2 flex items-center justify-between text-xs">
+          <span className="font-medium text-rail-muted">Overall Progress</span>
+          <span className="font-semibold text-orange-2">{overall}%</span>
         </div>
         <ProgressBar percent={overall} />
-        {!completed && remaining > 0 && (
-          <p className="mt-1.5 text-[11px] text-slate-400">
-           
-          </p>
-        )}
         {!completed && remaining === 0 && (
-          <p className="mt-1.5 text-[11px] text-emerald-600 font-medium">All questions answered!</p>
+          <p className="mt-1.5 text-[11px] font-medium text-green">All questions answered!</p>
         )}
       </div>
 
-      <div className="border-t border-slate-100 px-5 py-4 dark:border-slate-700/80">
+      <div className="border-t border-rail-line px-5 py-4">
         <div className="mb-2 flex items-center justify-between gap-2">
-          <span className="truncate text-sm text-slate-600 dark:text-slate-400" title={email ?? undefined}>
+          <span className="truncate text-sm text-rail-muted" title={email ?? undefined}>
             {email ?? "Not signed in"}
           </span>
           <button
             type="button"
             onClick={signOut}
-            className="inline-flex shrink-0 items-center gap-1 text-xs text-brand-600 hover:text-brand-700"
+            className="inline-flex shrink-0 items-center gap-1 text-xs text-rail-muted transition hover:text-rail-text"
           >
             <Icon name="logout" className="size-3.5" />
             Sign out
           </button>
         </div>
-        <div className="flex items-center gap-1.5 text-xs text-muted">
+        <div className="flex items-center gap-1.5 text-xs text-rail-muted">
           <SaveDot status={saveStatus} />
           <span>{SAVE_LABEL[saveStatus]}</span>
         </div>

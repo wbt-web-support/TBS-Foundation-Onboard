@@ -1,34 +1,92 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-@custom-variant dark (&:is(.dark *), &.dark);
-
 @theme {
-  --color-brand-50: #f0fdfa;
-  --color-brand-100: #ccfbf1;
-  --color-brand-200: #99f6e4;
-  --color-brand-500: #14b8a6;
-  --color-brand-600: #0d9488;
-  --color-brand-700: #0f766e;
-  --color-brand-800: #115e59;
-  --color-brand-900: #134e4a;
+  /* Content surfaces */
+  --color-canvas: #f5f5f4;
+  --color-surface: #fbfbfa;
+  --color-panel: #ffffff;
+  --color-raised: #ffffff;
 
-  --color-ink: #0f172a;
-  --color-muted: #64748b;
+  /* Command rail — sidebar / header */
+  --color-rail: #042c37;
+  --color-rail-2: #063946;
+  --color-rail-text: #e7f4f4;
+  --color-rail-muted: #8fb6bc;
+  --color-rail-line: rgba(255, 255, 255, 0.1);
 
-  --color-page-bg: #ffffff;
+  /* Borders */
+  --color-b1: #eceae6;
+  --color-b2: #e0ddd8;
+  --color-b3: #cfcbc4;
 
-  /* Intro / transition outer area */
-  --color-intro-backdrop: #ffffff;
-  /* Dark panels (e.g. image gallery chips only — not main intro card) */
-  --color-intro-card: #0f172a;
-  --color-intro-badge: #e85d6f;
-  --color-intro-cta: #14b8a6;
-  --color-intro-cta-hover: #0d9488;
+  /* Accents */
+  --color-orange: #f7630c;
+  --color-orange-2: #ff8a3d;
+  --color-teal: #1ca6a2;
+  --color-teal-bright: #2fd7d2;
+  --color-blue: #2f77c4;
+  --color-green: #1f9d57;
+  --color-red: #d8443c;
+  --color-yellow: #e0890f;
 
-  --radius-card: 1rem;
+  /* Tints */
+  --color-teal-tint: #e7eef0;
+  --color-cyan-tint: #e1f3f2;
+  --color-orange-tint: #fdeede;
+  --color-green-tint: #e7f6ed;
+  --color-amber-tint: #fbf1de;
+  --color-red-tint: #fbe9ea;
 
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /* Text */
+  --color-ink: #313131;
+  --color-mid: #5f6b70;
+  --color-dim: #6e747a;
+
+  /* Typography */
+  --font-display: 'Poppins', sans-serif;
+  --font-body: 'Instrument Sans', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /* Radius */
+  --radius-wbt: 8px;
+
+  /* Elevation */
+  --shadow-card: 0 1px 2px rgba(4, 44, 55, 0.06);
+  --shadow-lift: 0 6px 20px rgba(4, 44, 55, 0.08);
+
+  /* ----------------------------------------------------------------
+     Compatibility layer — legacy tokens mapped onto the WBT palette.
+     Older components still reference brand-*, muted, page-bg, intro-*,
+     and rounded-card. These aliases keep them rendering correctly in
+     WBT colours so nothing breaks while components are migrated.
+     ---------------------------------------------------------------- */
+  --color-brand-50: #fdeede;
+  --color-brand-100: #fbdcc2;
+  --color-brand-200: #ff8a3d;
+  --color-brand-300: #fb7e2c;
+  --color-brand-400: #f9731c;
+  --color-brand-500: #f7630c;
+  --color-brand-600: #f7630c;
+  --color-brand-700: #e25608;
+  --color-brand-800: #c44a07;
+  --color-brand-900: #9e3c06;
+
+  --color-muted: #5f6b70;
+  --color-page-bg: #f5f5f4;
+
+  /* Intro / transition screens */
+  --color-intro-backdrop: #f5f5f4;
+  --color-intro-card: #042c37;
+  --color-intro-badge: #f7630c;
+  --color-intro-cta: #f7630c;
+  --color-intro-cta-hover: #e25608;
+
+  --radius-card: 8px;
+}
+
+:root {
+  color-scheme: light;
 }
 
 html,
@@ -37,16 +95,14 @@ body {
 }
 
 body {
-  background: var(--color-page-bg);
+  background: var(--color-canvas);
   color: var(--color-ink);
-  font-family: var(--font-sans);
+  font-family: var(--font-body);
 }
 
-/* Dark mode overrides */
-html.dark {
-  --color-page-bg: #0f172a;
-  --color-ink: #f1f5f9;
-  --color-muted: #94a3b8;
-  --color-intro-backdrop: #0f172a;
-  color-scheme: dark;
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
 }

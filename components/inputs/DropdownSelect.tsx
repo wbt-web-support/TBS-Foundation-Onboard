@@ -55,7 +55,7 @@ export function DropdownSelect({
 
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+      <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-dim">
         <Icon name={leadingIcon} className="size-[18px]" />
       </span>
       {selectEl}

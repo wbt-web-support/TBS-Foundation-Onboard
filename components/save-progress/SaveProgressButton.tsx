@@ -183,7 +183,7 @@ export function SaveProgressButton({
             role="dialog"
             aria-modal="true"
             aria-labelledby={modalTitleId}
-            className="w-full max-w-md rounded-card border border-slate-200 bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-card border border-b1 bg-panel p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
             <h2 id={modalTitleId} className="text-lg font-semibold text-ink">
@@ -201,16 +201,16 @@ export function SaveProgressButton({
                   setModalEmail(e.target.value);
                   setModalError(null);
                 }}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none ring-brand-500/30 focus:ring-2"
+                className="w-full rounded-lg border border-b1 px-3 py-2 text-sm outline-none ring-brand-500/30 focus:ring-2"
                 placeholder="you@company.com"
                 required
               />
-              {modalError ? <p className="text-sm text-rose-600">{modalError}</p> : null}
+              {modalError ? <p className="text-sm text-red">{modalError}</p> : null}
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setEmailModalOpen(false)}
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-mid hover:bg-surface"
                 >
                   Cancel
                 </button>
@@ -228,11 +228,11 @@ export function SaveProgressButton({
 
       <div className="pointer-events-none fixed bottom-6 right-6 z-[1000] flex flex-col items-center gap-2">
         {errorMsg ? (
-          <p className="pointer-events-auto max-w-[14rem] rounded-md bg-rose-50 px-2 py-1.5 text-center text-[11px] leading-snug text-rose-800 shadow">
+          <p className="pointer-events-auto max-w-[14rem] rounded-md bg-red-tint px-2 py-1.5 text-center text-[11px] leading-snug text-red shadow">
             {errorMsg}
           </p>
         ) : null}
-        <p className="pointer-events-none max-w-[7rem] text-center text-[11px] font-medium leading-tight tracking-wide text-slate-600">
+        <p className="pointer-events-none max-w-[7rem] text-center text-[11px] font-medium leading-tight tracking-wide text-mid">
           Click To
           <br />
           Save
@@ -250,7 +250,7 @@ export function SaveProgressButton({
           {phase === "loading" ? (
             <span className="size-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
           ) : phase === "success" ? (
-            <Icon name="check" className="size-7 text-emerald-400" />
+            <Icon name="check" className="size-7 text-green" />
           ) : (
             <Icon name="floppy" className="size-7" />
           )}

@@ -34,17 +34,17 @@ function tileChromeClass(
   if (surface === "light") {
     if (isButtonStyleGallery && isButtonPreview) {
       return selected
-        ? "border-brand-500 bg-slate-900 ring-1 ring-brand-500"
-        : "border-slate-300 bg-slate-900 hover:border-slate-400";
+        ? "border-brand-500 bg-rail ring-1 ring-brand-500"
+        : "border-b2 bg-rail hover:border-b3";
     }
     return selected
       ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
-      : "border-slate-300 bg-white hover:border-slate-400 hover:bg-slate-50";
+      : "border-b2 bg-panel hover:border-b3 hover:bg-surface";
   }
   if (isButtonStyleGallery && isButtonPreview) {
     return selected
       ? "border-brand-500 bg-[var(--color-intro-card)] ring-1 ring-brand-500"
-      : "border-slate-600/90 bg-[var(--color-intro-card)] hover:border-slate-500";
+      : "border-rail-line bg-[var(--color-intro-card)] hover:border-rail-muted";
   }
   return selected
     ? "border-brand-500 bg-[var(--color-intro-card)] ring-1 ring-brand-500"
@@ -59,9 +59,9 @@ function GalleryTileImage({ imageUrl, label }: { imageUrl?: string; label: strin
     <div className="flex flex-1 items-center justify-center px-3 pb-1 pt-8">
       {showPlaceholder ? (
         <div className="flex flex-col items-center gap-1.5 text-center">
-          <Icon name="image" className="size-8 text-slate-300" />
+          <Icon name="image" className="size-8 text-dim" />
           {failed && imageUrl ? (
-            <span className="max-w-full px-1 text-[10px] text-slate-400">Image unavailable</span>
+            <span className="max-w-full px-1 text-[10px] text-dim">Image unavailable</span>
           ) : null}
         </div>
       ) : (
@@ -95,12 +95,12 @@ function TemplateGalleryTile({
   const zoomSrc = previewUrl || imageUrl;
 
   return (
-    <div className="relative aspect-[4/5] w-full overflow-hidden bg-slate-100">
+    <div className="relative aspect-[4/5] w-full overflow-hidden bg-surface">
       {showPlaceholder ? (
         <div className="flex h-full flex-col items-center justify-center gap-1.5 px-2 text-center">
-          <Icon name="image" className="size-10 text-slate-300" />
+          <Icon name="image" className="size-10 text-dim" />
           {failed && imageUrl ? (
-            <span className="text-[10px] text-slate-400">Image unavailable</span>
+            <span className="text-[10px] text-dim">Image unavailable</span>
           ) : null}
         </div>
       ) : (
@@ -127,7 +127,7 @@ function TemplateGalleryTile({
             e.stopPropagation();
             onZoom(zoomSrc, label);
           }}
-          className="absolute right-2 top-2 z-20 grid size-9 place-items-center rounded-full bg-slate-900/85 text-white shadow-md ring-1 ring-white/20 transition hover:bg-slate-900 hover:ring-white/40"
+          className="absolute right-2 top-2 z-20 grid size-9 place-items-center rounded-full bg-rail/85 text-white shadow-md ring-1 ring-white/20 transition hover:bg-rail hover:ring-white/40"
           aria-label={`Preview ${label} in full size`}
         >
           <Icon name="zoom-in" className="size-4" />
@@ -164,7 +164,7 @@ function ButtonStylePreviewPair({
     return (
       <div className="grid w-full min-w-0 grid-cols-2 gap-2 sm:gap-2.5">
         <SkewButton className="bg-[var(--color-intro-cta)] text-white group-hover:brightness-105" />
-        <SkewButton className="bg-white text-[var(--color-intro-cta)]" />
+        <SkewButton className="bg-panel text-[var(--color-intro-cta)]" />
       </div>
     );
   }
@@ -174,7 +174,7 @@ function ButtonStylePreviewPair({
     shapeRadiusClass(shape);
 
   const filled = `${base} bg-[var(--color-intro-cta)] text-white group-hover:brightness-105`;
-  const outline = `${base} bg-white text-[var(--color-intro-cta)]`;
+  const outline = `${base} bg-panel text-[var(--color-intro-cta)]`;
 
   return (
     <div className="grid w-full min-w-0 grid-cols-2 gap-1.5 sm:gap-2">
@@ -265,11 +265,11 @@ export function ImageGalleryPick({
                 className={`group relative overflow-hidden rounded-xl border text-left transition ${
                   selected
                     ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
-                    : "border-dashed border-slate-300 bg-white hover:border-brand-400 hover:bg-brand-50/50"
+                    : "border-dashed border-b2 bg-panel hover:border-brand-400 hover:bg-brand-50/50"
                 }`}
               >
                 <div
-                  className="flex aspect-[4/5] min-h-0 flex-col bg-slate-50 p-2"
+                  className="flex aspect-[4/5] min-h-0 flex-col bg-surface p-2"
                   onClick={(e) => e.stopPropagation()}
                   onKeyDown={(e) => e.stopPropagation()}
                 >
@@ -284,10 +284,10 @@ export function ImageGalleryPick({
                     />
                   ) : (
                     <div className="flex h-full flex-col items-center justify-center gap-2 px-1 text-center">
-                      <span className="grid size-12 place-items-center rounded-full bg-white shadow-sm ring-1 ring-slate-200">
+                      <span className="grid size-12 place-items-center rounded-full bg-panel shadow-sm ring-1 ring-b2">
                         <Icon name="upload" className="size-6 text-brand-600" />
                       </span>
-                      <span className="text-xs font-semibold text-slate-700 sm:text-sm">Upload my own</span>
+                      <span className="text-xs font-semibold text-ink sm:text-sm">Upload my own</span>
                     </div>
                   )}
                 </div>
@@ -297,7 +297,7 @@ export function ImageGalleryPick({
                   role="radio"
                   aria-checked={selected}
                   aria-label="Upload my own"
-                  className="flex w-full items-center justify-between gap-2 border-t border-slate-700 bg-slate-900 px-2.5 py-2 text-left transition hover:bg-slate-800"
+                  className="flex w-full items-center justify-between gap-2 border-t border-rail-line bg-rail px-2.5 py-2 text-left transition hover:bg-rail-2"
                 >
                   <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-white sm:text-xs">
@@ -321,14 +321,14 @@ export function ImageGalleryPick({
                 enableZoom={enableZoom}
                 onZoom={(src, alt) => setPreview({ src, alt })}
               />
-              <div className="flex border-t border-slate-700">
+              <div className="flex border-t border-rail-line">
                 <button
                   type="button"
                   onClick={toggle}
                   role="radio"
                   aria-checked={selected}
                   aria-label={`Select ${o.label}`}
-                  className="flex flex-1 items-center justify-between gap-2 bg-slate-900 px-2.5 py-2 text-left transition hover:bg-slate-800"
+                  className="flex flex-1 items-center justify-between gap-2 bg-rail px-2.5 py-2 text-left transition hover:bg-rail-2"
                 >
                   <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-white sm:text-xs">
@@ -340,7 +340,7 @@ export function ImageGalleryPick({
                     href={`/builder?template=${encodeURIComponent(o.id)}&type=${galleryType}&name=${encodeURIComponent(o.label)}&thumb=${encodeURIComponent(o.imageUrl ?? "")}`}
                     target="_blank"
                     onClick={(e) => e.stopPropagation()}
-                    className="flex items-center gap-1 border-l border-slate-700 bg-teal-600 px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-white transition hover:bg-teal-500 sm:text-xs"
+                    className="flex items-center gap-1 border-l border-rail-line bg-orange px-2.5 py-2 text-[10px] font-semibold uppercase tracking-wide text-white transition hover:bg-[#e25608] sm:text-xs"
                     title={`Customise ${o.label} template`}
                   >
                     🎨
@@ -376,7 +376,7 @@ export function ImageGalleryPick({
                 <div
                   className={`flex shrink-0 items-center gap-2 border-t px-2 py-2 sm:px-3 ${
                     isLight
-                      ? "border-slate-100 bg-white"
+                      ? "border-b1 bg-panel"
                       : "border-white/10 bg-[var(--color-intro-card)]"
                   }`}
                 >
@@ -388,7 +388,7 @@ export function ImageGalleryPick({
                   />
                   <span
                     className={`line-clamp-1 text-[10px] font-semibold uppercase tracking-wide sm:text-xs ${
-                      isLight ? "text-slate-700" : "text-white"
+                      isLight ? "text-ink" : "text-white"
                     }`}
                   >
                     {o.label}
@@ -410,7 +410,7 @@ export function ImageGalleryPick({
                   <div
                     className={`flex min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center rounded-lg border shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] ${
                       isLight
-                        ? "border-slate-600/40 bg-black/35"
+                        ? "border-rail-line bg-black/35"
                         : "border-white/10 bg-black/35"
                     } ${
                       buttonShape === "skew"
@@ -422,7 +422,7 @@ export function ImageGalleryPick({
                   </div>
                 </div>
                 {isLight ? (
-                  <div className="border-t border-slate-600/30 bg-slate-900/90 px-2 py-1.5 text-center text-[10px] font-medium text-white sm:text-xs">
+                  <div className="border-t border-rail-line bg-rail/90 px-2 py-1.5 text-center text-[10px] font-medium text-white sm:text-xs">
                     {o.label}
                   </div>
                 ) : null}
@@ -433,7 +433,7 @@ export function ImageGalleryPick({
                   <ChoiceControlVisual variant={controlVariant} selected={selected} />
                 </span>
                 <GalleryTileImage imageUrl={o.imageUrl} label={o.label} />
-                <div className="border-t border-slate-100 bg-white px-2 py-2 text-center text-[11px] font-medium leading-snug text-slate-700 sm:text-xs">
+                <div className="border-t border-b1 bg-panel px-2 py-2 text-center text-[11px] font-medium leading-snug text-ink sm:text-xs">
                   {o.label}
                 </div>
               </div>
@@ -442,7 +442,7 @@ export function ImageGalleryPick({
                 <span className="absolute left-2 top-2 z-20">
                   <ChoiceControlVisual variant={controlVariant} selected={selected} surface="inverse" />
                 </span>
-                <div className="relative flex aspect-[4/3] flex-col items-center justify-center bg-white px-4 py-5">
+                <div className="relative flex aspect-[4/3] flex-col items-center justify-center bg-panel px-4 py-5">
                   <GalleryTileImage imageUrl={o.imageUrl} label={o.label} />
                 </div>
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-[var(--color-intro-card)]/95 px-2 py-2 text-center text-xs font-semibold text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 group-data-[selected=true]:opacity-100 [@media(hover:none)]:opacity-100 sm:text-sm">

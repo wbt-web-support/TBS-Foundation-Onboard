@@ -48,11 +48,11 @@ function TypingDots() {
     <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
       <span style={{
         width: 32, height: 32, borderRadius: "50%",
-        background: "linear-gradient(135deg,#14b8a6,#104757)",
+        background: "linear-gradient(135deg,#1ca6a2,#042c37)",
         display: "flex", alignItems: "center", justifyContent: "center",
         fontSize: 14, flexShrink: 0,
       }}>🤖</span>
-      <div style={{ background: "#f1f5f9", borderRadius: "18px 18px 18px 4px", padding: "12px 16px", display: "flex", gap: 4, alignItems: "center" }}>
+      <div style={{ background: "#eceae6", borderRadius: "18px 18px 18px 4px", padding: "12px 16px", display: "flex", gap: 4, alignItems: "center" }}>
         {[0, 1, 2].map((i) => (
           <span key={i} style={{
             width: 6, height: 6,
@@ -76,21 +76,21 @@ function MessageBubble({ msg, onSuggestion }: { msg: Message; onSuggestion: (s: 
         {!isUser && (
           <span style={{
             width: 30, height: 30, borderRadius: "50%", flexShrink: 0, marginBottom: 2,
-            background: "linear-gradient(135deg,#14b8a6,#104757)",
+            background: "linear-gradient(135deg,#1ca6a2,#042c37)",
             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
           }}>🤖</span>
         )}
         {isUser && (
           <span style={{
             width: 30, height: 30, borderRadius: "50%", flexShrink: 0, marginBottom: 2,
-            background: "linear-gradient(135deg,#334155,#1e293b)",
+            background: "linear-gradient(135deg,#334155,#313131)",
             display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13,
           }}>👤</span>
         )}
         {/* Bubble */}
         <div style={{
-          background: isUser ? "linear-gradient(135deg,#104757,#0d3a47)" : "#f1f5f9",
-          color: isUser ? "#fff" : "#1e293b",
+          background: isUser ? "linear-gradient(135deg,#063946,#042c37)" : "#eceae6",
+          color: isUser ? "#fff" : "#313131",
           padding: "11px 15px",
           borderRadius: isUser ? "18px 18px 4px 18px" : "18px 18px 18px 4px",
           maxWidth: "72%",
@@ -98,7 +98,7 @@ function MessageBubble({ msg, onSuggestion }: { msg: Message; onSuggestion: (s: 
           lineHeight: 1.55,
           wordBreak: "break-word",
           overflowWrap: "anywhere",
-          boxShadow: isUser ? "0 2px 8px rgba(16,71,87,0.25)" : "0 1px 4px rgba(0,0,0,0.07)",
+          boxShadow: isUser ? "0 2px 8px rgba(4,44,55,0.25)" : "0 1px 4px rgba(0,0,0,0.07)",
         }}>
           {/* eslint-disable-next-line react/no-danger */}
           <div className="wb-msg-content" dangerouslySetInnerHTML={{ __html: msg.content }} />
@@ -117,11 +117,11 @@ function MessageBubble({ msg, onSuggestion }: { msg: Message; onSuggestion: (s: 
               onClick={() => onSuggestion(s)}
               style={{
                 background: "#fff", border: "1px solid #e2e8f0", borderRadius: 20,
-                padding: "5px 12px", fontSize: 12, color: "#104757", cursor: "pointer",
+                padding: "5px 12px", fontSize: 12, color: "#042c37", cursor: "pointer",
                 fontFamily: "inherit", fontWeight: 500,
                 transition: "all 0.15s",
               }}
-              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#f0fdfa"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#14b8a6"; }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#f0fdfa"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#1ca6a2"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#fff"; (e.currentTarget as HTMLButtonElement).style.borderColor = "#e2e8f0"; }}
             >
               {s}
@@ -284,8 +284,8 @@ export function ChatWidget() {
           to   { opacity:1; transform:translateY(0) scale(1); }
         }
         @keyframes wbPulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(20,184,166,0.4); }
-          50% { box-shadow: 0 0 0 8px rgba(20,184,166,0); }
+          0%,100% { box-shadow: 0 0 0 0 rgba(28,166,162,0.4); }
+          50% { box-shadow: 0 0 0 8px rgba(28,166,162,0); }
         }
         @keyframes wbBounce {
           0%,100% { transform: translateY(0); }
@@ -296,9 +296,9 @@ export function ChatWidget() {
         .wb-panel-msgs::-webkit-scrollbar { width:5px; }
         .wb-panel-msgs::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:10px; }
         .wb-panel-msgs::-webkit-scrollbar-track { background:transparent; }
-        .wb-input-ta { resize:none; border:none !important; outline:none !important; background:transparent; flex:1; padding:10px 12px; font-size:14px; font-family:inherit; color:#1e293b; line-height:1.5; }
+        .wb-input-ta { resize:none; border:none !important; outline:none !important; background:transparent; flex:1; padding:10px 12px; font-size:14px; font-family:inherit; color:#313131; line-height:1.5; }
         .wb-input-ta::placeholder { color:#94a3b8; }
-        .wb-msg-content a { color:#0e7490; text-decoration:underline; }
+        .wb-msg-content a { color:#1ca6a2; text-decoration:underline; }
         .wb-msg-content p { margin-bottom:6px; }
         .wb-msg-content ul { margin:6px 0 6px 18px; list-style:disc; display:flex; flex-direction:column; gap:4px; }
         .wb-msg-content ol { margin-left:18px; }
@@ -324,10 +324,10 @@ export function ChatWidget() {
           style={{
             display: "flex", alignItems: "center", justifyContent: "center",
             width: 58, height: 58, borderRadius: "50%",
-            background: "linear-gradient(135deg,#14b8a6,#104757)",
+            background: "linear-gradient(135deg,#1ca6a2,#042c37)",
             color: "#fff",
             transition: "transform 0.2s, box-shadow 0.2s",
-            boxShadow: "0 6px 20px rgba(16,71,87,0.35)",
+            boxShadow: "0 6px 20px rgba(4,44,55,0.35)",
           }}
         >
           {open ? <IconClose size={20} /> : <IconChat />}
@@ -336,7 +336,7 @@ export function ChatWidget() {
         {!open && unread > 0 && (
           <span style={{
             position: "absolute", top: -4, right: -4,
-            background: "#ef4444", color: "#fff",
+            background: "#d8443c", color: "#fff",
             width: 20, height: 20, borderRadius: "50%",
             fontSize: 11, fontWeight: 700,
             display: "flex", alignItems: "center", justifyContent: "center",
@@ -349,7 +349,7 @@ export function ChatWidget() {
         {!open && (
           <span style={{
             position: "absolute", left: 68, top: "50%", transform: "translateY(-50%)",
-            background: "#1e293b", color: "#fff",
+            background: "#313131", color: "#fff",
             borderRadius: 10, padding: "8px 14px",
             fontSize: 13, fontWeight: 500, whiteSpace: "nowrap",
             pointerEvents: "none",
@@ -381,7 +381,7 @@ export function ChatWidget() {
         >
           {/* ── HEADER ── */}
           <div style={{
-            background: "linear-gradient(135deg,#0e7490 0%,#104757 100%)",
+            background: "linear-gradient(135deg,#042c37 0%,#063946 100%)",
             padding: "14px 16px",
             display: "flex", alignItems: "center",
             justifyContent: "space-between",
@@ -414,7 +414,7 @@ export function ChatWidget() {
                 <div>
                   <p style={{ color: "#fff", fontWeight: 700, fontSize: 13.5, margin: 0 }}>AI Assistant</p>
                   <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, margin: 0, display: "flex", alignItems: "center", gap: 4 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#4ade80", display: "inline-block" }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#1f9d57", display: "inline-block" }} />
                     Online · Typically replies instantly
                   </p>
                 </div>
@@ -453,12 +453,12 @@ export function ChatWidget() {
             <div style={{ overflowY: "auto", display: "flex", flexDirection: "column" }}>
               {/* Hero */}
               <div style={{
-                background: "linear-gradient(160deg, #e0fdf4 0%, #ccfbf1 40%, #f0fdfa 100%)",
+                background: "linear-gradient(160deg, #e1f3f2 0%, #e7eef0 40%, #fbfbfa 100%)",
                 padding: "22px 20px 18px",
               }}>
-                <h2 style={{ fontSize: 26, fontWeight: 800, color: "#0d1117", lineHeight: 1.25, margin: "0 0 6px" }}>
+                <h2 style={{ fontSize: 26, fontWeight: 800, color: "#313131", lineHeight: 1.25, margin: "0 0 6px" }}>
                   Hi there! 👋<br />
-                  <span style={{ color: "#0e7490" }}>How can we help?</span>
+                  <span style={{ color: "#1ca6a2" }}>How can we help?</span>
                 </h2>
                 <p style={{ fontSize: 13, color: "#475569", margin: 0 }}>
                   Ask anything about the onboarding form — we reply instantly.
@@ -468,10 +468,10 @@ export function ChatWidget() {
                   onClick={openChat}
                   style={{
                     marginTop: 16, width: "100%", padding: "13px 20px",
-                    background: "linear-gradient(135deg,#14b8a6,#104757)",
+                    background: "linear-gradient(135deg,#1ca6a2,#042c37)",
                     color: "#fff", border: "none", borderRadius: 12, cursor: "pointer",
                     fontSize: 15, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                    boxShadow: "0 4px 14px rgba(16,71,87,0.3)",
+                    boxShadow: "0 4px 14px rgba(4,44,55,0.3)",
                     transition: "opacity 0.2s, transform 0.2s",
                   }}
                   onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = "0.92"; }}
@@ -505,7 +505,7 @@ export function ChatWidget() {
                     onChange={(e) => setSearchQ(e.target.value)}
                     style={{
                       border: "none", outline: "none", background: "transparent",
-                      flex: 1, fontSize: 13, color: "#1e293b", fontFamily: "inherit",
+                      flex: 1, fontSize: 13, color: "#313131", fontFamily: "inherit",
                     }}
                   />
                   {searchQ && (
@@ -525,17 +525,17 @@ export function ChatWidget() {
                       borderRadius: 12, cursor: "pointer",
                       fontSize: 13.5, textAlign: "left", fontFamily: "inherit",
                       boxShadow: "0 1px 3px rgba(0,0,0,0.05)",
-                      transition: "all 0.15s", color: "#1e293b",
+                      transition: "all 0.15s", color: "#313131",
                     }}
                   >
                     <span style={{
                       width: 34, height: 34, borderRadius: 10,
-                      background: "linear-gradient(135deg,#e0fdf4,#ccfbf1)",
+                      background: "linear-gradient(135deg,#e1f3f2,#e7eef0)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 16, flexShrink: 0,
                     }}>{q.icon}</span>
                     <span style={{ flex: 1, fontWeight: 500 }}>{q.label}</span>
-                    <span style={{ color: "#14b8a6", fontSize: 16, flexShrink: 0 }}>›</span>
+                    <span style={{ color: "#1ca6a2", fontSize: 16, flexShrink: 0 }}>›</span>
                   </button>
                 ))}
 
@@ -602,7 +602,7 @@ export function ChatWidget() {
                     style={{
                       width: 38, height: 38, borderRadius: 10, flexShrink: 0,
                       background: input.trim() && !loading
-                        ? "linear-gradient(135deg,#14b8a6,#104757)"
+                        ? "linear-gradient(135deg,#1ca6a2,#042c37)"
                         : "#e2e8f0",
                       color: input.trim() && !loading ? "#fff" : "#94a3b8",
                       border: "none", cursor: input.trim() && !loading ? "pointer" : "default",
